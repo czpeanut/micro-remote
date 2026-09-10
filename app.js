@@ -124,8 +124,18 @@ async function connect(showAllDevices) {
     txChar = tx;
     device.addEventListener("gattserverdisconnected", onDisconnected);
 
-    await txChar.startNotifications();
-    txChar.addEventListener("characteristicvaluechanged", onNotify);
+    // Subscribing to the TX characteristic is only used to show the
+    // micro:bit's echoed text in the log — it's not needed to drive the
+    // car. Some boards refuse it (e.g. "GATT Error: Not supported." when
+    // notify requires bonding under certain MakeCode pairing settings), so
+    // treat failure here as non-fatal instead of aborting the whole
+    // connection and leaving rxChar set while the UI reports "未連接".
+    try {
+      await txChar.startNotifications();
+      txChar.addEventListener("characteristicvaluechanged", onNotify);
+    } catch (notifyErr) {
+      log(`無法訂閱回傳資料（不影響遙控）：${notifyErr.message || notifyErr}`, "err");
+    }
 
     setStatus("connected", device.name || "micro:bit");
     log(`已連接 ${device.name || "micro:bit"}`);

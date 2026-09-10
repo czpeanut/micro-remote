@@ -69,6 +69,39 @@ function withTimeout(promise, ms) {
   });
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// Android's BLE stack frequently drops the very first GATT connection
+// attempt right after it succeeds (the well-known "GATT error 133"),
+// especially right after a fresh scan. Retrying the connect + service
+// discovery a couple of times, with a short delay, resolves it almost
+// every time without the user having to do anything.
+const GATT_CONNECT_ATTEMPTS = 3;
+const GATT_RETRY_DELAY_MS = 600;
+
+async function connectGattWithRetry(dev) {
+  let lastErr;
+  for (let attempt = 1; attempt <= GATT_CONNECT_ATTEMPTS; attempt++) {
+    try {
+      if (dev.gatt.connected) dev.gatt.disconnect();
+      if (attempt > 1) {
+        log(`連線不穩，自動重試第 ${attempt} 次…`);
+        await sleep(GATT_RETRY_DELAY_MS);
+      }
+      const server = await dev.gatt.connect();
+      const service = await server.getPrimaryService(NUS_SERVICE_UUID);
+      const rx = await service.getCharacteristic(NUS_RX_CHAR_UUID);
+      const tx = await service.getCharacteristic(NUS_TX_CHAR_UUID);
+      return { rx, tx };
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+  throw lastErr;
+}
+
 async function connect(showAllDevices) {
   if (!navigator.bluetooth) return;
   try {
@@ -86,12 +119,10 @@ async function connect(showAllDevices) {
       navigator.bluetooth.requestDevice(requestOptions),
       REQUEST_DEVICE_TIMEOUT_MS
     );
+    const { rx, tx } = await connectGattWithRetry(device);
+    rxChar = rx;
+    txChar = tx;
     device.addEventListener("gattserverdisconnected", onDisconnected);
-
-    const server = await device.gatt.connect();
-    const service = await server.getPrimaryService(NUS_SERVICE_UUID);
-    rxChar = await service.getCharacteristic(NUS_RX_CHAR_UUID);
-    txChar = await service.getCharacteristic(NUS_TX_CHAR_UUID);
 
     await txChar.startNotifications();
     txChar.addEventListener("characteristicvaluechanged", onNotify);
@@ -109,7 +140,7 @@ async function connect(showAllDevices) {
       setStatus("disconnected");
       return;
     }
-    log(`連接失敗：${err.message || err}`, "err");
+    log(`連接失敗（已重試 ${GATT_CONNECT_ATTEMPTS} 次）：${err.message || err}`, "err");
     setStatus("disconnected");
   }
 }

@@ -1,4 +1,4 @@
-const CACHE_NAME = "microbit-remote-v1";
+const CACHE_NAME = "microbit-remote-v2";
 const ASSETS = ["./", "index.html", "style.css", "app.js", "manifest.json", "icon.svg"];
 
 self.addEventListener("install", (event) => {
@@ -16,9 +16,19 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+// Network-first: always try to get the latest app code when online, only
+// fall back to the cached copy when offline. A cache-first strategy here
+// would keep serving a stale app.js/index.html indefinitely after every
+// deploy, since the browser only re-checks sw.js itself for changes.
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request))
+    fetch(event.request)
+      .then((response) => {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });

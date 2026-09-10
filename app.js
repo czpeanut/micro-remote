@@ -28,6 +28,8 @@ let device = null;
 let rxChar = null; // write
 let txChar = null; // notify
 let activeCmd = null; // command currently held down, to avoid duplicate sends
+let consecutiveWriteFailures = 0;
+let pairingHintShown = false;
 
 function log(text, cls) {
   const line = document.createElement("div");
@@ -169,6 +171,8 @@ function onDisconnected() {
   activeCmd = null;
   writeChain = Promise.resolve();
   useWriteWithResponse = false;
+  consecutiveWriteFailures = 0;
+  pairingHintShown = false;
   setStatus("disconnected");
   log("已中斷連接");
 }
@@ -224,8 +228,17 @@ function sendChar(c) {
     try {
       await writeToRx(data);
       log(`送出：${c}#`, "sent");
+      consecutiveWriteFailures = 0;
     } catch (err) {
       log(`送出失敗：${err.message || err}`, "err");
+      consecutiveWriteFailures++;
+      if (consecutiveWriteFailures >= 2 && !pairingHintShown) {
+        pairingHintShown = true;
+        log(
+          "連續送出失敗，且兩種寫入方式都試過。這通常代表 micro:bit 專案的藍牙「配對安全性」不是設成「不需要配對」，導致連線沒有加密/配對，寫入被拒絕。請到 MakeCode 齒輪圖示→專案設定→藍牙，確認選的是「不需要配對 (No pairing required)」，重新下載到板子；並到手機系統的藍牙設定裡「忘記」這個裝置，再回來重新連線一次。",
+          "err"
+        );
+      }
     }
   });
   return writeChain;

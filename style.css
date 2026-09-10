@@ -119,6 +119,12 @@ body {
   color: #ffb4c2;
 }
 
+.banner-warn {
+  background: rgba(245, 166, 35, 0.12);
+  border: 1px solid rgba(245, 166, 35, 0.35);
+  color: #ffd394;
+}
+
 .statusline {
   font-size: 13px;
   color: var(--muted);

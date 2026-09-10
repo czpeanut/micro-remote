@@ -13,6 +13,7 @@ const els = {
   statusText: document.getElementById("statusText"),
   deviceName: document.getElementById("deviceName"),
   unsupportedBanner: document.getElementById("unsupportedBanner"),
+  unreliableBanner: document.getElementById("unreliableBanner"),
   autoStopToggle: document.getElementById("autoStopToggle"),
   log: document.getElementById("log"),
   clearLogBtn: document.getElementById("clearLogBtn"),
@@ -52,14 +53,32 @@ function vibrate(ms) {
   if (navigator.vibrate) navigator.vibrate(ms);
 }
 
+// Some browsers define navigator.bluetooth but never actually show the
+// device chooser (Samsung Internet, Opera Mobile, ...). Without a timeout
+// the UI would sit on "連線中" forever with no feedback.
+const REQUEST_DEVICE_TIMEOUT_MS = 20000;
+
+function withTimeout(promise, ms) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("TIMEOUT")), ms);
+    promise.then(
+      (v) => { clearTimeout(timer); resolve(v); },
+      (e) => { clearTimeout(timer); reject(e); }
+    );
+  });
+}
+
 async function connect() {
   if (!navigator.bluetooth) return;
   try {
     setStatus("connecting");
-    device = await navigator.bluetooth.requestDevice({
-      filters: [{ services: [NUS_SERVICE_UUID] }],
-      optionalServices: [NUS_SERVICE_UUID],
-    });
+    device = await withTimeout(
+      navigator.bluetooth.requestDevice({
+        filters: [{ services: [NUS_SERVICE_UUID] }],
+        optionalServices: [NUS_SERVICE_UUID],
+      }),
+      REQUEST_DEVICE_TIMEOUT_MS
+    );
     device.addEventListener("gattserverdisconnected", onDisconnected);
 
     const server = await device.gatt.connect();
@@ -75,6 +94,11 @@ async function connect() {
   } catch (err) {
     if (err && err.name === "NotFoundError") {
       // user cancelled the device picker
+      setStatus("disconnected");
+      return;
+    }
+    if (err && err.message === "TIMEOUT") {
+      log("逾時：裝置選單一直沒跳出來，這通常代表目前瀏覽器沒有正確支援 Web Bluetooth，請改用 Android 版 Chrome 或 Edge。", "err");
       setStatus("disconnected");
       return;
     }
@@ -160,10 +184,22 @@ function bindDpad() {
   els.stopBtn.addEventListener("pointerleave", () => els.stopBtn.classList.remove("active"));
 }
 
+// Browsers that define navigator.bluetooth but are known to not reliably
+// show the device chooser when requestDevice() is called.
+const UNRELIABLE_UA_PATTERNS = [/SamsungBrowser/i, /OPR\//i, /Firefox/i, /FxiOS/i];
+
 function init() {
   if (!navigator.bluetooth) {
     els.unsupportedBanner.hidden = false;
     els.connectBtn.disabled = true;
+  } else if (UNRELIABLE_UA_PATTERNS.some((re) => re.test(navigator.userAgent))) {
+    els.unreliableBanner.hidden = false;
+  }
+
+  if (navigator.bluetooth && navigator.bluetooth.getAvailability) {
+    navigator.bluetooth.getAvailability().then((available) => {
+      log(available ? "偵測到裝置有藍牙介面卡" : "此裝置沒有偵測到可用的藍牙介面卡", available ? undefined : "err");
+    });
   }
 
   setStatus("disconnected");

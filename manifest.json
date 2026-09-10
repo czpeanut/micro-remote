@@ -1,0 +1,25 @@
+{
+  "name": "micro:bit 藍牙遙控車",
+  "short_name": "遙控車",
+  "description": "透過 Web Bluetooth 遙控使用 micro:bit 藍牙串口積木的遙控車",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f1220",
+  "theme_color": "#0f1220",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

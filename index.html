@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f1220" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>micro:bit 藍牙遙控車</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="icon.svg" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="title">
+        <span class="dot" id="statusDot"></span>
+        <h1>micro:bit 遙控車</h1>
+      </div>
+      <button id="connectBtn" class="connect-btn">連接</button>
+    </header>
+
+    <div id="unsupportedBanner" class="banner banner-error" hidden>
+      這個瀏覽器不支援 Web Bluetooth，請改用 Android 的 Chrome / Edge，
+      或 iOS 上的 <strong>Bluefy</strong> App 開啟本頁面。
+    </div>
+
+    <div class="statusline">
+      狀態：<span id="statusText">未連接</span>
+      <span id="deviceName" class="device-name"></span>
+    </div>
+
+    <main class="pad-area">
+      <div class="dpad">
+        <button class="dpad-btn up" data-cmd="f" aria-label="前進">▲<span>前進</span></button>
+        <button class="dpad-btn left" data-cmd="l" aria-label="左轉">◀<span>左轉</span></button>
+        <button class="dpad-btn stop" id="stopBtn" aria-label="停止">■<span>停止</span></button>
+        <button class="dpad-btn right" data-cmd="r" aria-label="右轉">▶<span>右轉</span></button>
+        <button class="dpad-btn down" data-cmd="b" aria-label="後退">▼<span>後退</span></button>
+      </div>
+    </main>
+
+    <section class="options">
+      <label class="switch-row">
+        <span>放開按鈕自動停止</span>
+        <input type="checkbox" id="autoStopToggle" checked />
+        <span class="switch"></span>
+      </label>
+      <button id="helpBtn" class="link-btn">需要在 micro:bit 程式加入什麼？</button>
+    </section>
+
+    <section class="log-panel">
+      <div class="log-header">
+        <span>通訊紀錄</span>
+        <button id="clearLogBtn" class="link-btn">清除</button>
+      </div>
+      <div id="log" class="log"></div>
+    </section>
+  </div>
+
+  <dialog id="helpDialog">
+    <h2>設定 micro:bit 端程式</h2>
+    <p>本 App 會送出 <code>f#</code>、<code>b#</code>、<code>l#</code>、<code>r#</code>
+      分別代表前進／後退／左轉／右轉，對應你截圖中的四個「如果」積木，不需要修改。</p>
+    <p>但截圖的程式沒有「停止」的判斷，放開按鈕時 App 會送出 <code>s#</code>，
+      若沒有對應積木，馬達會維持最後速度。建議在最後加入一個「如果」積木：</p>
+    <pre>如果 C = "s" 那麼
+  設置馬達M1的速度為 0　馬達M2的速度為 0</pre>
+    <p>若不想修改程式，可以把上方「放開按鈕自動停止」關閉，
+      按鈕就只會在點擊時送出一次方向指令，靠再次點擊其他方向來改變動作。</p>
+    <div class="dialog-actions">
+      <button id="closeHelpBtn" class="connect-btn">知道了</button>
+    </div>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>

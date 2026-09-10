@@ -21,6 +21,7 @@ const els = {
   helpDialog: document.getElementById("helpDialog"),
   closeHelpBtn: document.getElementById("closeHelpBtn"),
   stopBtn: document.getElementById("stopBtn"),
+  scanAllBtn: document.getElementById("scanAllBtn"),
 };
 
 let device = null;
@@ -68,15 +69,21 @@ function withTimeout(promise, ms) {
   });
 }
 
-async function connect() {
+async function connect(showAllDevices) {
   if (!navigator.bluetooth) return;
   try {
     setStatus("connecting");
+    // micro:bit's BLE advertising packet is too small to fit the full
+    // 128-bit UART service UUID, so filtering by service UUID finds
+    // nothing during the scan. Filter by the name it always advertises
+    // instead; the service is still accessed after connect via
+    // optionalServices. If the board was renamed, fall back to showing
+    // every nearby BLE device for manual selection.
+    const requestOptions = showAllDevices
+      ? { acceptAllDevices: true, optionalServices: [NUS_SERVICE_UUID] }
+      : { filters: [{ namePrefix: "BBC micro:bit" }], optionalServices: [NUS_SERVICE_UUID] };
     device = await withTimeout(
-      navigator.bluetooth.requestDevice({
-        filters: [{ services: [NUS_SERVICE_UUID] }],
-        optionalServices: [NUS_SERVICE_UUID],
-      }),
+      navigator.bluetooth.requestDevice(requestOptions),
       REQUEST_DEVICE_TIMEOUT_MS
     );
     device.addEventListener("gattserverdisconnected", onDisconnected);
@@ -210,6 +217,14 @@ function init() {
       disconnect();
     } else {
       connect();
+    }
+  });
+
+  els.scanAllBtn.addEventListener("click", () => {
+    if (device && device.gatt.connected) {
+      disconnect();
+    } else {
+      connect(true);
     }
   });
 

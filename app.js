@@ -1,11 +1,16 @@
 "use strict";
 
-// Nordic UART Service - this is the same service micro:bit MakeCode's
-// "藍牙串口 (Bluetooth UART)" blocks expose, so no UUID changes are needed
-// on the micro:bit side.
+// The service micro:bit MakeCode's "藍牙串口 (Bluetooth UART)" blocks expose.
 const NUS_SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
-const NUS_RX_CHAR_UUID = "6e400002-b5a3-f393-e0a9-e50e24dcca9e"; // phone -> micro:bit (write)
-const NUS_TX_CHAR_UUID = "6e400003-b5a3-f393-e0a9-e50e24dcca9e"; // micro:bit -> phone (notify)
+
+// micro:bit assigns these two the opposite way round from the Nordic UART
+// convention: on micro:bit ...0002 is the notify characteristic (board →
+// phone) and ...0003 is the write characteristic (phone → board). Rather
+// than betting on either convention, the characteristics are picked by
+// their actual properties at connect time; these are only used as a
+// fallback when the browser can't enumerate them.
+const CHAR_UUID_A = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
+const CHAR_UUID_B = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
 
 const els = {
   connectBtn: document.getElementById("connectBtn"),
@@ -83,6 +88,36 @@ function sleep(ms) {
 const GATT_CONNECT_ATTEMPTS = 3;
 const GATT_RETRY_DELAY_MS = 600;
 
+function shortUuid(uuid) {
+  return String(uuid).slice(0, 8);
+}
+
+// Pick the write / notify characteristics by what they can actually do,
+// so the app works whichever way round the board assigns the two UUIDs.
+async function pickCharacteristics(service) {
+  let chars = [];
+  try {
+    chars = await service.getCharacteristics();
+  } catch (err) {
+    chars = [];
+  }
+
+  if (!chars.length) {
+    chars = await Promise.all([
+      service.getCharacteristic(CHAR_UUID_A),
+      service.getCharacteristic(CHAR_UUID_B),
+    ]);
+  }
+
+  const rx = chars.find((c) => c.properties && (c.properties.write || c.properties.writeWithoutResponse));
+  const tx = chars.find((c) => c.properties && (c.properties.notify || c.properties.indicate));
+
+  if (!rx) throw new Error("找不到可寫入的藍牙特徵值，請確認 micro:bit 程式有使用「藍牙串口」積木");
+
+  log(`寫入特徵值：${shortUuid(rx.uuid)}／通知特徵值：${tx ? shortUuid(tx.uuid) : "無"}`);
+  return { rx, tx };
+}
+
 async function connectGattWithRetry(dev) {
   let lastErr;
   for (let attempt = 1; attempt <= GATT_CONNECT_ATTEMPTS; attempt++) {
@@ -94,9 +129,7 @@ async function connectGattWithRetry(dev) {
       }
       const server = await dev.gatt.connect();
       const service = await server.getPrimaryService(NUS_SERVICE_UUID);
-      const rx = await service.getCharacteristic(NUS_RX_CHAR_UUID);
-      const tx = await service.getCharacteristic(NUS_TX_CHAR_UUID);
-      return { rx, tx };
+      return await pickCharacteristics(service);
     } catch (err) {
       lastErr = err;
     }
@@ -126,17 +159,16 @@ async function connect(showAllDevices) {
     txChar = tx;
     device.addEventListener("gattserverdisconnected", onDisconnected);
 
-    // Subscribing to the TX characteristic is only used to show the
-    // micro:bit's echoed text in the log — it's not needed to drive the
-    // car. Some boards refuse it (e.g. "GATT Error: Not supported." when
-    // notify requires bonding under certain MakeCode pairing settings), so
-    // treat failure here as non-fatal instead of aborting the whole
-    // connection and leaving rxChar set while the UI reports "未連接".
-    try {
-      await txChar.startNotifications();
-      txChar.addEventListener("characteristicvaluechanged", onNotify);
-    } catch (notifyErr) {
-      log(`無法訂閱回傳資料（不影響遙控）：${notifyErr.message || notifyErr}`, "err");
+    // Subscribing to the notify characteristic only feeds the echo log —
+    // it isn't needed to drive the car, so a failure here must not tear
+    // down an otherwise working connection.
+    if (txChar) {
+      try {
+        await txChar.startNotifications();
+        txChar.addEventListener("characteristicvaluechanged", onNotify);
+      } catch (notifyErr) {
+        log(`無法訂閱回傳資料（不影響遙控）：${notifyErr.message || notifyErr}`, "err");
+      }
     }
 
     setStatus("connected", device.name || "micro:bit");
@@ -235,7 +267,7 @@ function sendChar(c) {
       if (consecutiveWriteFailures >= 2 && !pairingHintShown) {
         pairingHintShown = true;
         log(
-          "連續送出失敗，且兩種寫入方式都試過。這通常代表 micro:bit 專案的藍牙「配對安全性」不是設成「不需要配對」，導致連線沒有加密/配對，寫入被拒絕。請到 MakeCode 齒輪圖示→專案設定→藍牙，確認選的是「不需要配對 (No pairing required)」，重新下載到板子；並到手機系統的藍牙設定裡「忘記」這個裝置，再回來重新連線一次。",
+          "連續送出失敗，兩種寫入方式都試過了。可先到手機的藍牙設定把這個裝置「忘記」再重新連線（Android 會快取舊的服務資料，換過 micro:bit 程式後常需要清一次）；若仍失敗，請確認 MakeCode 專案設定的藍牙配對模式為「不需要配對」並重新下載到板子。",
           "err"
         );
       }

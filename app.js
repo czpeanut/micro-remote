@@ -167,6 +167,8 @@ function onDisconnected() {
   rxChar = null;
   txChar = null;
   activeCmd = null;
+  writeChain = Promise.resolve();
+  useWriteWithResponse = false;
   setStatus("disconnected");
   log("已中斷連接");
 }
@@ -176,19 +178,57 @@ function onNotify(event) {
   log(`收到：${value}`, "recv");
 }
 
-async function sendChar(c) {
-  if (!rxChar) return;
-  const data = new TextEncoder().encode(c + "#");
+// Android's BLE stack does not reliably handle a second GATT operation
+// started before the previous one resolves — it tends to fail both with a
+// generic "GATT operation failed for unknown reason.", which happens
+// easily when buttons are tapped in quick succession. Chain writes so
+// only one is ever in flight.
+let writeChain = Promise.resolve();
+
+// If writeValueWithoutResponse keeps failing on this board, switch to
+// writeValue (with response) for the rest of the session instead of
+// retrying the failing mode every time.
+let useWriteWithResponse = false;
+
+async function writeToRx(data) {
+  const canWriteNoResponse = !!(rxChar.properties && rxChar.properties.writeWithoutResponse);
+  const canWriteWithResponse = !!(rxChar.properties && rxChar.properties.write);
+  const preferNoResponse = canWriteNoResponse && !useWriteWithResponse;
+
   try {
-    if (rxChar.properties && rxChar.properties.writeWithoutResponse) {
+    if (preferNoResponse) {
       await rxChar.writeValueWithoutResponse(data);
-    } else {
+    } else if (canWriteWithResponse) {
       await rxChar.writeValue(data);
+    } else {
+      await rxChar.writeValueWithoutResponse(data);
     }
-    log(`送出：${c}#`, "sent");
   } catch (err) {
-    log(`送出失敗：${err.message || err}`, "err");
+    // One automatic fallback to the other write mode before giving up.
+    if (preferNoResponse && canWriteWithResponse) {
+      await rxChar.writeValue(data);
+      useWriteWithResponse = true;
+    } else if (!preferNoResponse && canWriteNoResponse) {
+      await rxChar.writeValueWithoutResponse(data);
+      useWriteWithResponse = false;
+    } else {
+      throw err;
+    }
   }
+}
+
+function sendChar(c) {
+  if (!rxChar) return writeChain;
+  const data = new TextEncoder().encode(c + "#");
+  writeChain = writeChain.catch(() => {}).then(async () => {
+    try {
+      await writeToRx(data);
+      log(`送出：${c}#`, "sent");
+    } catch (err) {
+      log(`送出失敗：${err.message || err}`, "err");
+    }
+  });
+  return writeChain;
 }
 
 function bindDpad() {

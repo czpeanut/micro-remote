@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f1220" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>micro:bit 機械手臂遙控</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="icon.svg" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="arm.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="title">
+        <span class="dot" id="statusDot"></span>
+        <h1>機械手臂遙控</h1>
+      </div>
+      <button id="connectBtn" class="connect-btn">連接</button>
+    </header>
+
+    <div id="unsupportedBanner" class="banner banner-error" hidden>
+      這個瀏覽器不支援 Web Bluetooth，請改用 Android 的 Chrome / Edge，
+      或 iOS 上的 <strong>Bluefy</strong> App 開啟本頁面。
+    </div>
+
+    <div class="statusline">
+      狀態：<span id="statusText">未連接</span>
+      <span id="deviceName" class="device-name"></span>
+    </div>
+
+    <main class="arm-pad">
+      <section class="group">
+        <div class="group-title">底座</div>
+        <div class="row">
+          <button class="pad-btn" data-cmd="left" data-hold>◀<span>左轉 left</span></button>
+          <button class="pad-btn" data-cmd="right" data-hold>▶<span>右轉 right</span></button>
+        </div>
+      </section>
+
+      <section class="group">
+        <div class="group-title">手臂</div>
+        <div class="row">
+          <button class="pad-btn" data-cmd="up" data-hold>▲<span>抬起 up</span></button>
+          <button class="pad-btn" data-cmd="down" data-hold>▼<span>放下 down</span></button>
+        </div>
+      </section>
+
+      <section class="group">
+        <div class="group-title">夾爪</div>
+        <div class="row">
+          <button class="pad-btn grip" data-cmd="grab">＞＜<span>夾緊 grab</span></button>
+          <button class="pad-btn grip" data-cmd="open">＜＞<span>放開 open</span></button>
+        </div>
+      </section>
+
+      <button class="pad-btn stop wide" data-cmd="stop">■<span>停止 stop</span></button>
+
+      <section class="group teach">
+        <div class="group-title">示教（第四堂）</div>
+        <div class="row">
+          <button class="pad-btn rec" id="recBtn" data-cmd="rec">●<span>錄製 rec</span></button>
+          <button class="pad-btn play" data-cmd="play">▶▶<span>重播 play</span></button>
+        </div>
+      </section>
+    </main>
+
+    <section class="options">
+      <label class="switch-row">
+        <span>放開按鈕自動停止</span>
+        <input type="checkbox" id="autoStopToggle" checked />
+        <span class="switch"></span>
+      </label>
+      <button id="helpBtn" class="link-btn">指令對照表</button>
+    </section>
+
+    <section class="log-panel">
+      <div class="log-header">
+        <span>通訊紀錄</span>
+        <button id="clearLogBtn" class="link-btn">清除</button>
+      </div>
+      <div id="log" class="log"></div>
+    </section>
+
+    <a class="link-btn back" href="index.html">← 回到遙控車</a>
+  </div>
+
+  <dialog id="helpDialog">
+    <h2>指令對照表</h2>
+    <p>每個按鈕會送出「英文單字 + <code>#</code>」，micro:bit 用
+      <code>藍牙串口 讀取直到 #</code> 收下來，再用「如果 指令 = "left"」判斷。</p>
+    <pre>left   底座左轉（按住）
+right  底座右轉（按住）
+up     手臂抬起（按住）
+down   手臂放下（按住）
+grab   夾爪夾緊（點一下）
+open   夾爪放開（點一下）
+stop   停止（放開按鈕時自動送出）
+rec    開始錄製（第四堂）
+play   重播（第四堂）</pre>
+    <div class="dialog-actions">
+      <button id="closeHelpBtn" class="connect-btn">知道了</button>
+    </div>
+  </dialog>
+
+  <script src="arm.js"></script>
+</body>
+</html>

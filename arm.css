@@ -1,0 +1,89 @@
+/* 機械手臂頁面專用，沿用 style.css 的色票 */
+.arm-pad {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.group {
+  border: 1px solid var(--border);
+  background: var(--panel);
+  border-radius: 16px;
+  padding: 10px 12px 12px;
+}
+
+.group-title {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.pad-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 72px;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--text);
+  border-radius: 14px;
+  font-size: 22px;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  cursor: pointer;
+}
+
+.pad-btn span {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.pad-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.pad-btn.active span { color: rgba(255, 255, 255, 0.85); }
+
+.pad-btn.grip.active {
+  background: var(--ok);
+  border-color: var(--ok);
+}
+
+.pad-btn.stop {
+  color: var(--danger);
+  font-size: 18px;
+}
+
+.pad-btn.stop.active {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: white;
+}
+
+.pad-btn.wide { min-height: 56px; }
+
+.pad-btn.rec { color: var(--danger); }
+
+.pad-btn.rec.recording {
+  background: rgba(255, 84, 112, 0.18);
+  border-color: var(--danger);
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.pad-btn.play { color: var(--ok); }
+
+.back {
+  align-self: center;
+  text-decoration: none;
+}

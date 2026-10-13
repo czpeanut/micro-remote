@@ -87,3 +87,14 @@
   align-self: center;
   text-decoration: none;
 }
+
+.crane-dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 72px);
+  gap: 10px;
+}
+.crane-dpad .up { grid-column: 2; grid-row: 1; }
+.crane-dpad .left { grid-column: 1; grid-row: 1 / span 2; }
+.crane-dpad .right { grid-column: 3; grid-row: 1 / span 2; }
+.crane-dpad .down { grid-column: 2; grid-row: 2; }

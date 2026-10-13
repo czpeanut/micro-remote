@@ -18,7 +18,7 @@ const els = {
   helpBtn: document.getElementById("helpBtn"),
   helpDialog: document.getElementById("helpDialog"),
   closeHelpBtn: document.getElementById("closeHelpBtn"),
-  recBtn: document.getElementById("recBtn"),
+  recBtn: document.getElementById("recBtn") || document.createElement("button"),
 };
 
 let device = null;

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#06223a" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>深海潛艇尋寶</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body { background: #06223a; }
+    .sub-app { max-width: 1100px; margin: 0 auto; padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; min-height: 100vh; }
+    .hud { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+    .stats { display: flex; gap: 10px; flex-wrap: wrap; }
+    .stat { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 6px 14px; font-size: 18px; font-weight: 700; }
+    .stat small { display: block; font-size: 11px; font-weight: 400; color: var(--muted); }
+    .stage { position: relative; flex: 1; min-height: 320px; }
+    canvas { width: 100%; height: 100%; display: block; border-radius: 18px; border: 1px solid rgba(255,255,255,0.15); touch-action: none; }
+    .overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background: rgba(3, 18, 32, 0.72); border-radius: 18px; text-align: center; padding: 20px; }
+    .overlay[hidden] { display: none; }
+    .overlay h2 { margin: 0; font-size: 30px; }
+    .overlay p { margin: 0; color: var(--muted); line-height: 1.7; }
+    .row-btns { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+    .log { height: 64px; }
+    .log-panel { flex: none; }
+    .hint { font-size: 12px; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="sub-app">
+    <header class="hud">
+      <div class="title">
+        <span class="dot" id="statusDot"></span>
+        <h1 style="font-size:18px;margin:0">深海潛艇尋寶</h1>
+        <span id="statusText" class="hint">未連接</span>
+      </div>
+      <div class="stats">
+        <div class="stat"><small>寶藏</small><span id="score">0</span></div>
+        <div class="stat"><small>時間</small><span id="time">120</span></div>
+        <div class="stat"><small>聲納</small><span id="pings">3</span></div>
+        <div class="stat"><small>訊號</small><span id="signal">0</span></div>
+      </div>
+      <button id="connectBtn" class="connect-btn">連接 micro:bit</button>
+    </header>
+
+    <div id="unsupportedBanner" class="banner banner-error" hidden>
+      這個瀏覽器不支援 Web Bluetooth，請改用 Android 的 Chrome／Edge，或 iPad 上的 <strong>Bluefy</strong>。
+      （沒有藍牙也可以用鍵盤方向鍵和空白鍵試玩）
+    </div>
+
+    <div class="stage">
+      <canvas id="sea"></canvas>
+      <div class="overlay" id="overlay">
+        <h2 id="ovTitle">深海潛艇尋寶</h2>
+        <p id="ovText">寶藏藏在海底，平板上看不到！<br>傾斜 micro:bit 開潛艇，看 micro:bit 的聲納雷達找寶藏。<br>按 A 發射聲納，寶藏會現身 1 秒（只有 3 次）。</p>
+        <div class="row-btns">
+          <button id="startBtn" class="connect-btn">開始遊戲（120 秒）</button>
+        </div>
+      </div>
+    </div>
+
+    <section class="log-panel">
+      <div class="log-header"><span>通訊紀錄</span><button id="clearLogBtn" class="link-btn">清除</button></div>
+      <div id="log" class="log"></div>
+    </section>
+    <div class="hint">micro:bit 送出：<code>l#</code> <code>r#</code> <code>u#</code> <code>d#</code> 移動、<code>p#</code> 聲納。平板傳回：<code>0#</code>～<code>4#</code> 訊號強度（4 最近）、<code>g#</code> 找到寶藏、<code>e#</code> 遊戲結束。</div>
+  </div>
+
+  <script src="sub.js"></script>
+</body>
+</html>

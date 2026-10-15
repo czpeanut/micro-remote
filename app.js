@@ -57,7 +57,7 @@ async function connect() {
   try {
     setStatus("connecting");
     device = await navigator.bluetooth.requestDevice({
-      filters: [{ services: [NUS_SERVICE_UUID] }],
+      filters: [{ services: [NUS_SERVICE_UUID] }, { namePrefix: "BBC micro:bit" }],
       optionalServices: [NUS_SERVICE_UUID],
     });
     device.addEventListener("gattserverdisconnected", onDisconnected);

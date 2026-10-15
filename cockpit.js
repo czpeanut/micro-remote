@@ -131,7 +131,7 @@ async function connect() {
   if (!navigator.bluetooth) { toast("這個瀏覽器不支援藍牙，請用 Chrome 或 Edge"); return; }
   try {
     setStatus("wait");
-    device = await navigator.bluetooth.requestDevice({ filters: [{ services: [NUS] }], optionalServices: [NUS] });
+    device = await navigator.bluetooth.requestDevice({ filters: [{ services: [NUS] }, { namePrefix: "BBC micro:bit" }], optionalServices: [NUS] });
     device.addEventListener("gattserverdisconnected", () => { rxChar = null; setStatus("off"); log("已中斷連接", "e"); });
     const svc = await (await device.gatt.connect()).getPrimaryService(NUS);
     rxChar = await svc.getCharacteristic(NUS_RX);

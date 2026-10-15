@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#041726" />
-  <title>潛艇駕駛艙</title>
+  <title>潛艇出航</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
   <style>
     :root {
@@ -41,7 +41,7 @@
     .compass .tape span.n { color: var(--coral); }
     .compass::after { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; background: var(--amber); transform: translateX(-1px); }
     .right { display: flex; gap: 8px; align-items: center; }
-    .pad { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); display: grid; grid-template-columns: repeat(3, 58px); grid-template-rows: repeat(2, 50px); gap: 6px; }
+    .pad { position: fixed; right: 22px; bottom: 22px; display: grid; grid-template-columns: repeat(3, 58px); grid-template-rows: repeat(2, 50px); gap: 6px; }
     .pad button { border: 1px solid rgba(255,201,74,.45); background: rgba(20,14,0,.45); color: var(--amber); border-radius: 12px; font: 800 15px/1 inherit; cursor: pointer; backdrop-filter: blur(4px); }
     .pad button small { display: block; font-size: 11px; color: var(--muted); margin-top: 3px; font-weight: 600; }
     .pad button:active, .pad button.hit { background: rgba(255,201,74,.35); }
@@ -80,7 +80,7 @@
 <body>
   <canvas id="view"></canvas>
   <div class="hud">
-    <div class="chip"><span class="dot" id="dot"></span><b>潛艇駕駛艙</b><span class="status" id="status">未連接</span></div>
+    <div class="chip"><span class="dot" id="dot"></span><b>潛艇出航</b><span class="status" id="status">未連接</span></div>
     <div class="center">
       <div class="stats">
         <div class="stat"><small>珍珠</small><span id="score">0</span></div>
@@ -88,7 +88,6 @@
         <div class="stat"><small>座標</small><span id="coord">2, 2</span></div>
         <div class="stat"><small>被炸</small><span id="hits">0</span></div>
       </div>
-      <div class="compass"><div class="tape" id="tape"></div></div>
     </div>
     <div class="right">
       <button class="btn ghost" id="soundBtn">音效 開</button>
@@ -108,7 +107,7 @@
   <div class="overlay" id="menu">
     <div class="card">
       <h1>潛艇出航</h1>
-      <p class="sub">電腦是潛艇的窗戶，只看得到眼前；micro:bit 的 LED 是海圖。水雷要靠近兩格才看得到模糊的影子，一格才看得清楚，所以要一邊看海圖一邊開。</p>
+      <p class="sub">海底一片漆黑，電腦只照得到潛艇附近；micro:bit 的 LED 是海圖。水雷要靠近兩格才看得到模糊的影子，一格才看得清楚，所以要一邊看海圖一邊開。</p>
       <div class="cols">
         <div>
           <div class="grid5" id="grid5"></div>
@@ -119,7 +118,7 @@
             <button class="mode" id="modeFree"><b>自由巡航</b><p>沒有時間限制。海底有 3 顆發光珍珠，只有電腦看得到；水雷只有 micro:bit 看得到全部。</p></button>
             <button class="mode" id="modeTime"><b>限時尋寶 60 秒</b><p>60 秒內收集最多珍珠。被水雷炸到會回到 (0, 0)，浪費時間！</p></button>
           </div>
-          <div class="keys">先按右上角「連接 micro:bit」（第五堂的程式）。<br>方向鍵或下方按鈕：送出 f　b　l　r，和手機遙控一樣。<br>潛艇會先轉向，再往那個方向前進一格。</div>
+          <div class="keys">先按右上角「連接 micro:bit」（第五堂的程式）。<br>方向鍵或下方按鈕：送出 f　b　l　r，和手機遙控一樣。<br>按一下走一格，和 LED 上的點一起動。</div>
         </div>
       </div>
     </div>

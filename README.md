@@ -1,11 +1,13 @@
-# micro-remote
+# micro-remote — 酷丁狐的科技實驗室
+
+`index.html` 是整套教材的入口網：遙控器（遙控車、機械手臂、吊車）、深海探險隊的遊戲（潛艇出航、深海探險、深海規則實驗室）、課程單元對照表和故障排除都在這一頁。共用色票在 `kuding.css`，遙控器頁面套用 `remote.css`，遊戲頁面套用 `game.css`。
 
 手機端網頁 App，透過 Web Bluetooth 直接控制使用 MakeCode「藍牙串口 (Bluetooth UART)」積木的
 micro:bit 遙控車，搭配文件開頭截圖中的積木程式使用，不需另外安裝原生 App。
 
 ## 檔案結構
 
-- `index.html` — 頁面結構與遙控按鈕（前進／後退／左轉／右轉／停止）
+- `car.html` — 遙控車頁面與按鈕（前進／後退／左轉／右轉／停止）（原本的 `index.html`）
 - `style.css` — 手機優先的深色介面樣式
 - `app.js` — Web Bluetooth 連線與指令傳送邏輯
 - `manifest.json` / `sw.js` / `icon.svg` — 讓頁面可「加入主畫面」成為類 App 使用
@@ -46,7 +48,7 @@ App 透過 micro:bit 內建的 **Nordic UART Service**（MakeCode 藍牙積木�
 
 ## 使用方式
 
-1. 用手機瀏覽器開啟 `index.html`（需部署在 HTTPS 網址，例如 GitHub Pages；
+1. 用手機瀏覽器開啟 `car.html`（需部署在 HTTPS 網址，例如 GitHub Pages；
    Web Bluetooth 不允許在一般 `http://` 網址下使用）。
 2. 點右上角「連接」，在裝置選單中選擇對應的 `BBC micro:bit [xxxxx]`。
 3. 連接成功後即可用畫面上的方向鍵操控遙控車，下方「通訊紀錄」會顯示送出與收到的資料，方便除錯。
@@ -68,7 +70,7 @@ Web Bluetooth 目前僅部分平台支援：
 
 ## 機械手臂遙控頁（arm.html）與吊車遙控頁（crane.html）
 
-給「悟空機械手臂」課程用的兩個頁面，和遙控車共用同一套藍牙串口連線方式，`index.html` 不受影響。
+給「悟空機械手臂」課程用的兩個頁面，和遙控車共用同一套藍牙串口連線方式，`car.html` 不受影響。
 GitHub Pages 網址後面加 `/arm.html` 或 `/crane.html`。每個按鈕送出「英文單字 + `#`」，
 按住型的按鈕放開時自動送 `stop#`。
 

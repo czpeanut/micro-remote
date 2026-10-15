@@ -1,0 +1,35 @@
+/* 酷丁狐的科技實驗室 — 共用色票與元件（入口網、遙控器、遊戲共用） */
+:root {
+  --kd-paper: #F3EEE1;
+  --kd-paper-2: #FFF9EC;
+  --kd-ink: #2B1D14;
+  --kd-ink-2: #5A4636;
+  --kd-orange: #C4521A;
+  --kd-orange-2: #B4471A;
+  --kd-mustard: #F5C547;
+  --kd-olive: #45552A;
+  --kd-cream: #FFE9C7;
+  --kd-grid: rgba(43, 29, 20, 0.06);
+  --kd-font: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  --kd-mono: "Space Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+
+/* 子頁面最上方的「回到實驗室」條 */
+.kd-top {
+  display: flex; align-items: center; gap: 10px; padding: 8px 12px;
+  background: var(--kd-paper); color: var(--kd-ink); border-bottom: 3px solid var(--kd-ink);
+  font-family: var(--kd-font);
+}
+.kd-top a.kd-home { display: inline-flex; align-items: center; gap: 8px; color: var(--kd-ink); text-decoration: none; font-weight: 900; font-size: 14px; min-width: 0; }
+.kd-top .kd-logo { width: 34px; height: 34px; flex: none; background: var(--kd-orange) url("assets/fox-head.webp") center 2px / 120% auto no-repeat; border: 2px solid var(--kd-ink); }
+.kd-top small { display: block; font-family: var(--kd-mono); font-size: 10px; font-weight: 700; letter-spacing: .08em; color: var(--kd-ink-2); }
+.kd-top .kd-unit { margin-left: auto; font-family: var(--kd-mono); font-size: 11px; font-weight: 700; padding: 4px 8px; background: var(--kd-ink); color: var(--kd-paper); white-space: nowrap; }
+
+/* 浮在遊戲畫面上的小按鈕版本 */
+.kd-float {
+  position: fixed; left: 14px; bottom: 14px; z-index: 30; display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 12px 6px 6px; background: var(--kd-paper); color: var(--kd-ink); border: 2px solid var(--kd-ink);
+  box-shadow: 4px 4px 0 var(--kd-ink); font: 900 13px/1 var(--kd-font); text-decoration: none;
+}
+.kd-float .kd-logo { width: 26px; height: 26px; background: var(--kd-orange) url("assets/fox-head.webp") center 1px / 120% auto no-repeat; border: 2px solid var(--kd-ink); }
+.kd-float:hover { transform: translate(-1px, -1px); box-shadow: 5px 5px 0 var(--kd-ink); }

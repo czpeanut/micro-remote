@@ -161,7 +161,6 @@ function receive(chunk) {
       const k = m[1].toLowerCase(), v = Math.round(parseFloat(m[2]));
       if (k === "x") moveTo(clamp(v, 0, N - 1), S.gy);
       else if (k === "y") moveTo(S.gx, clamp(v, 0, N - 1));
-      else if (k === "d") S.d = clamp(v, 0, 2 * (N - 1));
     } else if (msg.toLowerCase() === "found") { log("收到 found#", "r"); found(); }
     else log(`收到 ${msg}#`, "r");
   }
@@ -187,7 +186,6 @@ function noise(dur, vol, freq = 700) {
 const sfx = {
   move() { noise(0.25, 0.08, 300); },
   bump() { tone(110, 45, 0.35, "sawtooth", 0.14); noise(0.2, 0.2, 500); },
-  beep(d) { const f = 520 + (RANGE - d) * 90; tone(f, f, 0.07, "square", 0.05 + (RANGE - d) * 0.008); },
   found() { [523, 659, 784, 1046, 1318].forEach((f, i) => tone(f, f * 1.01, 0.28, "triangle", 0.16, i * 0.09)); },
   bite() { noise(0.5, 0.5, 600); tone(160, 60, 0.4, "sawtooth", 0.2); },
   end() { [784, 659, 523].forEach((f, i) => tone(f, f, 0.35, "triangle", 0.14, i * 0.16)); },
@@ -218,7 +216,7 @@ function found() {
   for (let i = 0; i < 36; i++) { const a = rnd(0, 6.28), v = rnd(0.6, 2.4); debris.push({ x: S.gx + 1.5, y: S.gy + 1.5, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: rnd(0.6, 1.3), s: Math.random() < 0.4 ? 2 : 1, c: ["#ffd84a", "#fff3c4", "#ffb347"][i % 3] }); }
 }
 function bite(k) {
-  S.lives--; S.bite = 1; S.shake = 1; sfx.bite(); hud();
+  S.lives--; S.bite = 1; S.shake = 1; S.safeUntil = performance.now() + 2500; sfx.bite(); hud();
   k.cool = performance.now() + 2500; k.a = Math.atan2(k.y - S.y, k.x - S.x); k.sp = 0.9;
   for (let i = 0; i < 14; i++) debris.push({ x: S.x, y: S.y, vx: rnd(-1.5, 1.5), vy: rnd(-1.5, 1.5), life: rnd(0.4, 0.9), s: 1, c: "#ff6f6f" });
   if (S.lives <= 0) finish("潛艇被鯊魚咬壞了！"); else toast("被鯊魚咬到了！");
@@ -227,7 +225,7 @@ function bite(k) {
 /* ---------------- 流程 ---------------- */
 function start(mode) {
   audio();
-  S.mode = mode; S.running = true; S.score = 0; S.lives = 3; S.left = 90; S.chests = []; S.rings = [];
+  S.mode = mode; S.running = true; S.score = 0; S.lives = 3; S.safeUntil = 0; S.left = 90; S.chests = []; S.rings = [];
   S.gx = START[0]; S.gy = START[1]; S.face = 0; S.x = START[0] + 1.5; S.y = START[1] + 1.5; S.ang = FACE_ANG[0]; S.fade = 1;
   hideSim(); if (!live()) S.d = Math.abs(S.gx - S.sim.x) + Math.abs(S.gy - S.sim.y);
   spawnSharks(mode === "time" ? 4 : 3);
@@ -235,13 +233,13 @@ function start(mode) {
   $("menu").hidden = true; $("endOv").hidden = true; $("timeBox").hidden = mode !== "time";
   clearInterval(S.timer);
   if (mode === "time") S.timer = setInterval(() => { if (!S.running) return; S.left--; hud(); if (S.left <= 0) finish("時間到！"); }, 1000);
-  hud(); toast(live() ? "傾斜 micro:bit，聽雷達找寶藏！" : "方向鍵開潛艇，聽雷達找寶藏！");
+  hud(); toast(live() ? "傾斜 micro:bit，看 micro:bit 的雷達找寶藏！" : "方向鍵試玩：沒有雷達，只能碰運氣");
 }
 function finish(title) {
   if (!S.running) return;
   S.running = false; clearInterval(S.timer); sfx.end();
   $("endTitle").textContent = title; $("endScore").textContent = `${S.score} 個寶藏`;
-  $("endText").textContent = S.lives > 0 ? `還剩 ${S.lives} 顆心。雷達叫得越快，寶藏就越近。` : "鯊魚游得很慢，聽到附近有紅眼睛就先繞開。";
+  $("endText").textContent = S.lives > 0 ? `還剩 ${S.lives} 顆心。micro:bit 嗶得越快、長條越滿，寶藏就越近。` : "鯊魚游得很慢，看到附近有紅眼睛就先繞開。";
   $("endOv").hidden = false;
 }
 function openMenu() { S.running = false; clearInterval(S.timer); $("endOv").hidden = true; $("menu").hidden = false; }
@@ -249,10 +247,7 @@ function hud() {
   $("score").textContent = S.score; $("time").textContent = S.left;
   $("timeBox").classList.toggle("warn", S.left <= 10);
   $("lives").textContent = "♥".repeat(Math.max(0, S.lives)) + "♡".repeat(Math.max(0, 3 - S.lives));
-  $("dist").textContent = S.d == null ? "--" : S.d;
   $("coord").textContent = `${S.gx}, ${S.gy}`;
-  const bars = $("radar").children, lit = S.d == null ? 0 : RANGE - S.d;
-  for (let i = 0; i < bars.length; i++) bars[i].classList.toggle("on", i < lit);
 }
 let toastT = 0;
 function toast(t) { const el = $("toast"); el.textContent = t; el.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove("show"), 1500); }
@@ -434,11 +429,6 @@ function render(now) {
     ctx.fillStyle = Math.sin(t * 3 + k.ph) > -0.7 ? "#ff5a3c" : "#7a1d0c";
     ctx.fillRect(Math.round(ex + px2), Math.round(ey + py2), 1, 1); ctx.fillRect(Math.round(ex - px2), Math.round(ey - py2), 1, 1);
   }
-  // 雷達波：越接近寶藏，波越亮越快
-  for (const r of S.rings) {
-    const age = (now - r.t) / 1000; if (age > 1) continue;
-    ctx.strokeStyle = `rgba(110,240,255,${(1 - age) * r.s})`; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(sx, sy, 8 + age * 46 * (0.6 + r.s), 0, 7); ctx.stroke();
-  }
   // 海雪
   ctx.fillStyle = "rgba(210,235,255,.55)";
   for (const p of snow) { p.y += 0.0004 * p.z; p.x += 0.0002 * p.z; if (p.y > 1) p.y = 0; if (p.x > 1) p.x = 0; ctx.globalAlpha = 0.2 + p.z * 0.4; ctx.fillRect(Math.floor(p.x * W), Math.floor(p.y * H), 1, 1); }
@@ -467,11 +457,6 @@ function update(dt, now) {
   }
   if (S.bump > 0 && !S.pendingBump) S.bump = Math.max(0, S.bump - dt * 3);
   S.shake *= Math.exp(-dt * 4); S.flash = Math.max(0, S.flash - dt * 2.2); S.fade = Math.max(0, S.fade - dt * 1.5); S.bite = Math.max(0, S.bite - dt * 1.6);
-  // 雷達：越近叫得越快
-  if (S.running && S.d != null && S.d > 0 && S.d <= RANGE && now > S.nextBeep) {
-    S.nextBeep = now + beepGap(S.d) * 1000; sfx.beep(S.d);
-    S.rings.push({ t: now, s: 0.25 + (RANGE - S.d) * 0.075 }); if (S.rings.length > 8) S.rings.shift();
-  }
   // 鯊魚：慢慢游，偶爾轉彎，靠近潛艇時會慢慢跟過來
   for (const s of S.sharks) {
     const dist = Math.hypot(S.x - s.x, S.y - s.y);
@@ -481,7 +466,7 @@ function update(dt, now) {
     s.x += Math.cos(s.a) * s.sp * dt; s.y += Math.sin(s.a) * s.sp * dt;
     if (s.x < LO || s.x > HI) { s.a = Math.PI - s.a; s.x = clamp(s.x, LO, HI); }
     if (s.y < LO || s.y > HI) { s.a = -s.a; s.y = clamp(s.y, LO, HI); }
-    if (S.running && now > s.cool && dist < 0.5) bite(s);
+    if (S.running && now > s.cool && now > (S.safeUntil || 0) && dist < 0.5) bite(s);
   }
   for (const f of S.fish) {
     f.a += Math.sin(now / 900 + f.sp * 10) * dt * 0.8;
@@ -493,7 +478,7 @@ function update(dt, now) {
   while (bubbles.length && bubbles[0].life <= 0) bubbles.shift();
   for (const d of debris) { d.x += d.vx * dt; d.y += d.vy * dt; d.vx *= 0.96; d.vy *= 0.96; d.life -= dt * 1.1; }
   for (let i = debris.length - 1; i >= 0; i--) if (debris[i].life <= 0) debris.splice(i, 1);
-  if (now - (update.lastHud || 0) > 250) { update.lastHud = now; $("link").textContent = live() ? "micro:bit 傳送中" : rxChar ? "等待 micro:bit 資料…" : "方向鍵試玩"; }
+  if (now - (update.lastHud || 0) > 250) { update.lastHud = now; hud(); $("link").textContent = live() ? "micro:bit 傳送中" : rxChar ? "等待 micro:bit 資料…" : "方向鍵試玩"; }
 }
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now;

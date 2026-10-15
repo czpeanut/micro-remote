@@ -100,7 +100,6 @@
         <div class="stat"><small>寶藏</small><span id="score">0</span></div>
         <div class="stat" id="timeBox" hidden><small>時間</small><span id="time">90</span></div>
         <div class="stat"><small>生命</small><span id="lives" style="color:#ff6f6f;letter-spacing:2px">♥♥♥</span></div>
-        <div class="stat radarbox"><small>雷達 距離 <b id="dist">--</b></small><div class="radar" id="radar"><i style="height:4px"></i><i style="height:7px"></i><i style="height:9px"></i><i style="height:12px"></i><i style="height:14px"></i><i style="height:17px"></i><i style="height:20px"></i><i style="height:22px"></i><i style="height:25px"></i><i style="height:27px"></i></div></div>
         <div class="stat"><small>座標</small><span id="coord">2, 2</span></div>
       </div>
     </div>
@@ -117,14 +116,14 @@
   <div class="overlay" id="menu">
     <div class="card">
       <h1>聲納尋寶</h1>
-      <p class="sub">這片海底有 10×10 這麼大，只畫在電腦上；micro:bit 整片 LED 都是雷達。傾斜 micro:bit 開潛艇，聽雷達：寶藏在 10 格以內才收得到，越靠近嗶嗶聲越快、雷達越滿。小心慢慢游的鯊魚，黑暗中只看得到牠的紅眼睛。</p>
+      <p class="sub">這片海底有 10×10 這麼大，只畫在電腦上；雷達只在 micro:bit 上：寶藏在 10 格以內，micro:bit 的 LED 長條會亮、蜂鳴器會嗶嗶叫，越近越滿、越快。傾斜 micro:bit 開潛艇，小心慢慢游的鯊魚，黑暗中只看得到牠的紅眼睛。</p>
       <div class="modes" style="grid-template-columns:1fr 1fr;display:grid">
         <button class="mode" id="modeFree"><span class="tag">第七堂</span><b>自由尋寶</b><p>沒有時間限制，海裡有 3 隻鯊魚。被咬 3 次遊戲結束。</p></button>
         <button class="mode" id="modeTime"><span class="tag">第七堂</span><b>限時挑戰 90 秒</b><p>90 秒內找最多寶藏，海裡有 4 隻鯊魚。</p></button>
       </div>
       <div class="proto">
-        <div><b>micro:bit 送出</b><br><code>x:數字</code>　<code>y:數字</code>　潛艇座標（0～9）<br><code>d:數字</code>　離寶藏的距離<br><code>found#</code>　找到寶藏</div>
-        <div><b>沒有 micro:bit？</b><br>方向鍵開潛艇，電腦會自己藏寶藏，一樣聽雷達找。<br>連上 micro:bit 後，潛艇改成跟著 micro:bit 動。</div>
+        <div><b>micro:bit 送出</b><br><code>x:數字</code>　<code>y:數字</code>　潛艇座標（0～9）<br><code>found#</code>　找到寶藏<br>距離和雷達只留在 micro:bit 上</div>
+        <div><b>沒有 micro:bit？</b><br>方向鍵可以先試試開潛艇和躲鯊魚；雷達只在 micro:bit 上，所以要接上 micro:bit 才找得到寶藏。<br>連上 micro:bit 後，潛艇改成跟著 micro:bit 動。</div>
       </div>
     </div>
   </div>

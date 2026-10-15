@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#041726" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>深海探險</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <style>
+    :root {
+      --ink: #e9f4ff; --muted: #8fb0c9; --line: rgba(160, 210, 255, 0.18); --glass: rgba(6, 28, 46, 0.62);
+      --amber: #ffc94a; --cyan: #5fe1ff; --coral: #ff6f6f; --ok: #3ee69a;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; height: 100%; background: #020c15; color: var(--ink); overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif; }
+    canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; }
+    .hud { position: fixed; top: 0; left: 0; right: 0; display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 12px; padding: 14px 18px; pointer-events: none; }
+    .hud > * { pointer-events: auto; }
+    .brand { display: flex; align-items: center; gap: 10px; background: var(--glass); border: 1px solid var(--line);
+      border-radius: 14px; padding: 8px 14px; backdrop-filter: blur(8px); }
+    .brand b { font-size: 17px; letter-spacing: 1px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--coral); box-shadow: 0 0 0 3px rgba(255,111,111,.2); }
+    .dot.on { background: var(--ok); box-shadow: 0 0 0 3px rgba(62,230,154,.22); }
+    .dot.wait { background: var(--amber); animation: blink 1s infinite; }
+    @keyframes blink { 50% { opacity: .3; } }
+    .status { font-size: 12px; color: var(--muted); }
+    .stats { display: flex; gap: 8px; }
+    .stat { min-width: 74px; text-align: center; background: var(--glass); border: 1px solid var(--line); border-radius: 14px;
+      padding: 6px 12px; backdrop-filter: blur(8px); }
+    .stat small { display: block; font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+    .stat span { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .stat.warn span { color: var(--coral); }
+    .btn { border: 1px solid rgba(95,225,255,.5); background: rgba(95,225,255,.14); color: var(--ink); font-size: 15px; font-weight: 700;
+      padding: 10px 18px; border-radius: 999px; cursor: pointer; }
+    .btn:hover { background: rgba(95,225,255,.24); }
+    .btn.primary { background: var(--amber); color: #2b1d00; border-color: var(--amber); }
+    .btn.ghost { background: transparent; }
+    .right { display: flex; gap: 8px; align-items: center; }
+    .overlay { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 20px;
+      background: radial-gradient(ellipse at center, rgba(2,20,36,.55), rgba(1,8,15,.88)); }
+    .overlay[hidden] { display: none; }
+    .card { width: min(760px, 100%); background: rgba(6, 30, 50, .82); border: 1px solid var(--line); border-radius: 24px;
+      padding: 26px 28px; backdrop-filter: blur(10px); box-shadow: 0 30px 80px rgba(0,0,0,.5); }
+    .card h1 { margin: 0 0 4px; font-size: 32px; letter-spacing: 2px; }
+    .card .sub { color: var(--muted); margin: 0 0 18px; }
+    .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+    .mode { text-align: left; border: 1px solid var(--line); background: rgba(255,255,255,.04); color: var(--ink); border-radius: 18px;
+      padding: 16px; cursor: pointer; }
+    .mode:hover { border-color: var(--cyan); background: rgba(95,225,255,.08); }
+    .mode b { display: block; font-size: 19px; margin-bottom: 6px; }
+    .mode .tag { display: inline-block; font-size: 11px; color: #2b1d00; background: var(--amber); border-radius: 6px; padding: 1px 6px; margin-bottom: 8px; }
+    .mode p { margin: 0; font-size: 13px; line-height: 1.7; color: var(--muted); }
+    .how { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+    .how div { background: rgba(255,255,255,.04); border-radius: 12px; padding: 10px 12px; line-height: 1.6; }
+    .how b { color: var(--ink); }
+    .foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+    .banner { color: #ffd0d0; font-size: 13px; margin-bottom: 12px; }
+    .log { position: fixed; left: 18px; bottom: 14px; width: 300px; max-height: 120px; overflow: hidden; font: 12px/1.6 ui-monospace, Menlo, Consolas, monospace;
+      color: var(--muted); pointer-events: none; opacity: .85; }
+    .log .s { color: var(--cyan); } .log .r { color: var(--ok); } .log .e { color: var(--coral); }
+    .toast { position: fixed; left: 50%; top: 22%; transform: translate(-50%, 0); font-size: 30px; font-weight: 800; letter-spacing: 2px;
+      color: var(--amber); text-shadow: 0 4px 20px rgba(0,0,0,.6); pointer-events: none; opacity: 0; transition: opacity .25s, transform .25s; }
+    .toast.show { opacity: 1; transform: translate(-50%, -10px); }
+    @media (max-width: 760px) { .modes, .how { grid-template-columns: 1fr; } .stat { min-width: 58px; } .stat span { font-size: 18px; } }
+  </style>
+</head>
+<body>
+  <canvas id="sea"></canvas>
+
+  <div class="hud">
+    <div class="brand"><span class="dot" id="dot"></span><b>深海探險</b><span class="status" id="status">未連接</span></div>
+    <div class="stats">
+      <div class="stat"><small id="scoreLabel">珍珠</small><span id="score">0</span></div>
+      <div class="stat" id="timeBox"><small>時間</small><span id="time">--</span></div>
+      <div class="stat" id="pingBox"><small>聲納</small><span id="pings">3</span></div>
+      <div class="stat"><small>深度</small><span id="depth">0</span></div>
+    </div>
+    <div class="right">
+      <button class="btn ghost" id="soundBtn" title="音效">音效 開</button>
+      <button class="btn" id="connectBtn">連接 micro:bit</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay">
+    <div class="card">
+      <h1 id="ovTitle">深海探險</h1>
+      <p class="sub" id="ovSub">用 micro:bit 駕駛潛艇。水裡很重，傾斜之後潛艇會慢慢加速、慢慢停下來。</p>
+      <div class="banner" id="unsupported" hidden>這個瀏覽器不支援 Web Bluetooth：電腦請用 Chrome 或 Edge；iPad 請用 Bluefy。沒有 micro:bit 也可以用鍵盤方向鍵試玩。</div>
+      <div class="modes">
+        <button class="mode" id="modeDrive"><span class="tag">第六堂</span><b>駕駛訓練</b><p>左右傾斜：前進／後退<br>前後傾斜：下潛／上浮<br>90 秒內收集發光珍珠，小心岩石！</p></button>
+        <button class="mode" id="modeHunt"><span class="tag">第八堂</span><b>雙屏尋寶</b><p>寶藏藏在黑暗的海底。<br>看 micro:bit 的雷達找寶藏，<br>按 A 發射聲納（3 次）。120 秒。</p></button>
+      </div>
+      <div class="how">
+        <div><b>micro:bit 送出</b><br>x:數字　y:數字<br>（藍牙串口 寫入值）</div>
+        <div><b>平板／電腦回傳</b><br>0#～4# 雷達強度<br>g# 找到　e# 結束</div>
+        <div><b>沒有 micro:bit？</b><br>方向鍵開潛艇<br>空白鍵發射聲納</div>
+      </div>
+      <div class="foot"><span id="ovNote">先按右上角「連接 micro:bit」，再選擇模式。</span><label><input type="checkbox" id="invertY" /> 上下相反</label></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <div class="log" id="log"></div>
+  <script src="sub.js"></script>
+</body>
+</html>

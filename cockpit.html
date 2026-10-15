@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#041726" />
+  <title>潛艇出航</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <style>
+    :root {
+      --ink: #e9f4ff; --muted: #8fb0c9; --line: rgba(160, 210, 255, 0.18); --glass: rgba(6, 28, 46, 0.66);
+      --amber: #ffc94a; --cyan: #5fe1ff; --coral: #ff6f6f; --ok: #3ee69a;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; height: 100%; background: #020c15; color: var(--ink); overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif; }
+    #view { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
+    .btn { border: 1px solid rgba(95,225,255,.5); background: rgba(95,225,255,.14); color: var(--ink); font-size: 14px; font-weight: 700;
+      padding: 8px 14px; border-radius: 999px; cursor: pointer; white-space: nowrap; font-family: inherit; }
+    .btn:hover { background: rgba(95,225,255,.24); }
+    .btn.primary { background: var(--amber); color: #2b1d00; border-color: var(--amber); font-size: 16px; padding: 10px 22px; }
+    .btn.ghost { background: transparent; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--coral); box-shadow: 0 0 0 3px rgba(255,111,111,.2); flex: none; }
+    .dot.on { background: var(--ok); box-shadow: 0 0 0 3px rgba(62,230,154,.22); }
+    .dot.wait { background: var(--amber); animation: blink 1s infinite; }
+    @keyframes blink { 50% { opacity: .3; } }
+    .hud { position: fixed; top: 0; left: 0; right: 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 14px 18px; pointer-events: none; }
+    .hud > * { pointer-events: auto; }
+    .chip { display: flex; align-items: center; gap: 10px; background: var(--glass); border: 1px solid var(--line); border-radius: 14px; padding: 8px 14px; backdrop-filter: blur(6px); }
+    .chip b { font-size: 16px; letter-spacing: 1px; }
+    .chip .status { font-size: 12px; color: var(--muted); }
+    .center { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .stats { display: flex; gap: 8px; }
+    .stat { min-width: 70px; text-align: center; background: var(--glass); border: 1px solid var(--line); border-radius: 14px; padding: 6px 12px; backdrop-filter: blur(6px); }
+    .stat small { display: block; font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+    .stat span { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .stat.warn span { color: var(--coral); }
+    .compass { position: relative; width: 260px; height: 30px; overflow: hidden; background: var(--glass); border: 1px solid var(--line); border-radius: 999px; }
+    .compass .tape { position: absolute; top: 0; height: 100%; display: flex; }
+    .compass .tape span { width: 65px; text-align: center; line-height: 30px; font-weight: 800; color: var(--muted); font-size: 15px; }
+    .compass .tape span.n { color: var(--coral); }
+    .compass::after { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; background: var(--amber); transform: translateX(-1px); }
+    .right { display: flex; gap: 8px; align-items: center; }
+    .pad { position: fixed; right: 22px; bottom: 22px; display: grid; grid-template-columns: repeat(3, 58px); grid-template-rows: repeat(2, 50px); gap: 6px; }
+    .pad button { border: 1px solid rgba(255,201,74,.45); background: rgba(20,14,0,.45); color: var(--amber); border-radius: 12px; font: 800 15px/1 inherit; cursor: pointer; backdrop-filter: blur(4px); }
+    .pad button small { display: block; font-size: 11px; color: var(--muted); margin-top: 3px; font-weight: 600; }
+    .pad button:active, .pad button.hit { background: rgba(255,201,74,.35); }
+    .pad .u { grid-column: 2; grid-row: 1; } .pad .l { grid-column: 1; grid-row: 2; } .pad .d { grid-column: 2; grid-row: 2; } .pad .r { grid-column: 3; grid-row: 2; }
+    .log { position: fixed; left: 18px; bottom: 14px; width: 240px; max-height: 120px; overflow: hidden; font: 12px/1.6 ui-monospace, Menlo, Consolas, monospace; color: var(--muted); pointer-events: none; }
+    .log .s { color: var(--cyan); } .log .r { color: var(--ok); } .log .e { color: var(--coral); }
+    .toast { position: fixed; left: 50%; top: 26%; transform: translate(-50%, 0); font-size: 30px; font-weight: 800; letter-spacing: 2px; text-align: center;
+      color: var(--amber); text-shadow: 0 4px 20px rgba(0,0,0,.7); pointer-events: none; opacity: 0; transition: opacity .25s, transform .25s; max-width: 90vw; }
+    .toast.show { opacity: 1; transform: translate(-50%, -10px); }
+    .overlay { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 10;
+      background: radial-gradient(ellipse at center, rgba(2,20,36,.6), rgba(1,8,15,.9)); overflow: auto; }
+    .overlay[hidden] { display: none; }
+    .card { width: min(820px, 100%); background: rgba(6, 30, 50, .9); border: 1px solid var(--line); border-radius: 24px; padding: 24px 28px; box-shadow: 0 30px 80px rgba(0,0,0,.5); }
+    .card h1 { margin: 0 0 4px; font-size: 30px; letter-spacing: 2px; }
+    .card .sub { color: var(--muted); margin: 0 0 16px; line-height: 1.7; }
+    .cols { display: grid; grid-template-columns: 250px 1fr; gap: 22px; align-items: start; }
+    .grid5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; padding: 10px; background: #000; border-radius: 14px; border: 3px solid #333; }
+    .grid5 button { aspect-ratio: 1; border-radius: 6px; border: 0; background: #2a0606; cursor: pointer; position: relative; font: 700 11px/1 inherit; color: #fff9; }
+    .grid5 button.mine { background: #7a1a12; box-shadow: inset 0 0 0 2px #ff5a3c; }
+    .grid5 button.start { background: #ff3b2f; box-shadow: 0 0 10px #ff3b2f; color: #fff; }
+    .grid5 button.home { outline: 2px dashed rgba(255,255,255,.5); outline-offset: -4px; }
+    .grid5 button:disabled { cursor: default; }
+    .gridnote { font-size: 12px; color: var(--muted); line-height: 1.7; margin-top: 8px; }
+    .modes { display: grid; gap: 12px; }
+    .mode { text-align: left; border: 1px solid var(--line); background: rgba(255,255,255,.04); color: var(--ink); border-radius: 16px; padding: 14px 16px; cursor: pointer; font-family: inherit; }
+    .mode:hover { border-color: var(--cyan); background: rgba(95,225,255,.08); }
+    .mode b { display: block; font-size: 18px; margin-bottom: 4px; }
+    .mode p { margin: 0; font-size: 13px; line-height: 1.7; color: var(--muted); }
+    .keys { font-size: 12px; color: var(--muted); line-height: 1.8; margin-top: 12px; }
+    .result { text-align: center; }
+    .result .big { font-size: 46px; font-weight: 800; margin: 6px 0 14px; }
+    .result .row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    @media (max-width: 720px) { .cols { grid-template-columns: 1fr; } .compass { width: 180px; } .stat { min-width: 54px; } .stat span { font-size: 18px; } }
+  </style>
+</head>
+<body>
+  <canvas id="view"></canvas>
+  <div class="hud">
+    <div class="chip"><span class="dot" id="dot"></span><b>潛艇出航</b><span class="status" id="status">未連接</span></div>
+    <div class="center">
+      <div class="stats">
+        <div class="stat"><small>珍珠</small><span id="score">0</span></div>
+        <div class="stat" id="timeBox" hidden><small>時間</small><span id="time">60</span></div>
+        <div class="stat"><small>座標</small><span id="coord">2, 2</span></div>
+        <div class="stat"><small>被炸</small><span id="hits">0</span></div>
+      </div>
+    </div>
+    <div class="right">
+      <button class="btn ghost" id="soundBtn">音效 開</button>
+      <button class="btn" id="connectBtn">連接 micro:bit</button>
+      <button class="btn ghost" id="menuBtn">選單</button>
+    </div>
+  </div>
+  <div class="pad" id="pad">
+    <button class="u" data-c="f">▲<small>f</small></button>
+    <button class="l" data-c="l">◀<small>l</small></button>
+    <button class="d" data-c="b">▼<small>b</small></button>
+    <button class="r" data-c="r">▶<small>r</small></button>
+  </div>
+  <div class="toast" id="toast"></div>
+  <div class="log" id="log"></div>
+
+  <div class="overlay" id="menu">
+    <div class="card">
+      <h1>潛艇出航</h1>
+      <p class="sub">海底一片漆黑，電腦只照得到潛艇自己這一格；micro:bit 的 LED 才是海圖。水雷在電腦上幾乎看不到，只有在隔壁格時會有一團糊糊的影子，所以一定要看著 micro:bit 開。</p>
+      <div class="cols">
+        <div>
+          <div class="grid5" id="grid5"></div>
+          <div class="gridnote">點格子放水雷（最多 6 顆），要和 micro:bit 程式裡的水雷位置一樣。<br>亮紅色：起點 (2, 2)　虛線：被炸後回到 (0, 0)</div>
+        </div>
+        <div>
+          <div class="modes">
+            <button class="mode" id="modeFree"><b>自由巡航</b><p>沒有時間限制。海底有 3 顆發光珍珠，只有電腦看得到；水雷只有 micro:bit 看得到。</p></button>
+            <button class="mode" id="modeTime"><b>限時尋寶 60 秒</b><p>60 秒內收集最多珍珠。被水雷炸到會回到 (0, 0)，浪費時間！</p></button>
+          </div>
+          <div class="keys">先按右上角「連接 micro:bit」（第五堂的程式）。<br>方向鍵或下方按鈕：送出 f　b　l　r，和手機遙控一樣。<br>按一下走一格，和 LED 上的點一起動。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="endOv" hidden>
+    <div class="card result">
+      <h1 id="endTitle">時間到！</h1>
+      <p class="sub" id="endText"></p>
+      <div class="big" id="endScore">0 顆珍珠</div>
+      <div class="row"><button class="btn primary" id="againBtn">再玩一次</button><button class="btn" id="backBtn">回到選單</button></div>
+    </div>
+  </div>
+  <script src="cockpit.js"></script>
+</body>
+</html>

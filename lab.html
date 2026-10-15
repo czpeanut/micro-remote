@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#041726" />
+  <title>深海規則實驗室</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <style>
+    :root {
+      --ink: #e9f4ff; --muted: #8fb0c9; --line: rgba(160, 210, 255, 0.18); --glass: rgba(6, 28, 46, 0.62);
+      --amber: #ffc94a; --cyan: #5fe1ff; --coral: #ff6f6f; --ok: #3ee69a; --bar: #062236;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; height: 100%; background: #020c15; color: var(--ink); overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif; }
+    .view[hidden] { display: none !important; }
+    .btn { border: 1px solid rgba(95,225,255,.5); background: rgba(95,225,255,.14); color: var(--ink); font-size: 14px; font-weight: 700;
+      padding: 8px 14px; border-radius: 999px; cursor: pointer; white-space: nowrap; font-family: inherit; }
+    .btn:hover { background: rgba(95,225,255,.24); }
+    .btn:disabled { opacity: .45; cursor: default; }
+    .btn.primary { background: var(--amber); color: #2b1d00; border-color: var(--amber); font-size: 15px; padding: 9px 20px; }
+    .btn.ghost { background: transparent; }
+    select.btn { appearance: none; padding-right: 30px; background-image: linear-gradient(45deg, transparent 50%, var(--ink) 50%), linear-gradient(135deg, var(--ink) 50%, transparent 50%);
+      background-position: calc(100% - 16px) 52%, calc(100% - 11px) 52%; background-size: 5px 5px; background-repeat: no-repeat; }
+    select.btn option { color: #111; background: #fff; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--coral); box-shadow: 0 0 0 3px rgba(255,111,111,.2); flex: none; }
+    .dot.on { background: var(--ok); box-shadow: 0 0 0 3px rgba(62,230,154,.22); }
+    .dot.wait { background: var(--amber); animation: blink 1s infinite; }
+    @keyframes blink { 50% { opacity: .3; } }
+
+    /* ---------- 規則編輯 ---------- */
+    #editor { position: fixed; inset: 0; display: flex; flex-direction: column; }
+    .bar { flex: none; display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--bar); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+    .bar .brand { display: flex; align-items: center; gap: 10px; margin-right: 6px; }
+    .bar .brand b { font-size: 17px; letter-spacing: 1px; }
+    .bar .brand small { color: var(--muted); font-size: 12px; }
+    .bar .grow { flex: 1; }
+    .bar .status { font-size: 12px; color: var(--muted); }
+    .work { flex: 1; position: relative; display: flex; min-height: 0; }
+    #blockly { position: absolute; inset: 0; }
+    .tip { position: absolute; right: 16px; top: 12px; z-index: 5; width: 270px; background: rgba(6,30,50,.92); border: 1px solid var(--line);
+      border-radius: 16px; padding: 12px 14px; font-size: 13px; line-height: 1.7; color: var(--muted); box-shadow: 0 10px 30px rgba(0,0,0,.25); }
+    .tip b { color: var(--ink); }
+    .tip .x { float: right; cursor: pointer; color: var(--muted); font-size: 16px; line-height: 1; }
+    .blocklyToolboxDiv { background: #0b2b42 !important; padding-top: 6px !important; }
+    .blocklyTreeRow { height: 40px !important; line-height: 40px !important; margin-bottom: 2px !important; border-radius: 0 12px 12px 0; }
+    .blocklyTreeRow:hover { background: rgba(255,255,255,.08) !important; }
+    .blocklyTreeLabel { color: #e9f4ff !important; font-size: 15px !important; font-weight: 600; }
+    .blocklyTreeSelected .blocklyTreeLabel { color: #fff !important; }
+    .blocklyToolboxCategory { padding-right: 6px; }
+    .check { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 5; background: #7a1f2b; color: #fff;
+      padding: 8px 16px; border-radius: 999px; font-size: 14px; box-shadow: 0 6px 20px rgba(0,0,0,.3); }
+    .check[hidden] { display: none; }
+
+    /* ---------- 遊戲 ---------- */
+    #game canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; }
+    .hud { position: fixed; top: 0; left: 0; right: 0; display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 12px; padding: 14px 18px; pointer-events: none; }
+    .hud > * { pointer-events: auto; }
+    .chip { display: flex; align-items: center; gap: 10px; background: var(--glass); border: 1px solid var(--line);
+      border-radius: 14px; padding: 8px 14px; backdrop-filter: blur(8px); }
+    .chip b { font-size: 16px; letter-spacing: 1px; }
+    .chip .status { font-size: 12px; color: var(--muted); }
+    .stats { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+    .stat { min-width: 70px; text-align: center; background: var(--glass); border: 1px solid var(--line); border-radius: 14px;
+      padding: 6px 12px; backdrop-filter: blur(8px); }
+    .stat small { display: block; font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+    .stat span { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .stat.warn span { color: var(--coral); }
+    .stat.custom span { color: var(--cyan); }
+    .right { display: flex; gap: 8px; align-items: center; }
+    .overlay { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 20px;
+      background: radial-gradient(ellipse at center, rgba(2,20,36,.55), rgba(1,8,15,.88)); z-index: 10; }
+    .overlay[hidden] { display: none; }
+    .card { width: min(560px, 100%); background: rgba(6, 30, 50, .86); border: 1px solid var(--line); border-radius: 24px;
+      padding: 26px 28px; backdrop-filter: blur(10px); box-shadow: 0 30px 80px rgba(0,0,0,.5); text-align: center; }
+    .card h1 { margin: 0 0 6px; font-size: 30px; letter-spacing: 2px; }
+    .card h1.win { color: var(--amber); } .card h1.lose { color: var(--coral); }
+    .card p { color: var(--muted); margin: 0 0 18px; line-height: 1.7; }
+    .card .big { font-size: 46px; font-weight: 800; color: var(--ink); margin: 6px 0 16px; }
+    .card .row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    .log { position: fixed; left: 18px; bottom: 14px; width: 320px; max-height: 120px; overflow: hidden; font: 12px/1.6 ui-monospace, Menlo, Consolas, monospace;
+      color: var(--muted); pointer-events: none; opacity: .85; }
+    .log .s { color: var(--cyan); } .log .r { color: var(--ok); } .log .e { color: var(--coral); }
+    .errs { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); max-width: 70vw; background: rgba(122,31,43,.92); color: #fff;
+      border-radius: 12px; padding: 6px 14px; font-size: 13px; }
+    .errs[hidden] { display: none; }
+    .toast { position: fixed; left: 50%; top: 22%; transform: translate(-50%, 0); font-size: 30px; font-weight: 800; letter-spacing: 2px; text-align: center;
+      color: var(--amber); text-shadow: 0 4px 20px rgba(0,0,0,.6); pointer-events: none; opacity: 0; transition: opacity .25s, transform .25s; max-width: 90vw; }
+    .toast.show { opacity: 1; transform: translate(-50%, -10px); }
+    .keys { position: fixed; right: 18px; bottom: 190px; font-size: 12px; color: var(--muted); text-align: right; line-height: 1.7; pointer-events: none; }
+    @media (max-width: 760px) { .tip { display: none; } .stat { min-width: 54px; } .stat span { font-size: 18px; } }
+  </style>
+</head>
+<body>
+  <!-- ========== 規則編輯畫面 ========== -->
+  <section class="view" id="editor">
+    <div class="bar">
+      <div class="brand"><b>深海規則實驗室</b><small>先寫規則，再下水</small></div>
+      <select class="btn ghost" id="tplSel" title="範例規則"></select>
+      <button class="btn ghost" id="newBtn">新的</button>
+      <button class="btn ghost" id="saveBtn">儲存檔案</button>
+      <button class="btn ghost" id="openBtn">開啟檔案</button>
+      <input type="file" id="fileIn" accept=".json,application/json" hidden />
+      <span class="grow"></span>
+      <span class="dot" id="dot"></span><span class="status" id="status">未連接</span>
+      <button class="btn" id="connectBtn">連接 micro:bit</button>
+      <button class="btn primary" id="playBtn">開始遊戲</button>
+    </div>
+    <div class="work">
+      <div id="blockly"></div>
+      <div class="tip" id="tip"><span class="x" id="tipX">×</span>
+        <b>怎麼玩</b><br>
+        1. 從左邊拖出「事件」積木，例如「當遊戲開始」。<br>
+        2. 把動作積木放進事件裡面。<br>
+        3. 按右上角「開始遊戲」下水測試。<br>
+        <b>操作</b>：micro:bit 傾斜，或鍵盤方向鍵；按鈕 A／空白鍵。<br>
+        規則會自動保存在這台電腦。
+      </div>
+      <div class="check" id="check" hidden></div>
+    </div>
+  </section>
+
+  <!-- ========== 遊戲畫面 ========== -->
+  <section class="view" id="game" hidden>
+    <canvas id="sea"></canvas>
+    <div class="hud">
+      <div class="chip"><span class="dot" id="dot2"></span><b id="gameTitle">深海探險</b><span class="status" id="status2">未連接</span></div>
+      <div class="stats" id="stats">
+        <div class="stat"><small>分數</small><span id="score">0</span></div>
+        <div class="stat" id="timeBox" hidden><small>時間</small><span id="time">--</span></div>
+        <div class="stat" id="livesBox" hidden><small>生命</small><span id="lives">3</span></div>
+        <div class="stat"><small>深度</small><span id="depth">0</span></div>
+      </div>
+      <div class="right">
+        <button class="btn ghost" id="soundBtn">音效 開</button>
+        <button class="btn" id="backBtn">回到規則編輯</button>
+      </div>
+    </div>
+    <div class="keys">方向鍵：駕駛　空白鍵：按鈕 A<br><label><input type="checkbox" id="invertY" /> 上下相反</label></div>
+    <div class="toast" id="toast"></div>
+    <div class="log" id="log"></div>
+    <div class="errs" id="errs" hidden></div>
+    <div class="overlay" id="endOv" hidden>
+      <div class="card">
+        <h1 id="endTitle">遊戲結束</h1>
+        <p id="endText"></p>
+        <div class="big" id="endScore">0</div>
+        <div class="row">
+          <button class="btn primary" id="againBtn">再玩一次</button>
+          <button class="btn" id="editBtn">回到規則編輯</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script src="vendor/blockly/blockly_compressed.js"></script>
+  <script src="vendor/blockly/blocks_compressed.js"></script>
+  <script src="vendor/blockly/javascript_compressed.js"></script>
+  <script src="vendor/blockly/msg/zh-hant.js"></script>
+  <script src="lab.js"></script>
+</body>
+</html>

@@ -82,14 +82,6 @@
     .proto { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; font-size: 13px; line-height: 1.7; }
     .proto div { border: 2px solid var(--kd-ink); background: var(--kd-paper-2); padding: 8px 10px; }
     .proto code { font-family: var(--kd-mono); font-weight: 700; }
-    .sim { position: fixed; right: 18px; bottom: 44px; width: 170px; padding: 10px 12px 12px; background: #1d1410; border: 3px solid #0e0906; box-shadow: 6px 6px 0 rgba(0,0,0,.5); text-align: center; }
-    .sim[hidden] { display: none; }
-    .sim small { display: block; font: 700 11px var(--kd-mono); color: var(--kd-mustard); margin-bottom: 8px; }
-    .sim .led { display: grid; grid-template-columns: repeat(5, 16px); gap: 7px; justify-content: center; padding: 10px; background: #0e0906; border: 2px solid #4d3a2a; }
-    .sim .led i { width: 16px; height: 16px; background: #3a2018; }
-    .sim .led i.on { background: #ff3b2f; box-shadow: 0 0 6px #ff3b2f; }
-    .sim .ab { display: flex; justify-content: space-between; margin-top: 8px; }
-    .sim .ab span { display: grid; place-items: center; width: 24px; height: 24px; background: var(--kd-paper); color: var(--kd-ink); font: 700 12px var(--kd-mono); }
     @media (max-width: 720px) { .proto { grid-template-columns: 1fr; } }
 </style>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -118,11 +110,6 @@
     </div>
   </div>
   <div class="keys" id="link" style="position:fixed;right:18px;bottom:18px;font:700 12px var(--kd-mono);color:#8fb0c9">方向鍵試玩</div>
-  <div class="sim" id="sim" hidden>
-    <small>模擬 micro:bit 雷達</small>
-    <div class="led" id="simLed"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-    <div class="ab"><span>A</span><span>B</span></div>
-  </div>
   <div class="toast" id="toast"></div>
   <div class="log" id="log"></div>
 
@@ -136,7 +123,7 @@
       </div>
       <div class="proto">
         <div><b>micro:bit 送出</b><br><code>x:數字</code>　<code>y:數字</code>　潛艇座標（0～9）<br><code>found#</code>　找到寶藏<br>距離和雷達只留在 micro:bit 上</div>
-        <div><b>沒有 micro:bit？</b><br>方向鍵開潛艇，電腦會自己藏寶藏，右下角出現模擬的 micro:bit 雷達（只有燈）。<br>連上 micro:bit 後，潛艇改成跟著 micro:bit 動。</div>
+        <div><b>沒有 micro:bit？</b><br>方向鍵可以先試試開潛艇和躲鯊魚；雷達只在 micro:bit 上，所以要接上 micro:bit 才找得到寶藏。<br>連上 micro:bit 後，潛艇改成跟著 micro:bit 動。</div>
       </div>
     </div>
   </div>

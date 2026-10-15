@@ -233,7 +233,7 @@ function start(mode) {
   $("menu").hidden = true; $("endOv").hidden = true; $("timeBox").hidden = mode !== "time";
   clearInterval(S.timer);
   if (mode === "time") S.timer = setInterval(() => { if (!S.running) return; S.left--; hud(); if (S.left <= 0) finish("時間到！"); }, 1000);
-  hud(); toast(live() ? "傾斜 micro:bit，看 micro:bit 的雷達找寶藏！" : "方向鍵開潛艇，看右下角的模擬雷達");
+  hud(); toast(live() ? "傾斜 micro:bit，看 micro:bit 的雷達找寶藏！" : "方向鍵試玩：沒有雷達，只能碰運氣");
 }
 function finish(title) {
   if (!S.running) return;
@@ -248,12 +248,6 @@ function hud() {
   $("timeBox").classList.toggle("warn", S.left <= 10);
   $("lives").textContent = "♥".repeat(Math.max(0, S.lives)) + "♡".repeat(Math.max(0, 3 - S.lives));
   $("coord").textContent = `${S.gx}, ${S.gy}`;
-  // 沒接 micro:bit 時，畫面右下角用模擬的 micro:bit 雷達（只有燈，沒有聲音）
-  const simOn = !live() && S.running; $("sim").hidden = !simOn;
-  if (simOn) {
-    const v = clamp(RANGE - S.d, 0, RANGE), n = Math.round((v / RANGE) * 25), leds = $("simLed").children;
-    for (let i = 0; i < 25; i++) { const row = 4 - Math.floor(i / 5); leds[row * 5 + (i % 5)].classList.toggle("on", i < n); }
-  }
 }
 let toastT = 0;
 function toast(t) { const el = $("toast"); el.textContent = t; el.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove("show"), 1500); }

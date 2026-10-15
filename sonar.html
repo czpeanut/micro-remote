@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#041726" />
+  <title>聲納尋寶</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <style>
+    :root {
+      --ink: #e9f4ff; --muted: #8fb0c9; --line: rgba(160, 210, 255, 0.18); --glass: rgba(6, 28, 46, 0.66);
+      --amber: #ffc94a; --cyan: #5fe1ff; --coral: #ff6f6f; --ok: #3ee69a;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; height: 100%; background: #020c15; color: var(--ink); overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif; }
+    #view { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
+    .btn { border: 1px solid rgba(95,225,255,.5); background: rgba(95,225,255,.14); color: var(--ink); font-size: 14px; font-weight: 700;
+      padding: 8px 14px; border-radius: 999px; cursor: pointer; white-space: nowrap; font-family: inherit; }
+    .btn:hover { background: rgba(95,225,255,.24); }
+    .btn.primary { background: var(--amber); color: #2b1d00; border-color: var(--amber); font-size: 16px; padding: 10px 22px; }
+    .btn.ghost { background: transparent; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--coral); box-shadow: 0 0 0 3px rgba(255,111,111,.2); flex: none; }
+    .dot.on { background: var(--ok); box-shadow: 0 0 0 3px rgba(62,230,154,.22); }
+    .dot.wait { background: var(--amber); animation: blink 1s infinite; }
+    @keyframes blink { 50% { opacity: .3; } }
+    .hud { position: fixed; top: 0; left: 0; right: 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 14px 18px; pointer-events: none; }
+    .hud > * { pointer-events: auto; }
+    .chip { display: flex; align-items: center; gap: 10px; background: var(--glass); border: 1px solid var(--line); border-radius: 14px; padding: 8px 14px; backdrop-filter: blur(6px); }
+    .chip b { font-size: 16px; letter-spacing: 1px; }
+    .chip .status { font-size: 12px; color: var(--muted); }
+    .center { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .stats { display: flex; gap: 8px; }
+    .stat { min-width: 70px; text-align: center; background: var(--glass); border: 1px solid var(--line); border-radius: 14px; padding: 6px 12px; backdrop-filter: blur(6px); }
+    .stat small { display: block; font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+    .stat span { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .stat.warn span { color: var(--coral); }
+    .compass { position: relative; width: 260px; height: 30px; overflow: hidden; background: var(--glass); border: 1px solid var(--line); border-radius: 999px; }
+    .compass .tape { position: absolute; top: 0; height: 100%; display: flex; }
+    .compass .tape span { width: 65px; text-align: center; line-height: 30px; font-weight: 800; color: var(--muted); font-size: 15px; }
+    .compass .tape span.n { color: var(--coral); }
+    .compass::after { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; background: var(--amber); transform: translateX(-1px); }
+    .right { display: flex; gap: 8px; align-items: center; }
+    .pad { position: fixed; right: 22px; bottom: 22px; display: grid; grid-template-columns: repeat(3, 58px); grid-template-rows: repeat(2, 50px); gap: 6px; }
+    .pad button { border: 1px solid rgba(255,201,74,.45); background: rgba(20,14,0,.45); color: var(--amber); border-radius: 12px; font: 800 15px/1 inherit; cursor: pointer; backdrop-filter: blur(4px); }
+    .pad button small { display: block; font-size: 11px; color: var(--muted); margin-top: 3px; font-weight: 600; }
+    .pad button:active, .pad button.hit { background: rgba(255,201,74,.35); }
+    .pad .u { grid-column: 2; grid-row: 1; } .pad .l { grid-column: 1; grid-row: 2; } .pad .d { grid-column: 2; grid-row: 2; } .pad .r { grid-column: 3; grid-row: 2; }
+    .log { position: fixed; left: 18px; bottom: 14px; width: 240px; max-height: 120px; overflow: hidden; font: 12px/1.6 ui-monospace, Menlo, Consolas, monospace; color: var(--muted); pointer-events: none; }
+    .log .s { color: var(--cyan); } .log .r { color: var(--ok); } .log .e { color: var(--coral); }
+    .toast { position: fixed; left: 50%; top: 26%; transform: translate(-50%, 0); font-size: 30px; font-weight: 800; letter-spacing: 2px; text-align: center;
+      color: var(--amber); text-shadow: 0 4px 20px rgba(0,0,0,.7); pointer-events: none; opacity: 0; transition: opacity .25s, transform .25s; max-width: 90vw; }
+    .toast.show { opacity: 1; transform: translate(-50%, -10px); }
+    .overlay { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 10;
+      background: radial-gradient(ellipse at center, rgba(2,20,36,.6), rgba(1,8,15,.9)); overflow: auto; }
+    .overlay[hidden] { display: none; }
+    .card { width: min(820px, 100%); background: rgba(6, 30, 50, .9); border: 1px solid var(--line); border-radius: 24px; padding: 24px 28px; box-shadow: 0 30px 80px rgba(0,0,0,.5); }
+    .card h1 { margin: 0 0 4px; font-size: 30px; letter-spacing: 2px; }
+    .card .sub { color: var(--muted); margin: 0 0 16px; line-height: 1.7; }
+    .cols { display: grid; grid-template-columns: 250px 1fr; gap: 22px; align-items: start; }
+    .grid5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; padding: 10px; background: #000; border-radius: 14px; border: 3px solid #333; }
+    .grid5 button { aspect-ratio: 1; border-radius: 6px; border: 0; background: #2a0606; cursor: pointer; position: relative; font: 700 11px/1 inherit; color: #fff9; }
+    .grid5 button.mine { background: #7a1a12; box-shadow: inset 0 0 0 2px #ff5a3c; }
+    .grid5 button.start { background: #ff3b2f; box-shadow: 0 0 10px #ff3b2f; color: #fff; }
+    .grid5 button.home { outline: 2px dashed rgba(255,255,255,.5); outline-offset: -4px; }
+    .grid5 button:disabled { cursor: default; }
+    .gridnote { font-size: 12px; color: var(--muted); line-height: 1.7; margin-top: 8px; }
+    .modes { display: grid; gap: 12px; }
+    .mode { text-align: left; border: 1px solid var(--line); background: rgba(255,255,255,.04); color: var(--ink); border-radius: 16px; padding: 14px 16px; cursor: pointer; font-family: inherit; }
+    .mode:hover { border-color: var(--cyan); background: rgba(95,225,255,.08); }
+    .mode b { display: block; font-size: 18px; margin-bottom: 4px; }
+    .mode p { margin: 0; font-size: 13px; line-height: 1.7; color: var(--muted); }
+    .keys { font-size: 12px; color: var(--muted); line-height: 1.8; margin-top: 12px; }
+    .result { text-align: center; }
+    .result .big { font-size: 46px; font-weight: 800; margin: 6px 0 14px; }
+    .result .row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    @media (max-width: 720px) { .cols { grid-template-columns: 1fr; } .compass { width: 180px; } .stat { min-width: 54px; } .stat span { font-size: 18px; } }
+      .radar { display: flex; align-items: flex-end; gap: 3px; height: 30px; padding: 0 4px; }
+    .radar i { width: 6px; background: rgba(255,90,90,.18); }
+    .radar i.on { background: #ff5a5a; box-shadow: 0 0 6px rgba(255,90,90,.6); }
+    .stat.radarbox { min-width: 96px; }
+    .proto { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; font-size: 13px; line-height: 1.7; }
+    .proto div { border: 2px solid var(--kd-ink); background: var(--kd-paper-2); padding: 8px 10px; }
+    .proto code { font-family: var(--kd-mono); font-weight: 700; }
+    @media (max-width: 720px) { .proto { grid-template-columns: 1fr; } }
+</style>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Space+Mono:wght@700&display=swap" />
+  <link rel="stylesheet" href="kuding.css" />
+  <link rel="stylesheet" href="game.css" />
+</head>
+<body>
+  <a class="kd-float" href="index.html" title="回到酷丁狐的科技實驗室"><span class="kd-logo" aria-hidden="true"></span>實驗室</a>
+  <canvas id="view"></canvas>
+  <div class="hud">
+    <div class="chip"><span class="dot" id="dot"></span><b>聲納尋寶</b><span class="status" id="status">未連接</span></div>
+    <div class="center">
+      <div class="stats">
+        <div class="stat"><small>寶藏</small><span id="score">0</span></div>
+        <div class="stat" id="timeBox" hidden><small>時間</small><span id="time">90</span></div>
+        <div class="stat"><small>生命</small><span id="lives" style="color:#ff6f6f;letter-spacing:2px">♥♥♥</span></div>
+        <div class="stat radarbox"><small>雷達 距離 <b id="dist">--</b></small><div class="radar" id="radar"><i style="height:4px"></i><i style="height:7px"></i><i style="height:9px"></i><i style="height:12px"></i><i style="height:14px"></i><i style="height:17px"></i><i style="height:20px"></i><i style="height:22px"></i><i style="height:25px"></i><i style="height:27px"></i></div></div>
+        <div class="stat"><small>座標</small><span id="coord">2, 2</span></div>
+      </div>
+    </div>
+    <div class="right">
+      <button class="btn ghost" id="soundBtn">音效 開</button>
+      <button class="btn" id="connectBtn">連接 micro:bit</button>
+      <button class="btn ghost" id="menuBtn">選單</button>
+    </div>
+  </div>
+  <div class="keys" id="link" style="position:fixed;right:18px;bottom:18px;font:700 12px var(--kd-mono);color:#8fb0c9">方向鍵試玩</div>
+  <div class="toast" id="toast"></div>
+  <div class="log" id="log"></div>
+
+  <div class="overlay" id="menu">
+    <div class="card">
+      <h1>聲納尋寶</h1>
+      <p class="sub">這片海底有 10×10 這麼大，只畫在電腦上；micro:bit 整片 LED 都是雷達。傾斜 micro:bit 開潛艇，聽雷達：寶藏在 10 格以內才收得到，越靠近嗶嗶聲越快、雷達越滿。小心慢慢游的鯊魚，黑暗中只看得到牠的紅眼睛。</p>
+      <div class="modes" style="grid-template-columns:1fr 1fr;display:grid">
+        <button class="mode" id="modeFree"><span class="tag">第七堂</span><b>自由尋寶</b><p>沒有時間限制，海裡有 3 隻鯊魚。被咬 3 次遊戲結束。</p></button>
+        <button class="mode" id="modeTime"><span class="tag">第七堂</span><b>限時挑戰 90 秒</b><p>90 秒內找最多寶藏，海裡有 4 隻鯊魚。</p></button>
+      </div>
+      <div class="proto">
+        <div><b>micro:bit 送出</b><br><code>x:數字</code>　<code>y:數字</code>　潛艇座標（0～9）<br><code>d:數字</code>　離寶藏的距離<br><code>found#</code>　找到寶藏</div>
+        <div><b>沒有 micro:bit？</b><br>方向鍵開潛艇，電腦會自己藏寶藏，一樣聽雷達找。<br>連上 micro:bit 後，潛艇改成跟著 micro:bit 動。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="endOv" hidden>
+    <div class="card result">
+      <h1 id="endTitle">時間到！</h1>
+      <p class="sub" id="endText"></p>
+      <div class="big" id="endScore">0 個寶藏</div>
+      <div class="row"><button class="btn primary" id="againBtn">再玩一次</button><button class="btn" id="backBtn">回到選單</button></div>
+    </div>
+  </div>
+  <script src="sonar.js"></script>
+</body>
+</html>

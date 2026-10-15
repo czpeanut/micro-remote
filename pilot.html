@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#F3EEE1" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <title>潛艇遙控器｜酷丁狐的科技實驗室</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="icon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Space+Mono:wght@700&display=swap" />
+  <link rel="stylesheet" href="kuding.css" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="remote.css" />
+  <style>
+    .pilot-tip { margin: 0; font-size: 14px; line-height: 1.7; color: var(--kd-ink-2); }
+    .pilot-hub { grid-column: 2; grid-row: 2; display: grid; place-items: center; border: 3px dashed var(--kd-ink); background: #0b2b42; }
+    .pilot-note { font-size: 13px; font-weight: 700; color: var(--kd-ink-2); }
+  </style>
+</head>
+<body>
+  <header class="kd-top">
+    <a class="kd-home" href="index.html"><span class="kd-logo" aria-hidden="true"></span><span><small>魔法科學班 / MAGIC SCIENCE CLASS</small>← 酷丁狐的科技實驗室</span></a>
+    <span class="kd-unit">主題1 第五堂</span>
+  </header>
+  <div class="app">
+    <header class="topbar">
+      <div class="title">
+        <span class="dot" id="statusDot"></span>
+        <h1>潛艇遙控器</h1>
+      </div>
+      <button id="connectBtn" class="connect-btn">連接</button>
+    </header>
+
+    <div id="unsupportedBanner" class="banner banner-error" hidden>
+      這個瀏覽器不支援 Web Bluetooth，請改用 Android 的 Chrome / Edge，
+      或 iOS 上的 <strong>Bluefy</strong> App 開啟本頁面。
+    </div>
+
+    <div class="statusline">
+      狀態：<span id="statusText">未連接</span>
+      <span id="deviceName" class="device-name"></span>
+    </div>
+
+    <p class="pilot-tip">按一下，潛艇在 micro:bit 的 5×5 海底走一格。<br>上 = y 變小，右 = x 變大。</p>
+    <main class="pad-area">
+      <div class="dpad">
+        <button class="dpad-btn up" data-cmd="f" aria-label="往上">▲<span>上 f</span></button>
+        <button class="dpad-btn left" data-cmd="l" aria-label="往左">◀<span>左 l</span></button>
+        <div class="pilot-hub" aria-hidden="true"><svg viewBox="0 0 64 40" width="58"><ellipse cx="34" cy="22" rx="22" ry="11" fill="#ffc433" stroke="#2B1D14" stroke-width="3"/><rect x="28" y="4" width="12" height="9" fill="#ffc433" stroke="#2B1D14" stroke-width="3"/><circle cx="26" cy="22" r="4" fill="#11364f" stroke="#2B1D14" stroke-width="2"/><circle cx="38" cy="22" r="4" fill="#11364f" stroke="#2B1D14" stroke-width="2"/><path d="M12 22 L4 15 L6 22 L4 29 Z" fill="#e8932c" stroke="#2B1D14" stroke-width="2"/></svg></div>
+        <button class="dpad-btn right" data-cmd="r" aria-label="往右">▶<span>右 r</span></button>
+        <button class="dpad-btn down" data-cmd="b" aria-label="往下">▼<span>下 b</span></button>
+      </div>
+      <button id="stopBtn" hidden>停止</button>
+    </main>
+
+    <section class="options">
+      <input type="checkbox" id="autoStopToggle" hidden />
+      <span class="pilot-note">電腦版：潛艇出航（看不見的水雷）</span>
+      <button id="helpBtn" class="link-btn">指令對照表</button>
+    </section>
+
+    <section class="log-panel">
+      <div class="log-header">
+        <span>通訊紀錄</span>
+        <button id="clearLogBtn" class="link-btn">清除</button>
+      </div>
+      <div id="log" class="log"></div>
+    </section>
+  </div>
+
+  <dialog id="helpDialog">
+    <h2>第五堂 潛艇出航：指令對照表</h2>
+    <p>每按一次方向鍵，手機用藍牙送出「一個字母 + <code>#</code>」。micro:bit 用 <code>藍牙串口 讀取直到 #</code> 收下來，存進變數「指令」。</p>
+    <pre>f#  上：潛艇y 改變 -1
+b#  下：潛艇y 改變 1
+l#  左：潛艇x 改變 -1
+r#  右：潛艇x 改變 1</pre>
+    <p>潛艇從 (2, 2) 出發，用「限制數值範圍」讓 x、y 都在 0～4 之間；撞到水雷會回到 (0, 0)。</p>
+    <div class="dialog-actions">
+      <button id="closeHelpBtn" class="connect-btn">知道了</button>
+    </div>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>

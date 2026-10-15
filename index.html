@@ -117,7 +117,7 @@
     /* 主題區的工具卡片 */
     .topic { display: inline-block; font-size: 12px; padding: 5px 9px; background: var(--kd-orange); color: #fff; margin-bottom: 10px; }
     section:not(.dark) .topic { background: var(--kd-olive); }
-    .toolgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; }
+    .toolgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(212px, 1fr)); gap: 20px; }
     .toolgrid.two { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); max-width: 900px; }
     .tool { background: var(--kd-paper-2); color: var(--kd-ink); border: 3px solid var(--kd-ink); box-shadow: 8px 8px 0 var(--kd-orange); display: flex; flex-direction: column; min-width: 0; }
     section:not(.dark) .tool { box-shadow: 8px 8px 0 var(--kd-ink); }
@@ -208,7 +208,7 @@
         <div class="text">
           <div class="tags mono"><span>LAB No.01</span><span>MakeCode × micro:bit</span></div>
           <h1>寫程式、<br>做遙控、<br><mark>玩實驗！</mark></h1>
-          <p class="lead">歡迎來到酷丁狐的實驗室。在 MakeCode 拼好程式、下載到 micro:bit，再回到這裡：依照主題找到這一堂課：深海探險隊用手機和電腦開潛艇，機械手臂用手機遙控手臂和吊車。每一堂要用的網頁都在這一頁。</p>
+          <p class="lead">歡迎來到酷丁狐的實驗室。在 MakeCode 拼好程式、下載到 micro:bit，再回到這裡：依照主題找到這一堂課：深海探險隊用手機和電腦開潛艇、找寶藏，機械手臂用手機遙控手臂和吊車。每一堂要用的網頁都在這一頁。</p>
           <div class="ctas">
             <a class="btn orange" href="#t1">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><rect x="2" y="6" width="20" height="12"></rect><path d="M7 10v4M5 12h4M15 11h.01M18 13h.01"></path></svg>
@@ -229,18 +229,18 @@
     <section class="band dark" id="t1">
       <div class="wrap">
         <div class="sec-head">
-          <div><span class="topic mono">主題 1 / DEEP SEA</span><h2>深海探險隊</h2><p>庫丁狐的潛艇要下深海尋寶。每一堂學一個藍牙本領：第五堂手機傳指令、第六堂傳傾斜給電腦、第七堂找寶藏回報、第八堂兩個螢幕合體。電腦遊戲請用 Chrome 或 Edge（iPad 用 Bluefy），沒有 micro:bit 也能先用方向鍵試玩。</p></div>
-          <span class="mono">4 TOOLS / 第五～八堂</span>
+          <div><span class="topic mono">主題 1 / DEEP SEA</span><h2>深海探險隊</h2><p>庫丁狐的潛艇要下深海尋寶。每一堂學一個藍牙本領：第五堂手機傳指令、第六堂傳傾斜給電腦、第七堂把位置和距離回報給電腦、第八堂兩個螢幕互相對話。電腦遊戲請用 Chrome 或 Edge（iPad 用 Bluefy），沒有 micro:bit 也能先用方向鍵試玩。</p></div>
+          <span class="mono">5 TOOLS / 第五～八堂</span>
         </div>
         <div class="toolgrid">
           <article class="tool">
-            <div class="shot art" style="background:var(--kd-orange)"><div class="mb"><div class="row1 mono"><span>KUDING-RC</span><span>CAR</span></div><div class="led" aria-hidden="true"><i></i><i></i><i class="on"></i><i></i><i></i><i></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i></i><i class="on"></i><i></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i></div><div class="row2"><span>A</span>micro:bit<span>B</span></div></div><span class="mono">手機遙控</span></div>
+            <div class="shot art" style="background:var(--kd-orange)"><div class="mb"><div class="row1 mono"><span>KUDING-RC</span><span>SUB</span></div><div class="led" aria-hidden="true"><i></i><i></i><i class="on"></i><i></i><i></i><i></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i></i><i class="on"></i><i></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i></div><div class="row2"><span>A</span>micro:bit<span>B</span></div></div><span class="mono">手機遙控</span></div>
             <div class="body">
-              <span class="lessons mono">第五、七堂</span>
-              <h3>遙控車</h3>
-              <p>方向鍵送出 f、b、l、r。第五堂用它開 5×5 海底的潛艇；第七堂用它接收 micro:bit 找到寶藏時傳來的訊息。</p>
-              <div class="chips"><span>手機 → micro:bit</span><span>f b l r s</span></div>
-              <a class="btn orange small" href="car.html">打開遙控車</a>
+              <span class="lessons mono">第五堂</span>
+              <h3>潛艇遙控器</h3>
+              <p>手機上的方向鍵，按一下送出 f、b、l、r，潛艇在 micro:bit 的 5×5 海底走一格。</p>
+              <div class="chips"><span>手機 → micro:bit</span><span>f b l r</span></div>
+              <a class="btn orange small" href="pilot.html">打開潛艇遙控器</a>
             </div>
           </article>
           <article class="tool">
@@ -254,9 +254,19 @@
             </div>
           </article>
           <article class="tool">
+            <div class="shot" style="background-image:url('assets/shot-sonar.webp')"><span class="mono">電腦</span></div>
+            <div class="body">
+              <span class="lessons mono">第七堂</span>
+              <h3>聲納尋寶</h3>
+              <p>10×10 的大海底只畫在電腦上，micro:bit 整片 LED 當雷達。它把位置和距離傳過來：越靠近寶藏，雷達嗶得越快。小心慢慢游的鯊魚，黑暗中只看得到紅眼睛。</p>
+              <div class="chips"><span>micro:bit → 電腦</span><span>x y d</span><span>found#</span></div>
+              <a class="btn mustard small" href="sonar.html">開始尋寶</a>
+            </div>
+          </article>
+          <article class="tool">
             <div class="shot" style="background-image:url('assets/shot-sub.webp')"><span class="mono">電腦</span></div>
             <div class="body">
-              <span class="lessons mono">第六、七、八堂</span>
+              <span class="lessons mono">第六、八堂</span>
               <h3>深海探險</h3>
               <p>傾斜 micro:bit 駕駛潛艇，水裡很重、轉向很慢。駕駛訓練收集珍珠；雙屏尋寶和 micro:bit 的雷達合作，在黑暗海底找寶藏。</p>
               <div class="chips"><span>micro:bit ⇄ 電腦</span><span>x:數字 y:數字</span><span>雷達 0～4</span></div>
@@ -279,9 +289,9 @@
           <table>
             <thead><tr><th style="width:90px">單元</th><th style="width:190px">名稱</th><th>實驗內容</th><th style="width:320px">要用的網頁</th></tr></thead>
             <tbody>
-              <tr><td class="code">1-05</td><td class="name">潛艇出航</td><td>收到 f、b、l、r 就移動 5×5 海底的潛艇，撞到水雷會爆炸。</td><td class="tools"><a href="car.html">遙控車</a><a href="cockpit.html">潛艇出航</a></td></tr>
+              <tr><td class="code">1-05</td><td class="name">潛艇出航</td><td>收到 f、b、l、r 就移動 5×5 海底的潛艇，撞到水雷會爆炸。</td><td class="tools"><a href="pilot.html">潛艇遙控器</a><a href="cockpit.html">潛艇出航</a></td></tr>
               <tr><td class="code">1-06</td><td class="name">傾斜駕駛艙</td><td>加速度感測器變成方向盤，把傾斜數值傳給電腦開潛艇。</td><td class="tools"><a href="sub.html">深海探險</a><a href="lab.html">規則實驗室</a></td></tr>
-              <tr><td class="code">1-07</td><td class="name">聲納雷達</td><td>用絕對值算距離，按住 A 顯示雷達，找到寶藏傳訊息給手機。</td><td class="tools"><a href="sub.html">深海探險</a><a href="car.html">遙控車</a><a href="lab.html">規則實驗室</a></td></tr>
+              <tr><td class="code">1-07</td><td class="name">聲納雷達</td><td>海底放大成 10×10 畫在電腦上；micro:bit 用絕對值算距離、LED 當雷達，把位置、距離和 found# 傳給電腦。</td><td class="tools"><a href="sonar.html">聲納尋寶</a><a href="lab.html">規則實驗室</a></td></tr>
               <tr><td class="code">1-08</td><td class="name">雙屏尋寶</td><td>電腦看海底、micro:bit 看雷達，兩台機器互相傳暗號找寶藏。</td><td class="tools"><a href="sub.html">深海探險</a><a href="lab.html">規則實驗室</a></td></tr>
             </tbody>
           </table>
@@ -363,8 +373,8 @@
               <li>程式要用「藍牙串口 讀取直到 #」，不是「讀取直到 換行」。</li>
               <li>檢查「如果 指令 = "left"」裡的英文有沒有拼錯、有沒有多空白。</li>
               <li>藍牙擴展和「廣播」不能同時使用，加入 bluetooth 時要移除 radio。</li></ul></details>
-            <details><summary>放開按鈕，車子還一直跑</summary><ul>
-              <li>遙控器放開時會送出 <code>s#</code>，程式要加一個「如果 指令 = "s"」讓馬達停止。</li>
+            <details><summary>放開按鈕，手臂或吊車還一直動</summary><ul>
+              <li>遙控器放開時會送出 <code>stop#</code>，程式要加一個「如果 指令 = "stop"」讓馬達或伺服馬達停下來。</li>
               <li>不想改程式的話，把遙控器上的「放開按鈕自動停止」關掉。</li></ul></details>
             <details><summary>電腦和 micro:bit 的潛艇位置對不上（第五堂）</summary><ul>
               <li>連上之後按 micro:bit 背面的重設鈕，讓兩邊都從 (2, 2) 出發。</li>

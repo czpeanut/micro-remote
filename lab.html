@@ -92,12 +92,17 @@
     .keys { position: fixed; right: 18px; bottom: 190px; font-size: 12px; color: var(--muted); text-align: right; line-height: 1.7; pointer-events: none; }
     @media (max-width: 760px) { .tip { display: none; } .stat { min-width: 54px; } .stat span { font-size: 18px; } }
   </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Space+Mono:wght@700&display=swap" />
+  <link rel="stylesheet" href="kuding.css" />
+  <link rel="stylesheet" href="game.css" />
 </head>
 <body>
   <!-- ========== 規則編輯畫面 ========== -->
   <section class="view" id="editor">
     <div class="bar">
-      <div class="brand"><b>深海規則實驗室</b><small>先寫規則，再下水</small></div>
+      <a class="kd-home-inline" href="index.html" title="回到酷丁狐的科技實驗室"><span class="kd-logo" aria-hidden="true"></span></a><div class="brand"><b>深海規則實驗室</b><small>先寫規則，再下水</small></div>
       <select class="btn ghost" id="tplSel" title="範例規則"></select>
       <button class="btn ghost" id="newBtn">新的</button>
       <button class="btn ghost" id="saveBtn">儲存檔案</button>

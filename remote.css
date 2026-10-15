@@ -1,0 +1,83 @@
+/* 遙控器頁面：酷丁狐實驗室風格（載入在 style.css、arm.css 之後） */
+:root {
+  color-scheme: light;
+  --bg: #F3EEE1;
+  --panel: #FFF9EC;
+  --panel-2: #FFFFFF;
+  --border: #2B1D14;
+  --text: #2B1D14;
+  --muted: #5A4636;
+  --accent: #C4521A;
+  --accent-2: #B4471A;
+  --ok: #3E8E4E;
+  --warn: #D99A12;
+  --danger: #C62D1F;
+}
+html, body { font-family: var(--kd-font); }
+body {
+  background-color: var(--bg);
+  background-image: linear-gradient(var(--kd-grid) 1px, transparent 1px), linear-gradient(90deg, var(--kd-grid) 1px, transparent 1px);
+  background-size: 32px 32px;
+  padding-top: 0;
+}
+.kd-top { position: sticky; top: 0; z-index: 5; padding-top: calc(8px + env(safe-area-inset-top, 0px)); }
+.app { min-height: auto; }
+
+.title h1 { font-size: 22px; font-weight: 900; letter-spacing: .04em; }
+.dot { border: 2px solid var(--kd-ink); width: 14px; height: 14px; border-radius: 0; box-shadow: none; }
+.dot.connected { box-shadow: none; }
+.dot.connecting { box-shadow: none; }
+
+.connect-btn {
+  background: var(--accent); color: #fff; border: 3px solid var(--kd-ink); border-radius: 0; font-weight: 900; font-size: 16px;
+  box-shadow: 4px 4px 0 var(--kd-ink); transition: transform .08s, box-shadow .08s; font-family: inherit;
+}
+.connect-btn:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--kd-ink); background: var(--accent-2); }
+.connect-btn.disconnect { background: var(--kd-paper-2); color: var(--danger); border: 3px solid var(--kd-ink); }
+
+.banner { border-radius: 0; }
+.banner-error { background: #FFE1D6; border: 2px solid var(--danger); color: #7a1a10; }
+.statusline { font-family: var(--kd-mono); font-weight: 700; font-size: 12px; }
+.device-name { color: var(--accent); }
+
+.dpad-btn, .pad-btn {
+  border: 3px solid var(--kd-ink); border-radius: 0; background: var(--kd-paper-2); color: var(--kd-ink);
+  box-shadow: 5px 5px 0 var(--kd-ink); font-weight: 900; transition: transform .06s, box-shadow .06s; font-family: inherit;
+}
+.dpad-btn span, .pad-btn span { color: var(--muted); font-weight: 700; font-family: var(--kd-mono); }
+.dpad-btn:active, .dpad-btn.active, .pad-btn.active {
+  background: var(--accent); border-color: var(--kd-ink); color: #fff; transform: translate(4px, 4px); box-shadow: 1px 1px 0 var(--kd-ink);
+}
+.dpad-btn:active span, .dpad-btn.active span, .pad-btn.active span { color: rgba(255,255,255,.9); }
+.dpad-btn.stop, .pad-btn.stop { color: var(--danger); }
+.dpad-btn.stop:active, .dpad-btn.stop.active, .pad-btn.stop.active { background: var(--danger); color: #fff; border-color: var(--kd-ink); }
+.pad-btn.grip.active { background: var(--kd-olive); border-color: var(--kd-ink); }
+.pad-btn.rec { color: var(--danger); }
+.pad-btn.rec.recording { background: #FFE1D6; border-color: var(--danger); }
+.pad-btn.play { color: var(--kd-olive); }
+
+.group { border: 3px solid var(--kd-ink); border-radius: 0; background: rgba(255, 249, 236, .85); padding: 10px 14px 16px; }
+.group-title { font-family: var(--kd-mono); font-weight: 700; color: var(--kd-ink); letter-spacing: .06em; }
+
+.switch-row { color: var(--kd-ink); font-weight: 700; }
+.switch { border: 2px solid var(--kd-ink); border-radius: 0; background: var(--kd-paper-2); }
+.switch::after { border-radius: 0; background: var(--kd-ink); }
+.switch-row input:checked + .switch { background: var(--kd-mustard); border-color: var(--kd-ink); }
+.switch-row input:checked + .switch::after { background: var(--kd-ink); }
+.link-btn { color: var(--accent); font-weight: 900; font-family: inherit; text-decoration: underline; text-underline-offset: 3px; }
+
+.log-panel { border: 3px solid var(--kd-ink); border-radius: 0; background: var(--kd-ink); }
+.log-header { color: var(--kd-mustard); font-family: var(--kd-mono); font-weight: 700; }
+.log-header .link-btn { color: var(--kd-paper); }
+.log { color: #cdbda5; font-family: var(--kd-mono); }
+.log div.sent { color: var(--kd-mustard); }
+.log div.recv { color: #8fd48a; }
+.log div.err { color: #ff8a7a; }
+
+dialog { border: 3px solid var(--kd-ink); border-radius: 0; background: var(--kd-paper); color: var(--kd-ink); box-shadow: 10px 10px 0 var(--kd-ink); }
+dialog::backdrop { background: rgba(43, 29, 20, .55); }
+dialog h2 { font-weight: 900; font-size: 18px; }
+dialog p { color: var(--kd-ink-2); }
+dialog code { background: var(--kd-cream); color: var(--kd-ink); border-radius: 0; font-family: var(--kd-mono); }
+dialog pre { background: var(--kd-ink); color: var(--kd-paper); border: 0; border-radius: 0; font-family: var(--kd-mono); }
+.back { display: none; }

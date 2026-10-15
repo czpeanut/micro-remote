@@ -76,8 +76,14 @@
     .result .row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
     @media (max-width: 720px) { .cols { grid-template-columns: 1fr; } .compass { width: 180px; } .stat { min-width: 54px; } .stat span { font-size: 18px; } }
   </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Space+Mono:wght@700&display=swap" />
+  <link rel="stylesheet" href="kuding.css" />
+  <link rel="stylesheet" href="game.css" />
 </head>
 <body>
+  <a class="kd-float" href="index.html" title="回到酷丁狐的科技實驗室"><span class="kd-logo" aria-hidden="true"></span>實驗室</a>
   <canvas id="view"></canvas>
   <div class="hud">
     <div class="chip"><span class="dot" id="dot"></span><b>潛艇出航</b><span class="status" id="status">未連接</span></div>

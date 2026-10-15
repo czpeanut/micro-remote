@@ -375,23 +375,34 @@ function render(now) {
   if (!S.boom || now - S.boom < 120) drawSub(sx, sy, S.ang, t);
   // 黑暗：只有潛艇周圍和探照燈照得到
   dctx.setTransform(1, 0, 0, 1, 0, 0); dctx.globalCompositeOperation = "source-over"; dctx.clearRect(0, 0, W, H);
-  dctx.fillStyle = "rgba(0,6,16,.8)"; dctx.fillRect(0, 0, W, H);
+  dctx.fillStyle = "rgba(0,4,10,.965)"; dctx.fillRect(0, 0, W, H);
   dctx.globalCompositeOperation = "destination-out";
-  const g1 = dctx.createRadialGradient(sx, sy, T * 0.6, sx, sy, T * 2.2); g1.addColorStop(0, "rgba(0,0,0,1)"); g1.addColorStop(1, "rgba(0,0,0,0)");
-  dctx.fillStyle = g1; dctx.beginPath(); dctx.arc(sx, sy, T * 2.2, 0, 7); dctx.fill();
-  const g2 = dctx.createRadialGradient(sx, sy, T * 0.5, sx, sy, T * 3.2); g2.addColorStop(0, "rgba(0,0,0,.9)"); g2.addColorStop(1, "rgba(0,0,0,0)");
-  dctx.fillStyle = g2; dctx.beginPath(); dctx.moveTo(sx, sy); dctx.arc(sx, sy, T * 3.2, S.ang - 0.45, S.ang + 0.45); dctx.closePath(); dctx.fill();
+  const g1 = dctx.createRadialGradient(sx, sy, T * 0.35, sx, sy, T * 1.2); g1.addColorStop(0, "rgba(0,0,0,1)"); g1.addColorStop(1, "rgba(0,0,0,0)");
+  dctx.fillStyle = g1; dctx.beginPath(); dctx.arc(sx, sy, T * 1.2, 0, 7); dctx.fill();
+  const g2 = dctx.createRadialGradient(sx, sy, T * 0.4, sx, sy, T * 1.8); g2.addColorStop(0, "rgba(0,0,0,.55)"); g2.addColorStop(1, "rgba(0,0,0,0)");
+  dctx.fillStyle = g2; dctx.beginPath(); dctx.moveTo(sx, sy); dctx.arc(sx, sy, T * 1.8, S.ang - 0.35, S.ang + 0.35); dctx.closePath(); dctx.fill();
   ctx.drawImage(dark, 0, 0);
+  ctx.save(); ctx.globalAlpha = 0.6;
+  // 座標（刻在岩壁上）
+  ctx.font = "bold 10px ui-monospace, Menlo, Consolas, monospace"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  for (let i = 0; i < N; i++) {
+    ctx.fillStyle = "rgba(0,0,0,.6)"; ctx.fillText(String(i), wx2s(i + 1.5) + 1, wy2s(0.5) + 1); ctx.fillText(String(i), wx2s(0.5) + 1, wy2s(i + 1.5) + 1);
+    ctx.fillStyle = "#cfe9f5"; ctx.fillText(String(i), wx2s(i + 1.5), wy2s(0.5)); ctx.fillText(String(i), wx2s(0.5), wy2s(i + 1.5));
+  }
+  ctx.fillStyle = "#ffc94a"; ctx.fillText("x", wx2s(6.5), wy2s(0.5)); ctx.fillText("y", wx2s(0.5), wy2s(6.5));
+  ctx.restore();
   ctx.save(); ctx.globalCompositeOperation = "lighter";
-  const g4 = ctx.createRadialGradient(sx, sy, 0, sx, sy, T * 3); g4.addColorStop(0, "rgba(255,240,180,.13)"); g4.addColorStop(1, "rgba(255,240,180,0)");
-  ctx.fillStyle = g4; ctx.beginPath(); ctx.moveTo(sx, sy); ctx.arc(sx, sy, T * 3, S.ang - 0.4, S.ang + 0.4); ctx.closePath(); ctx.fill(); ctx.restore();
+  const g4 = ctx.createRadialGradient(sx, sy, 0, sx, sy, T * 1.8); g4.addColorStop(0, "rgba(255,240,180,.08)"); g4.addColorStop(1, "rgba(255,240,180,0)");
+  ctx.fillStyle = g4; ctx.beginPath(); ctx.moveTo(sx, sy); ctx.arc(sx, sy, T * 1.8, S.ang - 0.3, S.ang + 0.3); ctx.closePath(); ctx.fill(); ctx.restore();
   // 水雷：兩格內模糊、一格內清楚
   for (const [gx, gy] of S.mines) {
-    const key = gx + "," + gy, d = Math.hypot(gx - S.gx, gy - S.gy), target = d <= 1.01 ? 1 : d <= 2.3 ? 0.55 : 0;
+    const key = gx + "," + gy, d = Math.hypot(gx - S.gx, gy - S.gy), target = d <= 1.01 ? 1 : 0;
     mv[key] = (mv[key] ?? 0) + (target - (mv[key] ?? 0)) * 0.12;
     if (mv[key] < 0.02) continue;
-    const clear = mv[key] > 0.75;
-    drawMine(wx2s(gx + 1.5), wy2s(gy + 1.5) + Math.sin(t * 1.3 + gx) * 1.2, clear ? 1 : mv[key], !clear, t, Math.sin(t * 6 + gy) > 0);
+    // 只在隔壁格時，糊糊的、幾乎看不到
+    ctx.save(); ctx.filter = "blur(2px)";
+    drawMine(wx2s(gx + 1.5), wy2s(gy + 1.5) + Math.sin(t * 1.3 + gx) * 1.2, mv[key] * (0.3 + 0.06 * Math.sin(t * 2.3 + gx)), false, t, false);
+    ctx.restore();
   }
   // 珍珠（自己發光，在黑暗上面）
   for (const p of S.pearls) {

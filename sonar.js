@@ -134,8 +134,7 @@ async function connect() {
     device = await navigator.bluetooth.requestDevice({ filters: [{ services: [NUS] }, { namePrefix: "BBC micro:bit" }], optionalServices: [NUS] });
     device.addEventListener("gattserverdisconnected", () => { rxChar = null; setStatus("off"); log("已中斷連接", "e"); });
     const svc = await (await device.gatt.connect()).getPrimaryService(NUS);
-    rxChar = await svc.getCharacteristic(NUS_RX);
-    const tx = await svc.getCharacteristic(NUS_TX); await tx.startNotifications();
+    const ch = await nusChars(svc); rxChar = ch.rx; const tx = ch.tx; await tx.startNotifications();
     tx.addEventListener("characteristicvaluechanged", (e) => receive(new TextDecoder().decode(e.target.value)));
     setStatus("on", device.name); log(`已連接 ${device.name || "micro:bit"}`);
     toast("連接成功！傾斜 micro:bit 開潛艇");
@@ -501,3 +500,12 @@ function init() {
 }
 window.SONAR = { S, start, receive, keyMove };
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
+
+// micro:bit 的 UART 和 Nordic 標準相反：6e400002 是 micro:bit 送出（indicate），6e400003 才是寫入。
+// 依特性的屬性判斷哪個能寫，兩種韌體都能連。
+async function nusChars(svc) {
+  const a = await svc.getCharacteristic("6e400002-b5a3-f393-e0a9-e50e24dcca9e");
+  const b = await svc.getCharacteristic("6e400003-b5a3-f393-e0a9-e50e24dcca9e");
+  const canWrite = (c) => c.properties.write || c.properties.writeWithoutResponse;
+  return canWrite(a) ? { rx: a, tx: b } : { rx: b, tx: a };
+}

@@ -64,8 +64,7 @@ async function connect() {
 
     const server = await device.gatt.connect();
     const service = await server.getPrimaryService(NUS_SERVICE_UUID);
-    rxChar = await service.getCharacteristic(NUS_RX_CHAR_UUID);
-    txChar = await service.getCharacteristic(NUS_TX_CHAR_UUID);
+    ({ rx: rxChar, tx: txChar } = await nusChars(service));
 
     await txChar.startNotifications();
     txChar.addEventListener("characteristicvaluechanged", onNotify);
@@ -190,3 +189,12 @@ function init() {
 }
 
 document.addEventListener("DOMContentLoaded", init);
+
+// micro:bit 的 UART 和 Nordic 標準相反：6e400002 是 micro:bit 送出（indicate），6e400003 才是寫入。
+// 依特性的屬性判斷哪個能寫，兩種韌體都能連。
+async function nusChars(svc) {
+  const a = await svc.getCharacteristic("6e400002-b5a3-f393-e0a9-e50e24dcca9e");
+  const b = await svc.getCharacteristic("6e400003-b5a3-f393-e0a9-e50e24dcca9e");
+  const canWrite = (c) => c.properties.write || c.properties.writeWithoutResponse;
+  return canWrite(a) ? { rx: a, tx: b } : { rx: b, tx: a };
+}

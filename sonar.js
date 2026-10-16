@@ -133,7 +133,7 @@ async function connect() {
     setStatus("wait");
     device = await navigator.bluetooth.requestDevice({ filters: [{ services: [NUS] }, { namePrefix: "BBC micro:bit" }], optionalServices: [NUS] });
     device.addEventListener("gattserverdisconnected", () => { rxChar = null; setStatus("off"); log("已中斷連接", "e"); });
-    const svc = await (await device.gatt.connect()).getPrimaryService(NUS);
+    const svc = await nusService(device);
     const ch = await nusChars(svc); rxChar = ch.rx; const tx = ch.tx; await tx.startNotifications();
     tx.addEventListener("characteristicvaluechanged", (e) => receive(new TextDecoder().decode(e.target.value)));
     setStatus("on", device.name); log(`已連接 ${device.name || "micro:bit"}`);
@@ -508,4 +508,26 @@ async function nusChars(svc) {
   const b = await svc.getCharacteristic("6e400003-b5a3-f393-e0a9-e50e24dcca9e");
   const canWrite = (c) => c.properties.write || c.properties.writeWithoutResponse;
   return canWrite(a) ? { rx: a, tx: b } : { rx: b, tx: a };
+}
+
+// 連上後再取服務；有些電腦會在剛連上時斷一下，所以重試三次。
+async function nusService(device) {
+  let last;
+  for (let i = 0; i < 3; i++) {
+    try {
+      const server = device.gatt.connected ? device.gatt : await device.gatt.connect();
+      await new Promise((r) => setTimeout(r, 300 + i * 400));
+      if (!device.gatt.connected) throw new Error("disconnected");
+      return await server.getPrimaryService("6e400001-b5a3-f393-e0a9-e50e24dcca9e");
+    } catch (e) {
+      last = e;
+      await new Promise((r) => setTimeout(r, 700));
+    }
+  }
+  const msg = String((last && last.message) || last);
+  if (/disconnected|GATT Server/i.test(msg))
+    throw new Error("micro:bit 一連上就斷線。請確認：① MakeCode 專案設定選「不需配對」後重新下載；② 到電腦或平板的藍牙設定，把這台 micro:bit 移除（忘記裝置）；③ 平板 App 已中斷連線。");
+  if (/No Services matching|not found/i.test(msg))
+    throw new Error("這台 micro:bit 沒有藍牙串口：程式要加「藍牙串口服務」，並用 bluetooth 擴展下載。");
+  throw last;
 }

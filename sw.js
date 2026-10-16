@@ -1,5 +1,5 @@
 // 網路優先：上課時永遠拿到最新版；沒有網路時才用快取
-const CACHE_NAME = "kuding-lab-v3";
+const CACHE_NAME = "kuding-lab-v4";
 const ASSETS = ["./", "index.html", "kuding.css", "car.html", "style.css", "app.js", "manifest.json", "icon.svg", "assets/fox-head.webp"];
 
 self.addEventListener("install", (event) => {

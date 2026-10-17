@@ -96,23 +96,18 @@ const S = {
   mode: null, running: false, score: 0, hits: 0, left: 60, timer: 0, sound: true,
   gx: START[0], gy: START[1], face: 0,
   x: START[0] + 1.5, y: START[1] + 1.5, ang: FACE_ANG[0], bump: 0, bumpDir: [0, 0], shake: 0,
-  boom: 0, boomPhase: 0, flash: 0, pendingArrive: null, mines: [[4, 4]], pearls: [], fish: [], cracks: [], fade: 0,
+  boom: 0, boomPhase: 0, flash: 0, pendingArrive: null, pearls: [], fish: [], cracks: [], fade: 0,
 };
 let MAP = [];
 function buildMap() {
   MAP = [];
   for (let y = 0; y < MW; y++) { const row = []; for (let x = 0; x < MW; x++) row.push(x === 0 || y === 0 || x === MW - 1 || y === MW - 1 ? 1 + ((x * 7 + y * 13) % 4) : 0); MAP.push(row); }
 }
-const isMine = (x, y) => S.mines.some(([a, b]) => a === x && b === y);
-function loadMines() {
-  try { const m = JSON.parse(localStorage.getItem("cockpit.mines") || "null"); if (Array.isArray(m)) S.mines = m.filter((p) => Array.isArray(p) && p.length === 2).slice(0, 6); } catch (e) {}
-}
-function saveMines() { try { localStorage.setItem("cockpit.mines", JSON.stringify(S.mines)); } catch (e) {} }
 
 function placePearl() {
   const free = [];
   for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
-    if (isMine(x, y) || (x === S.gx && y === S.gy) || S.pearls.some((p) => p.gx === x && p.gy === y)) continue;
+    if ((x === S.gx && y === S.gy) || S.pearls.some((p) => p.gx === x && p.gy === y)) continue;
     free.push([x, y, Math.abs(x - S.gx) + Math.abs(y - S.gy)]);
   }
   if (!free.length) return;
@@ -135,7 +130,7 @@ async function connect() {
     device.addEventListener("gattserverdisconnected", () => { rxChar = null; setStatus("off"); log("已中斷連接", "e"); });
     const svc = await nusService(device);
     const ch = await nusChars(svc); rxChar = ch.rx;
-    try { await ch.tx.startNotifications(); } catch (e) {}
+    try { await ch.tx.startNotifications(); ch.tx.addEventListener("characteristicvaluechanged", (e) => receive(new TextDecoder().decode(e.target.value))); } catch (e) {}
     setStatus("on", device.name); log(`已連接 ${device.name || "micro:bit"}`);
     toast("連接成功！micro:bit 按重設鈕，潛艇回到 (2, 2)");
   } catch (err) { if (!err || err.name !== "NotFoundError") log(`連接失敗：${(err && err.message) || err}`, "e"); setStatus("off"); }
@@ -197,7 +192,19 @@ function arrive() {
   S.pendingArrive = null;
   const p = S.pearls.findIndex((q) => q.gx === S.gx && q.gy === S.gy);
   if (p >= 0 && S.running) { S.pearls.splice(p, 1); S.score++; sfx.pearl(); toast("拿到珍珠！"); placePearl(); hud(); }
-  if (isMine(S.gx, S.gy)) explode();
+}
+// micro:bit 撞到水雷時會送 boom#，網頁跟著爆炸（水雷只在 micro:bit 上）
+let rxBuf = "";
+function receive(text) {
+  rxBuf += text;
+  let i;
+  while ((i = rxBuf.search(/[#\n]/)) >= 0) {
+    const w = rxBuf.slice(0, i).trim(); rxBuf = rxBuf.slice(i + 1);
+    if (!w) continue;
+    log(`收到 ${w}#`);
+    if (w.toLowerCase() === "boom" && !S.boom) explode();
+  }
+  if (rxBuf.length > 64) rxBuf = "";
 }
 function explode() {
   S.boom = performance.now(); S.hits++; S.shake = 1; S.flash = 1; sfx.boom(); hud();
@@ -230,7 +237,7 @@ function finish() {
   $("endText").textContent = S.hits ? `被水雷炸到 ${S.hits} 次。下次多看 micro:bit 的海圖！` : "一次都沒有被炸到，太厲害了！";
   $("endOv").hidden = false;
 }
-function openMenu() { S.running = false; clearInterval(S.timer); $("endOv").hidden = true; $("menu").hidden = false; drawGrid(); }
+function openMenu() { S.running = false; clearInterval(S.timer); $("endOv").hidden = true; $("menu").hidden = false; }
 function hud() {
   $("score").textContent = S.score; $("time").textContent = S.left; $("hits").textContent = S.hits;
   $("timeBox").classList.toggle("warn", S.left <= 10);
@@ -238,21 +245,6 @@ function hud() {
 }
 let toastT = 0;
 function toast(t) { const el = $("toast"); el.textContent = t; el.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove("show"), 1500); }
-function drawGrid() {
-  const g = $("grid5"); g.innerHTML = "";
-  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
-    const b = document.createElement("button"), st = x === START[0] && y === START[1], hm = x === HOME[0] && y === HOME[1];
-    b.className = (isMine(x, y) ? "mine" : "") + (st ? " start" : "") + (hm ? " home" : "");
-    b.textContent = `${x},${y}`; b.title = `(${x}, ${y})`; b.disabled = st || hm;
-    b.onclick = () => {
-      if (isMine(x, y)) S.mines = S.mines.filter(([a, c]) => !(a === x && c === y));
-      else if (S.mines.length < 6) S.mines.push([x, y]); else toast("最多 6 顆水雷");
-      saveMines(); drawGrid();
-    };
-    g.appendChild(b);
-  }
-}
-
 /* ---------------- 俯視角繪圖（像素風） ---------------- */
 const cv = $("view"), ctx = cv.getContext("2d");
 const T = 32, MAPPX = MW * T;
@@ -270,7 +262,6 @@ function resize() {
 }
 const wx2s = (x) => OX + x * T, wy2s = (y) => OY + y * T;
 function caust(x, y, t) { return (Math.sin(x * 5.1 + t * 1.7) + Math.sin(y * 4.3 - t * 1.3) + Math.sin((x + y) * 3.7 + t)) / 3; }
-const mv = {};
 const snow = Array.from({ length: 50 }, () => ({ x: Math.random(), y: Math.random(), z: rnd(0.3, 1) }));
 const bubbles = [], debris = [];
 
@@ -289,22 +280,6 @@ function drawSub(cx, cy, ang, t) {
   R(1, -3, 2, 2, "#e9792e"); R(4, -3, 2, 2, "#e9792e"); R(2, -1, 3, 2, "#e9792e"); R(3, 0, 1, 1, "#fff4e6");
   R(12, -1, 3, 2, "#fffbe0");
   for (let i = -8; i <= 8; i += 4) R(i - 2, 5, 1, 1, "#9b6a14");
-  ctx.restore();
-}
-function drawMine(cx, cy, a, ghost, t, blink) {
-  ctx.save(); ctx.globalAlpha = a;
-  if (ghost) {
-    // 隱約的輪廓：暗暗的影子加上斷續的邊和刺
-    ctx.fillStyle = "rgba(0,0,0,.5)"; ctx.beginPath(); ctx.arc(Math.round(cx), Math.round(cy), 9, 0, 7); ctx.fill();
-    ctx.fillStyle = "rgba(150,195,220,.75)";
-    for (let i = 0; i < 20; i++) { const an = (i / 20) * 6.28; if ((i + Math.floor(t * 5)) % 4 === 0) continue; ctx.fillRect(Math.round(cx + Math.cos(an) * 10), Math.round(cy + Math.sin(an) * 10), 1, 1); }
-    for (let i = 0; i < 8; i++) { const an = (i / 8) * 6.28 + 0.2; ctx.fillRect(Math.round(cx + Math.cos(an) * 13), Math.round(cy + Math.sin(an) * 13), 2, 2); }
-  } else {
-    ctx.fillStyle = "rgba(0,0,0,.35)"; ctx.beginPath(); ctx.ellipse(cx + 3, cy + 5, 11, 7, 0, 0, 7); ctx.fill();
-    ctx.drawImage(TEX.mine.c, 0, 0, 32, 32, Math.round(cx - 16), Math.round(cy - 16), 32, 32);
-    if (!blink) { ctx.fillStyle = "#5a1410"; ctx.fillRect(Math.round(cx - 1), Math.round(cy - 12), 3, 3); }
-    else { ctx.globalCompositeOperation = "lighter"; const g = ctx.createRadialGradient(cx, cy - 11, 0, cx, cy - 11, 9); g.addColorStop(0, "rgba(255,60,40,.9)"); g.addColorStop(1, "rgba(255,60,40,0)"); ctx.fillStyle = g; ctx.fillRect(cx - 9, cy - 20, 18, 18); }
-  }
   ctx.restore();
 }
 function render(now) {
@@ -394,16 +369,6 @@ function render(now) {
   ctx.save(); ctx.globalCompositeOperation = "lighter";
   const g4 = ctx.createRadialGradient(sx, sy, 0, sx, sy, T * 1.8); g4.addColorStop(0, "rgba(255,240,180,.08)"); g4.addColorStop(1, "rgba(255,240,180,0)");
   ctx.fillStyle = g4; ctx.beginPath(); ctx.moveTo(sx, sy); ctx.arc(sx, sy, T * 1.8, S.ang - 0.3, S.ang + 0.3); ctx.closePath(); ctx.fill(); ctx.restore();
-  // 水雷：兩格內模糊、一格內清楚
-  for (const [gx, gy] of S.mines) {
-    const key = gx + "," + gy, d = Math.hypot(gx - S.gx, gy - S.gy), target = d <= 1.01 ? 1 : 0;
-    mv[key] = (mv[key] ?? 0) + (target - (mv[key] ?? 0)) * 0.12;
-    if (mv[key] < 0.02) continue;
-    // 只在隔壁格時，糊糊的、幾乎看不到
-    ctx.save(); ctx.filter = "blur(2px)";
-    drawMine(wx2s(gx + 1.5), wy2s(gy + 1.5) + Math.sin(t * 1.3 + gx) * 1.2, mv[key] * (0.3 + 0.06 * Math.sin(t * 2.3 + gx)), false, t, false);
-    ctx.restore();
-  }
   // 珍珠（自己發光，在黑暗上面）
   for (const p of S.pearls) {
     const cx = wx2s(p.gx + 1.5), cy = wy2s(p.gy + 1.5), a = Math.min(1, (now - p.born) / 400);
@@ -431,14 +396,6 @@ function render(now) {
     ctx.globalAlpha = 1;
   }
   ctx.setTransform(1, 0, 0, 1, 0, 0);
-  // 危險：水雷在隔壁格
-  const near = S.mines.some(([a, b]) => Math.abs(a - S.gx) + Math.abs(b - S.gy) === 1);
-  if (near && !S.boom) {
-    const a = 0.2 + 0.12 * Math.sin(t * 8);
-    const rg = ctx.createRadialGradient(W / 2, H / 2, H * 0.3, W / 2, H / 2, W * 0.6); rg.addColorStop(0, "rgba(255,40,30,0)"); rg.addColorStop(1, `rgba(255,40,30,${a})`);
-    ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H);
-    if (now - (render.lastPing || 0) > 600) { render.lastPing = now; sfx.ping(); }
-  }
   if (S.flash > 0) { ctx.fillStyle = `rgba(255,${180 + 60 * S.flash},120,${S.flash * 0.8})`; ctx.fillRect(0, 0, W, H); }
   if (S.boom) { const k = clamp((now - S.boom - 800) / 800, 0, 1); ctx.fillStyle = `rgba(0,0,0,${k})`; ctx.fillRect(0, 0, W, H); }
   if (S.fade > 0) { ctx.fillStyle = `rgba(0,0,0,${S.fade})`; ctx.fillRect(0, 0, W, H); }
@@ -478,8 +435,8 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 function init() {
-  buildTextures(); buildMap(); loadMines(); resize(); addEventListener("resize", resize);
-  setStatus("off"); drawGrid();
+  buildTextures(); buildMap(); resize(); addEventListener("resize", resize);
+  setStatus("off");
   $("connectBtn").onclick = () => (device && device.gatt.connected ? device.gatt.disconnect() : connect());
   $("soundBtn").onclick = () => { S.sound = !S.sound; $("soundBtn").textContent = S.sound ? "音效 開" : "音效 關"; };
   $("menuBtn").onclick = openMenu; $("backBtn").onclick = openMenu; $("againBtn").onclick = () => start(S.mode);
@@ -490,10 +447,11 @@ function init() {
     const c = KEY[e.key] || KEY[e.key.toLowerCase && e.key.toLowerCase()];
     if (c) { e.preventDefault(); if (!e.repeat) command(c); }
     if (e.key === "Escape") openMenu();
+    if ((e.key === "x" || e.key === "X") && !rxChar && $("menu").hidden && !S.boom) explode();
   });
   hud(); requestAnimationFrame(frame);
 }
-window.COCKPIT = { S, command, start };
+window.COCKPIT = { S, command, start, receive };
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
 
 // micro:bit 的 UART 和 Nordic 標準相反：6e400002 是 micro:bit 送出（indicate），6e400003 才是寫入。

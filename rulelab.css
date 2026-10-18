@@ -1,4 +1,4 @@
-/* rulelab.css — 主題B 遊戲的規則積木編輯畫面（配合 rulelab.js） */
+/* rulelab.css — 主題2 遊戲的規則積木編輯畫面（配合 rulelab.js） */
 #rlEditor { position: fixed; inset: 0; z-index: 40; display: flex; flex-direction: column; background: #fff; }
 #rlEditor[hidden] { display: none !important; }
 #rlEditor .bar { flex: none; display: flex; align-items: center; gap: 8px; padding: 10px 14px; flex-wrap: wrap; }

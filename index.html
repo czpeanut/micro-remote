@@ -189,8 +189,8 @@
       </a>
       <nav class="main" aria-label="主選單">
         <a href="#t1">主題1 深海探險隊</a>
+        <a href="#t2">主題2 聲音與感應</a>
         <a href="#ta">主題A 機械手臂</a>
-        <a href="#tb">主題B 聲音與感測器</a>
         <a href="#steps">實驗步驟</a>
         <a href="#help">故障排除</a>
       </nav>
@@ -209,11 +209,14 @@
         <div class="text">
           <div class="tags mono"><span>LAB No.01</span><span>MakeCode × micro:bit</span></div>
           <h1>寫程式、<br>做遙控、<br><mark>玩實驗！</mark></h1>
-          <p class="lead">歡迎來到酷丁狐的實驗室。在 MakeCode 拼好程式、下載到 micro:bit，再回到這裡：依照主題找到這一堂課：深海探險隊用手機和電腦開潛艇、找寶藏，機械手臂用手機遙控手臂和吊車，聲音與感測器做樂器、玩體感遊戲。每一堂要用的網頁都在這一頁。</p>
+          <p class="lead">歡迎來到酷丁狐的實驗室。在 MakeCode 拼好程式、下載到 micro:bit，再回到這裡：依照主題找到這一堂課：深海探險隊用手機和電腦開潛艇、找寶藏，機械手臂用手機遙控手臂和吊車，聲音與感應做樂器、玩體感遊戲。每一堂要用的網頁都在這一頁。</p>
           <div class="ctas">
             <a class="btn orange" href="#t1">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><rect x="2" y="6" width="20" height="12"></rect><path d="M7 10v4M5 12h4M15 11h.01M18 13h.01"></path></svg>
               主題1 深海探險隊</a>
+            <a class="btn" href="#t2">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4l14 8-14 8z"></path></svg>
+              主題2 聲音與感應</a>
             <a class="btn" href="#ta">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4l14 8-14 8z"></path></svg>
               主題A 機械手臂</a>
@@ -300,53 +303,10 @@
       </div>
     </section>
 
-    <section class="band" id="ta">
+    <section class="band dark" id="t2" style="border-top:4px solid var(--kd-mustard)">
       <div class="wrap">
         <div class="sec-head">
-          <div><span class="topic mono">主題 A / ROBOT ARM</span><h2>機械手臂</h2><p>悟空擴充板加上伺服馬達，從按鈕控制、超音波自動夾取，到用手機遙控手臂，最後裝上底盤變成吊車。手機用 Chrome（iPhone、iPad 用 Bluefy）。</p></div>
-          <span class="mono">2 TOOLS / 第一～四堂</span>
-        </div>
-        <div class="toolgrid two">
-          <article class="tool">
-            <div class="shot art" style="background:var(--kd-olive)"><div class="mb"><div class="row1 mono"><span>KUDING-RC</span><span>ARM</span></div><div class="led" aria-hidden="true"><i></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div><div class="row2"><span>A</span>micro:bit<span>B</span></div></div><span class="mono">手機遙控</span></div>
-            <div class="body">
-              <span class="lessons mono">第三堂</span>
-              <h3>機械手臂遙控</h3>
-              <p>底座左右轉、手臂抬起放下、夾爪夾緊放開。按住慢慢動，放開就停在那裡。</p>
-              <div class="chips"><span>left right</span><span>up down</span><span>grab open stop</span></div>
-              <a class="btn orange small" href="arm.html">打開手臂遙控</a>
-            </div>
-          </article>
-          <article class="tool">
-            <div class="shot art" style="background:var(--kd-mustard)"><div class="mb"><div class="row1 mono"><span>KUDING-RC</span><span>CRANE</span></div><div class="led" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i class="on"></i><i></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i><i></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i class="on"></i><i></i><i></i><i></i><i class="on"></i></div><div class="row2"><span>A</span>micro:bit<span>B</span></div></div><span class="mono">手機遙控</span></div>
-            <div class="body">
-              <span class="lessons mono">第四堂</span>
-              <h3>吊車遙控</h3>
-              <p>車子、轉台、升降和夾爪全部在同一台手機上操作，還能錄下一段動作再重播。</p>
-              <div class="chips"><span>forward back</span><span>spinL spinR</span><span>rec play</span></div>
-              <a class="btn orange small" href="crane.html">打開吊車遙控</a>
-            </div>
-          </article>
-        </div>
-        <h3 class="sub-h">單元對照</h3>
-        <div class="tablebox">
-          <table>
-            <thead><tr><th style="width:90px">單元</th><th style="width:190px">名稱</th><th>實驗內容</th><th style="width:320px">要用的網頁</th></tr></thead>
-            <tbody>
-              <tr><td class="code">A-01</td><td class="name">機械手臂動起來</td><td>認識三個關節，組裝手臂，用按鈕和觸摸標誌控制，搬運比賽。</td><td class="tools"><span class="none">只用 micro:bit</span></td></tr>
-              <tr><td class="code">A-02</td><td class="name">超音波自動夾取</td><td>超音波量距離，東西靠近就自動夾起來，搬到放貨區並計數。</td><td class="tools"><span class="none">只用 micro:bit</span></td></tr>
-              <tr><td class="code">A-03</td><td class="name">手機遙控手臂</td><td>藍牙串口接收文字指令，用變數讓手臂慢慢移動。</td><td class="tools"><a href="arm.html">機械手臂遙控</a></td></tr>
-              <tr><td class="code">A-04</td><td class="name">遙控吊車</td><td>手臂裝上小車底盤做成吊車，挑戰示教錄製與重播。</td><td class="tools"><a href="crane.html">吊車遙控</a></td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <section class="band dark" id="tb">
-      <div class="wrap">
-        <div class="sec-head">
-          <div><span class="topic mono">主題 B / SOUND &amp; SENSOR</span><h2>聲音與感測器</h2><p>前四堂用 micro:bit V2 內建喇叭做樂器：電子鋼琴、音樂盒、測謊機、特雷門琴。後四堂把超音波、加速度、旋鈕和按鍵的數值用藍牙傳給平板，玩體感小遊戲。平板請用 Chrome（iPad 用 Bluefy），沒有 micro:bit 也能先用鍵盤試玩。每個遊戲都有「規則實驗室」，可以用積木改遊戲規則。</p></div>
+          <div><span class="topic mono">主題 2 / SOUND &amp; SENSOR</span><h2>聲音與感應</h2><p>前四堂用 micro:bit V2 內建喇叭做樂器：電子鋼琴、音樂盒、測謊機、特雷門琴。後四堂把超音波、加速度、旋鈕和按鍵的數值用藍牙傳給平板，玩體感小遊戲。平板請用 Chrome（iPad 用 Bluefy），沒有 micro:bit 也能先用鍵盤試玩。每個遊戲都有「規則實驗室」，可以用積木改遊戲規則。</p></div>
           <span class="mono">4 GAMES + 4 LABS / 第五～八堂</span>
         </div>
         <div class="toolgrid two">
@@ -396,14 +356,57 @@
           <table>
             <thead><tr><th style="width:90px">單元</th><th style="width:190px">名稱</th><th>實驗內容</th><th style="width:320px">要用的網頁</th></tr></thead>
             <tbody>
-              <tr><td class="code">B-01</td><td class="name">電子鋼琴</td><td>按鈕和旋鈕彈出 Do Re Mi，用 micro:bit V2 內建喇叭發聲。</td><td class="tools"><span class="none">只用 micro:bit</span></td></tr>
-              <tr><td class="code">B-02</td><td class="name">音樂盒</td><td>用旋律編輯器寫一首歌，旋鈕調整播放速度。</td><td class="tools"><span class="none">只用 micro:bit</span></td></tr>
-              <tr><td class="code">B-03</td><td class="name">測謊機</td><td>溼度感應器量手指的導電程度，用內建 LED 長條圖和圖示顯示緊張指數。</td><td class="tools"><span class="none">只用 micro:bit</span></td></tr>
-              <tr><td class="code">B-04</td><td class="name">特雷門琴</td><td>超音波量手的距離，換成音高，內建 LED 跟著亮起高低。</td><td class="tools"><span class="none">只用 micro:bit</span></td></tr>
-              <tr><td class="code">B-05</td><td class="name">超音波太空梭</td><td>把超音波距離用藍牙傳給平板，手的高度控制太空梭。</td><td class="tools"><a href="space.html">超音波太空梭</a><a href="space.html#lab">規則實驗室</a></td></tr>
-              <tr><td class="code">B-06</td><td class="name">micro:bit 運動會</td><td>加速度感測器抓「揮動的最大力道」和傾斜方向，傳給平板打保齡球、網球、棒球。</td><td class="tools"><a href="sports.html">micro:bit 運動會</a><a href="sports.html#lab">規則實驗室</a></td></tr>
-              <tr><td class="code">B-07</td><td class="name">旋鈕賽車</td><td>旋鈕和五鍵按鍵組成賽車方向盤，每 0.1 秒回報一次給平板。</td><td class="tools"><a href="race.html">旋鈕賽車</a><a href="race.html#lab">規則實驗室</a></td></tr>
-              <tr><td class="code">B-08</td><td class="name">體感指揮家</td><td>偵測每一次揮動、用時間差算出速度 BPM，指揮平板上的樂團。</td><td class="tools"><a href="maestro.html">體感指揮家</a><a href="maestro.html#lab">規則實驗室</a></td></tr>
+              <tr><td class="code">2-01</td><td class="name">電子鋼琴</td><td>按鈕和旋鈕彈出 Do Re Mi，用 micro:bit V2 內建喇叭發聲。</td><td class="tools"><span class="none">只用 micro:bit</span></td></tr>
+              <tr><td class="code">2-02</td><td class="name">音樂盒</td><td>用旋律編輯器寫一首歌，旋鈕調整播放速度。</td><td class="tools"><span class="none">只用 micro:bit</span></td></tr>
+              <tr><td class="code">2-03</td><td class="name">測謊機</td><td>溼度感應器量手指的導電程度，用內建 LED 長條圖和圖示顯示緊張指數。</td><td class="tools"><span class="none">只用 micro:bit</span></td></tr>
+              <tr><td class="code">2-04</td><td class="name">特雷門琴</td><td>超音波量手的距離，換成音高，內建 LED 跟著亮起高低。</td><td class="tools"><span class="none">只用 micro:bit</span></td></tr>
+              <tr><td class="code">2-05</td><td class="name">超音波太空梭</td><td>把超音波距離用藍牙傳給平板，手的高度控制太空梭。</td><td class="tools"><a href="space.html">超音波太空梭</a><a href="space.html#lab">規則實驗室</a></td></tr>
+              <tr><td class="code">2-06</td><td class="name">micro:bit 運動會</td><td>加速度感測器抓「揮動的最大力道」和傾斜方向，傳給平板打保齡球、網球、棒球。</td><td class="tools"><a href="sports.html">micro:bit 運動會</a><a href="sports.html#lab">規則實驗室</a></td></tr>
+              <tr><td class="code">2-07</td><td class="name">旋鈕賽車</td><td>旋鈕和五鍵按鍵組成賽車方向盤，每 0.1 秒回報一次給平板。</td><td class="tools"><a href="race.html">旋鈕賽車</a><a href="race.html#lab">規則實驗室</a></td></tr>
+              <tr><td class="code">2-08</td><td class="name">體感指揮家</td><td>偵測每一次揮動、用時間差算出速度 BPM，指揮平板上的樂團。</td><td class="tools"><a href="maestro.html">體感指揮家</a><a href="maestro.html#lab">規則實驗室</a></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="band" id="ta">
+      <div class="wrap">
+        <div class="sec-head">
+          <div><span class="topic mono">主題 A / ROBOT ARM</span><h2>機械手臂</h2><p>悟空擴充板加上伺服馬達，從按鈕控制、超音波自動夾取，到用手機遙控手臂，最後裝上底盤變成吊車。手機用 Chrome（iPhone、iPad 用 Bluefy）。</p></div>
+          <span class="mono">2 TOOLS / 第一～四堂</span>
+        </div>
+        <div class="toolgrid two">
+          <article class="tool">
+            <div class="shot art" style="background:var(--kd-olive)"><div class="mb"><div class="row1 mono"><span>KUDING-RC</span><span>ARM</span></div><div class="led" aria-hidden="true"><i></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div><div class="row2"><span>A</span>micro:bit<span>B</span></div></div><span class="mono">手機遙控</span></div>
+            <div class="body">
+              <span class="lessons mono">第三堂</span>
+              <h3>機械手臂遙控</h3>
+              <p>底座左右轉、手臂抬起放下、夾爪夾緊放開。按住慢慢動，放開就停在那裡。</p>
+              <div class="chips"><span>left right</span><span>up down</span><span>grab open stop</span></div>
+              <a class="btn orange small" href="arm.html">打開手臂遙控</a>
+            </div>
+          </article>
+          <article class="tool">
+            <div class="shot art" style="background:var(--kd-mustard)"><div class="mb"><div class="row1 mono"><span>KUDING-RC</span><span>CRANE</span></div><div class="led" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i class="on"></i><i></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i><i></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i class="on"></i><i></i><i></i><i></i><i class="on"></i></div><div class="row2"><span>A</span>micro:bit<span>B</span></div></div><span class="mono">手機遙控</span></div>
+            <div class="body">
+              <span class="lessons mono">第四堂</span>
+              <h3>吊車遙控</h3>
+              <p>車子、轉台、升降和夾爪全部在同一台手機上操作，還能錄下一段動作再重播。</p>
+              <div class="chips"><span>forward back</span><span>spinL spinR</span><span>rec play</span></div>
+              <a class="btn orange small" href="crane.html">打開吊車遙控</a>
+            </div>
+          </article>
+        </div>
+        <h3 class="sub-h">單元對照</h3>
+        <div class="tablebox">
+          <table>
+            <thead><tr><th style="width:90px">單元</th><th style="width:190px">名稱</th><th>實驗內容</th><th style="width:320px">要用的網頁</th></tr></thead>
+            <tbody>
+              <tr><td class="code">A-01</td><td class="name">機械手臂動起來</td><td>認識三個關節，組裝手臂，用按鈕和觸摸標誌控制，搬運比賽。</td><td class="tools"><span class="none">只用 micro:bit</span></td></tr>
+              <tr><td class="code">A-02</td><td class="name">超音波自動夾取</td><td>超音波量距離，東西靠近就自動夾起來，搬到放貨區並計數。</td><td class="tools"><span class="none">只用 micro:bit</span></td></tr>
+              <tr><td class="code">A-03</td><td class="name">手機遙控手臂</td><td>藍牙串口接收文字指令，用變數讓手臂慢慢移動。</td><td class="tools"><a href="arm.html">機械手臂遙控</a></td></tr>
+              <tr><td class="code">A-04</td><td class="name">遙控吊車</td><td>手臂裝上小車底盤做成吊車，挑戰示教錄製與重播。</td><td class="tools"><a href="crane.html">吊車遙控</a></td></tr>
             </tbody>
           </table>
         </div>

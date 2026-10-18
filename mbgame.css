@@ -1,4 +1,4 @@
-/* 主題B 遊戲頁共用版面（從 sonar.html 抽出），載入順序：mbgame.css → kuding.css → game.css */
+/* 主題2 遊戲頁共用版面（從 sonar.html 抽出），載入順序：mbgame.css → kuding.css → game.css */
 
     :root {
       --ink: #e9f4ff; --muted: #8fb0c9; --line: rgba(160, 210, 255, 0.18); --glass: rgba(6, 28, 46, 0.66);

@@ -1,6 +1,6 @@
 "use strict";
 /*
- * 主題B 共用：micro:bit 藍牙串口（Nordic UART）連線
+ * 主題2 共用：micro:bit 藍牙串口（Nordic UART）連線
  *  - MB.connect()：選擇 micro:bit 並連線
  *  - MB.send("word")：送出 word#
  *  - MB.on(fn)：收到訊息時呼叫 fn({key, value}) 或 fn({word})

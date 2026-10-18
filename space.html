@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Space+Mono:wght@700&display=swap" />
   <link rel="stylesheet" href="kuding.css" />
   <link rel="stylesheet" href="game.css" />
+  <link rel="stylesheet" href="rulelab.css" />
   <style>
     html, body { background: #05061a; }
     .gauge { position: fixed; right: 18px; top: 50%; transform: translateY(-50%); width: 64px; height: 56vh; background: rgba(10,14,40,.7);
@@ -51,6 +52,7 @@
         <button class="mode" data-mode="timed"><span class="tag">第五堂</span><b>限時 60 秒</b><p>60 秒內收集最多能量水晶，撞到隕石會扣護盾。</p></button>
         <button class="mode" data-mode="endless"><span class="tag">挑戰</span><b>無盡航行</b><p>隕石越來越快，護盾用完就結束。看你能飛多遠！</p></button>
       </div>
+      <button class="mode rl-card" id="labCard" style="margin-top:12px;width:100%"><span class="tag">規則實驗室</span><b>用積木改遊戲規則</b><p>自己決定隕石多快、水晶多少、碰到什麼會加分或扣分，再開始飛。</p></button>
       <div class="proto">
         <div><b>micro:bit 送出</b><br><code>d:數字</code>　手的距離（公分），每 0.1 秒一次<br><b>micro:bit 收到</b><br><code>star#</code>　吃到能量　<code>hit#</code>　撞到隕石</div>
         <div><b>沒有 micro:bit？</b><br>用滑鼠／手指在畫面上下移動，或用 ↑ ↓ 方向鍵試玩。<br>連上 micro:bit 後，太空梭就跟著你的手飛。</div>
@@ -66,6 +68,8 @@
     </div>
   </div>
   <script src="mblink.js"></script>
+  <script src="rulelab.js"></script>
   <script src="space.js"></script>
+  <script src="space-lab.js"></script>
 </body>
 </html>

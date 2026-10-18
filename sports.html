@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Space+Mono:wght@700&display=swap" />
   <link rel="stylesheet" href="kuding.css" />
   <link rel="stylesheet" href="game.css" />
+  <link rel="stylesheet" href="rulelab.css" />
   <style>
     html, body { background: #1b3a1f; }
     .meter { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); display: flex; gap: 14px; align-items: center;
@@ -51,6 +52,7 @@
         <button class="mode" data-game="tennis"><span class="tag">項目二</span><b>網球</b><p>球飛過來時揮拍！太早或太晚都會打歪，先得 5 分獲勝。</p></button>
         <button class="mode" data-game="base"><span class="tag">項目三</span><b>棒球</b><p>看準時機揮棒，力道越大飛越遠。10 球裡能打出幾支全壘打？</p></button>
       </div>
+      <button class="mode rl-card" id="labCard" style="margin-top:12px;width:100%"><span class="tag">規則實驗室</span><b>用積木改比賽規則</b><p>自己決定怎麼計分、幾球結束、球速多快、電腦有多強，設計你的運動會。</p></button>
       <div class="proto">
         <div><b>micro:bit 送出</b><br><code>x:數字</code>　左右傾斜（加速度 x），每 0.1 秒<br><code>s:數字</code>　揮動的力道（強度超過門檻才送）<br><b>micro:bit 收到</b><br><code>good#</code>　打得好　<code>miss#</code>　沒打到</div>
         <div><b>沒有 micro:bit？</b><br>← → 方向鍵傾斜，按住空白鍵蓄力、放開就揮動。</div>
@@ -66,6 +68,8 @@
     </div>
   </div>
   <script src="mblink.js"></script>
+  <script src="rulelab.js"></script>
   <script src="sports.js"></script>
+  <script src="sports-lab.js"></script>
 </body>
 </html>

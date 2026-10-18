@@ -7,7 +7,7 @@
 const $ = (id) => document.getElementById(id);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rnd = (a, b) => a + Math.random() * (b - a);
-const DMIN = 5, DMAX = 40;
+let DMIN = 5, DMAX = 40;
 const cv = $("view"), g = cv.getContext("2d");
 let W = 0, H = 0, DPR = 1;
 function resize() { DPR = Math.min(2, window.devicePixelRatio || 1); W = innerWidth; H = innerHeight; cv.width = W * DPR; cv.height = H * DPR; g.setTransform(DPR, 0, 0, DPR, 0, 0); }
@@ -82,6 +82,7 @@ function update(dt) {
   S.parts = S.parts.filter((p) => (p.life -= dt) > 0); for (const p of S.parts) { p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.97; p.vy *= 0.97; }
   S.shake = Math.max(0, S.shake - dt * 3);
   if (!S.running) return;
+  if (S.mode === "lab") { labUpdate(dt); return; }
 
   if (S.mode === "timed") { S.left -= dt; $("time").textContent = Math.ceil(Math.max(0, S.left)); if (S.left <= 0) { S.left = 0; hud(); sfx.win(); end("時間到！", "你在 60 秒內收集到："); return; } }
   if (S.mode === "endless") { S.speed = 1 + S.t / 40; S.travelled += dt * 10 * S.speed; }
@@ -130,9 +131,10 @@ function draw() {
     g.closePath(); g.fill(); g.stroke();
     g.fillStyle = "#54443a"; g.beginPath(); g.arc(r.r * 0.25, -r.r * 0.2, r.r * 0.22, 0, 7); g.fill(); g.beginPath(); g.arc(-r.r * 0.3, r.r * 0.25, r.r * 0.15, 0, 7); g.fill();
     g.restore(); }
+  if (S.mode === "lab") labDraw();
   const sp = shipPos();
-  if (!(S.inv > 0 && Math.floor(S.t * 12) % 2)) drawShip(sp.x, sp.y, clamp(-S.vy * 0.5, -0.5, 0.5));
-  if (S.inv > 0) { g.strokeStyle = `rgba(95,225,255,${S.inv / 1.5})`; g.lineWidth = 3; g.beginPath(); g.arc(sp.x, sp.y, 44, 0, 7); g.stroke(); }
+  if (!(S.inv > 0 && Math.floor(S.t * 12) % 2)) { g.save(); g.translate(sp.x, sp.y); g.scale(S.shipSz || 1, S.shipSz || 1); drawShip(0, 0, clamp(-S.vy * 0.5, -0.5, 0.5)); g.restore(); }
+  if (S.inv > 0) { g.strokeStyle = `rgba(95,225,255,${S.inv / 1.5})`; g.lineWidth = 3; g.beginPath(); g.arc(sp.x, sp.y, 44 * (S.shipSz || 1), 0, 7); g.stroke(); }
   for (const p of S.parts) { g.globalAlpha = clamp(p.life, 0, 1); g.fillStyle = p.col; g.fillRect(p.x - 2, p.y - 2, 4, 4); } g.globalAlpha = 1;
   // 高度刻度
   g.fillStyle = "rgba(255,255,255,.25)"; g.font = "700 12px Space Mono, monospace";
@@ -144,8 +146,8 @@ function loop(now) { const dt = Math.min(0.05, (now - last) / 1000); last = now;
 requestAnimationFrame(loop);
 
 /* ---------- 按鈕 ---------- */
-document.querySelectorAll(".mode").forEach((b) => b.addEventListener("click", () => start(b.dataset.mode)));
+document.querySelectorAll(".mode[data-mode]").forEach((b) => b.addEventListener("click", () => start(b.dataset.mode)));
 $("againBtn").onclick = () => start(S.mode);
 $("backBtn").onclick = () => { $("endOv").hidden = true; $("menu").hidden = false; };
-$("menuBtn").onclick = () => { S.running = false; $("menu").hidden = false; };
+$("menuBtn").onclick = () => { if (S.mode === "lab") LAB.stop(); S.running = false; $("menu").hidden = false; };
 $("soundBtn").onclick = () => { SFX.set(!SFX.on); $("soundBtn").textContent = SFX.on ? "音效 開" : "音效 關"; };

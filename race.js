@@ -33,7 +33,9 @@ function nearest(x, y) { let bi = 0, bd = 1e9; for (let k = 0; k < PTS.length; k
 
 /* ---------- 狀態 ---------- */
 const S = { mode: null, running: false, knob: 512, btn: 0, car: null, lap: 0, laps: 3, lapT: 0, best: null, times: [], nitro: 3, boost: 0, count: 0, prog: 0, half: false,
-  trail: [], rec: [], ghost: null, ghostT: 0, skid: [], t: 0, track: 0 };
+  trail: [], rec: [], ghost: null, ghostT: 0, skid: [], t: 0, track: 0,
+  lab: false, vmax: 1, steerK: 1, spin: 0, items: [], wasOff: false, lastLap: 0, labGhost: false };
+const labFire = (ev, arg, it) => { if (S.lab && typeof LAB !== "undefined") LAB.fire(ev, arg, it); };
 function bestKey() { return "race-best-" + S.track; }
 function loadBest() { try { const v = JSON.parse(localStorage.getItem(bestKey())); return v; } catch (e) { return null; } }
 function saveBest(time, rec) { try { localStorage.setItem(bestKey(), JSON.stringify({ time, rec })); } catch (e) {} }
@@ -43,13 +45,14 @@ MB.on((ev) => { if (ev.key === "k") setKnob(ev.value); if (ev.key === "b") setBt
 function setKnob(v) { S.knob = clamp(v, 0, 1023); $("knob").textContent = Math.round(S.knob); $("wheel").style.transform = `rotate(${(S.knob - 512) / 512 * 135}deg)`; }
 function setBtn(b) {
   if (b === 3 && S.btn !== 3) useNitro();
+  if ((b === 4 || b === 5) && S.btn !== b && S.running && S.count <= 0) labFire("key", b === 4 ? "d" : "e");
   S.btn = b; for (let i = 1; i <= 5; i++) $("k" + i).classList.toggle("on", b === i);
 }
 const keys = {};
-addEventListener("keydown", (e) => { keys[e.key] = true; if (e.key === " ") { e.preventDefault(); if (!MB.live()) useNitro(); } });
+addEventListener("keydown", (e) => { if (!e.repeat && (e.key === "d" || e.key === "e") && !MB.live() && S.running && S.count <= 0) labFire("key", e.key); keys[e.key] = true; if (e.key === " ") { e.preventDefault(); if (!MB.live()) useNitro(); } });
 addEventListener("keyup", (e) => { keys[e.key] = false; });
 function useNitro() { if (!S.running || S.count > 0 || S.nitro <= 0 || S.boost > 0) return; S.nitro--; S.boost = 1.6; SFX.noise(0.9, 0.25, 900); hudNitro(); }
-function hudNitro() { $("nitro").textContent = "●".repeat(S.nitro) + "○".repeat(3 - S.nitro); }
+function hudNitro() { $("nitro").textContent = "●".repeat(Math.min(9, S.nitro)) + "○".repeat(Math.max(0, 3 - S.nitro)); }
 
 /* ---------- 流程 ---------- */
 function start(mode) {
@@ -57,8 +60,8 @@ function start(mode) {
   const p = PTS[0], q = PTS[3];
   S.car = { x: p[0], y: p[1], a: Math.atan2(q[1] - p[1], q[0] - p[0]), v: 0 };
   Object.assign(S, { mode, running: true, lap: 0, lapT: 0, times: [], nitro: 3, boost: 0, count: 3, prog: 0, half: false, rec: [], skid: [], t: 0 });
-  S.laps = mode === "free" ? Infinity : 3;
-  const b = loadBest(); S.best = b ? b.time : null; S.ghost = mode === "ghost" && b ? b.rec : null; S.ghostT = 0;
+  S.laps = mode === "free" || mode === "lab" ? Infinity : 3;
+  const b = loadBest(); S.best = b ? b.time : null; S.ghost = (mode === "ghost" || (mode === "lab" && S.labGhost)) && b ? b.rec : null; S.ghostT = 0;
   if (mode === "ghost" && !b) toast("還沒有紀錄，先跑一圈當幽靈車！");
   $("menu").hidden = true; $("endOv").hidden = true; hudNitro(); hud(); SFX.audio();
 }
@@ -69,11 +72,12 @@ function hud() {
 let toastT = 0;
 function toast(t) { const el = $("toast"); el.textContent = t; el.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove("show"), 1500); }
 function lapDone() {
-  const t = S.lapT; S.times.push(t); MB.send("lap");
+  const t = S.lapT; S.times.push(t); if (!S.lab) MB.send("lap"); S.lastLap = Math.round(t * 100) / 100;
   const nb = !S.best || t < S.best;
   if (nb) { S.best = t; saveBest(t, S.rec); toast(`新紀錄！${t.toFixed(2)} 秒`); [523, 659, 784, 1046].forEach((f, i) => SFX.tone(f, f, 0.2, "triangle", 0.14, i * 0.08)); }
   else { toast(`第 ${S.lap + 1} 圈 ${t.toFixed(2)} 秒`); SFX.tone(880, 880, 0.15, "triangle", 0.12); }
   S.lap++; S.lapT = 0; S.rec = []; S.ghostT = 0;
+  labFire("lap");
   if (S.lap >= S.laps) {
     S.running = false; MB.send("end");
     $("endTitle").textContent = "完賽！"; $("endText").textContent = S.times.map((x, i) => `第 ${i + 1} 圈 ${x.toFixed(2)} 秒`).join("　");
@@ -99,17 +103,21 @@ function update(dt) {
   engineSound(Math.abs(c.v));
   if (!S.running) { c.v *= 0.95; return; }
   if (S.count > 0) { const before = Math.ceil(S.count); S.count -= dt; const after = Math.ceil(S.count);
-    if (after !== before) { if (after > 0) SFX.tone(600, 600, 0.15, "square", 0.1); else { SFX.tone(1200, 1200, 0.3, "square", 0.12); MB.send("go"); } } return; }
+    if (after !== before) { if (after > 0) SFX.tone(600, 600, 0.15, "square", 0.1); else { SFX.tone(1200, 1200, 0.3, "square", 0.12); if (S.lab) labFire("go"); else MB.send("go"); } } return; }
   S.lapT += dt; S.boost = Math.max(0, S.boost - dt);
   const n = nearest(c.x, c.y), off = n.d > ROAD / 2;
-  const maxV = (off ? 100 : 280) * (S.boost > 0 ? 1.45 : 1);
+  const maxV = (off ? 100 : 280) * S.vmax * (S.boost > 0 ? 1.45 : 1);
+  if (off && !S.wasOff) labFire("off"); S.wasOff = off;
   if (S.btn === 1 || S.boost > 0) c.v += (S.boost > 0 ? 420 : 240) * dt;
   else if (S.btn === 2) c.v -= 420 * dt;
   else c.v -= 90 * dt;
   c.v = clamp(c.v, -60, maxV); if (c.v > maxV) c.v = maxV;
   if (off && c.v > 110) c.v -= 400 * dt;
   const steer = (S.knob - 512) / 512;
-  c.a += steer * 2.6 * dt * clamp(Math.abs(c.v) / 160, 0, 1.2) * Math.sign(c.v || 1);
+  c.a += steer * 2.6 * S.steerK * dt * clamp(Math.abs(c.v) / 160, 0, 1.2) * Math.sign(c.v || 1);
+  if (S.spin > 0) { S.spin -= dt; c.a += 9 * dt; c.v *= Math.pow(0.3, dt); }
+  if (S.lab) for (const it of S.items) { if (it.dead) continue; it.cool = Math.max(0, (it.cool || 0) - dt); if (it.cool <= 0 && Math.hypot(it.x - c.x, it.y - c.y) < 18) { it.cool = 1; labFire("item", it.kind, it); } }
+  if (S.lab) S.items = S.items.filter((it) => !it.dead);
   c.x += Math.cos(c.a) * c.v * dt; c.y += Math.sin(c.a) * c.v * dt;
   c.x = clamp(c.x, 10, 990); c.y = clamp(c.y, 10, 630);
   if (Math.abs(steer) > 0.6 && c.v > 220) S.skid.push({ x: c.x, y: c.y, life: 3 });
@@ -127,7 +135,6 @@ function update(dt) {
 /* ---------- 畫面：2D 仿 3D（Mode 7）第三人稱 ---------- */
 const TS = 2, TW = 1000 * TS, TH = 640 * TS;
 let TEX = null, SCN = [];
-const fox = new Image(); fox.src = "assets/fox-head.webp";
 function buildTexture() {
   const c = document.createElement("canvas"); c.width = TW; c.height = TH; const t = c.getContext("2d"); t.scale(TS, TS);
   for (let y = 0; y < 640; y += 40) for (let x = 0; x < 1000; x += 40) { t.fillStyle = ((x + y) / 40) % 2 ? "#4fa83e" : "#58b546"; t.fillRect(x, y, 40, 40); }
@@ -191,15 +198,16 @@ function drawSky(SC) {
     g.lineTo(W, hy + 1); g.closePath(); g.fill();
   }
 }
+const kartImg = new Image(); kartImg.src = "assets/fox-kart.webp";
 function drawKart(x, y, sc, steer, alpha, ghost) {
-  g.save(); g.globalAlpha = alpha; g.translate(x, y); g.scale(sc, sc); g.rotate(steer * 0.08);
-  g.fillStyle = "rgba(0,0,0,.35)"; g.beginPath(); g.ellipse(0, 4, 46, 9, 0, 0, 7); g.fill();
-  g.fillStyle = "#1d1d22"; g.fillRect(-44, -22, 18, 26); g.fillRect(26, -22, 18, 26);
-  g.fillStyle = ghost ? "#5fe1ff" : "#d8352a"; g.beginPath(); g.moveTo(-34, -6); g.lineTo(34, -6); g.lineTo(28, -30); g.lineTo(-28, -30); g.closePath(); g.fill();
-  g.fillStyle = ghost ? "#bff4ff" : "#f5c547"; g.fillRect(-30, -12, 60, 6);
-  g.fillStyle = "#333"; g.fillRect(-12, -6, 8, 6); g.fillRect(4, -6, 8, 6);
-  if (fox.complete && fox.naturalWidth && !ghost) g.drawImage(fox, -26 + steer * 4, -82, 52, 54);
-  else { g.fillStyle = ghost ? "#bff4ff" : "#e9a34a"; g.beginPath(); g.arc(0, -52, 20, 0, 7); g.fill(); }
+  g.save(); g.globalAlpha = alpha; g.translate(x, y); g.scale(sc, sc);
+  g.fillStyle = "rgba(0,0,0,.35)"; g.beginPath(); g.ellipse(0, -2, 48, 9, 0, 0, 7); g.fill();
+  g.transform(1, 0, -steer * 0.12, 1, 0, 0); g.rotate(steer * 0.06);
+  if (kartImg.complete && kartImg.naturalWidth) {
+    const w = 100, h = w * kartImg.naturalHeight / kartImg.naturalWidth;
+    if (ghost) g.filter = "hue-rotate(160deg) saturate(1.4) brightness(1.2)";
+    g.drawImage(kartImg, -w / 2, -h, w, h); g.filter = "none";
+  } else { g.fillStyle = ghost ? "#5fe1ff" : "#d8352a"; g.fillRect(-40, -40, 80, 34); }
   g.restore();
 }
 function drawBill(o, sc, SC) {
@@ -208,6 +216,7 @@ function drawBill(o, sc, SC) {
   else if (o.kind === "flag") { g.fillStyle = "#ddd"; g.fillRect(x - 1 * s, y - 34 * s, 2 * s, 34 * s); g.fillStyle = o.c < 0.9 ? "#f5c547" : "#d8352a"; g.fillRect(x, y - 34 * s, 14 * s, 9 * s); }
   else if (o.kind === "post") { g.fillStyle = "#fff"; g.fillRect(x - 2 * s, y - 40 * s, 4 * s, 40 * s); for (let i = 0; i < 4; i++) { g.fillStyle = i % 2 ? "#111" : "#fff"; g.fillRect(x - 2 * s, y - 40 * s + i * 4 * s, 4 * s, 4 * s); } }
   else if (o.kind === "ghost") drawKart(x, y, s * 0.13, 0, 0.55, true);
+  else if (typeof labDrawItem === "function") labDrawItem(o, x, y, s);
 }
 function drawMini() {
   const mw = 170, mh = 109, mx = W - mw - 16, my = 86, s = mw / 1000;
@@ -227,6 +236,7 @@ function draw() {
   drawSky(SC); renderFloor();
   g.imageSmoothingEnabled = false; const hz = horizon(); g.drawImage(buf, 0, hz, RW, RH - hz, 0, hz * SC, W, (RH - hz) * SC); g.imageSmoothingEnabled = true;
   const list = [];
+  if (S.lab) for (const o of S.items) { const p = project(o.x, o.y); if (p && p.z > 35 && p.z < 700 && p.x > -40 && p.x < RW + 40) list.push({ ...o, p }); }
   for (const o of SCN) { const p = project(o.x, o.y); if (p && p.z > 45 && p.z < 700 && p.x > -40 && p.x < RW + 40) list.push({ ...o, p }); }
   if (S.ghost && S.running && S.count <= 0) { const r = S.ghost[Math.min(S.ghost.length - 1, Math.floor(S.ghostT))]; if (r) { const p = project(r[0], r[1]); if (p) list.push({ kind: "ghost", p }); } }
   list.sort((a, b) => b.p.z - a.p.z); for (const o of list) drawBill(o, 1, SC);
@@ -247,5 +257,5 @@ buildTrack(0); buildTexture(); resize(); requestAnimationFrame(loop);
 document.querySelectorAll(".mode[data-mode]").forEach((b) => b.addEventListener("click", () => start(b.dataset.mode)));
 $("againBtn").onclick = () => start(S.mode);
 $("backBtn").onclick = () => { $("endOv").hidden = true; $("menu").hidden = false; };
-$("menuBtn").onclick = () => { S.running = false; $("menu").hidden = false; };
+$("menuBtn").onclick = () => { if (S.lab) LAB.stop(); S.running = false; $("menu").hidden = false; };
 $("soundBtn").onclick = () => { SFX.set(!SFX.on); $("soundBtn").textContent = SFX.on ? "音效 開" : "音效 關"; };

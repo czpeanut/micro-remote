@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Space+Mono:wght@700&display=swap" />
   <link rel="stylesheet" href="kuding.css" />
   <link rel="stylesheet" href="game.css" />
+  <link rel="stylesheet" href="rulelab.css" />
   <style> html, body { background: #2a0f12; } </style>
 </head>
 <body>
@@ -42,6 +43,7 @@
         <button class="mode" data-mode="free"><span class="tag">第八堂</span><b>自由指揮《歡樂頌》</b><p>想快就快、想慢就慢，感受樂團跟著你的手走。</p></button>
         <button class="mode" data-mode="challenge"><span class="tag">挑戰</span><b>速度挑戰</b><p>樂譜上會寫「慢板、中板、快板」，揮出接近目標的速度，拿到最高的準確度！</p></button>
       </div>
+      <button class="mode rl-card" id="labCard" style="margin-top:12px;width:100%"><span class="tag">規則實驗室</span><b>用積木設計音樂會</b><p>自己決定每一段的目標速度、哪個聲部大聲、燈光和煙火，再上台指揮。</p></button>
       <div class="proto">
         <div><b>micro:bit 送出</b><br><code>beat#</code>　揮一下（一拍）<br><code>t:數字</code>　自己算出的速度 BPM（挑戰）<br><code>x:數字</code>　左右傾斜（加速度 x）<br><b>micro:bit 收到</b>　<code>bar#</code> 每一小節　<code>end#</code> 演奏完畢</div>
         <div><b>沒有 micro:bit？</b><br>按空白鍵打拍子，← → 方向鍵傾斜。</div>
@@ -57,6 +59,8 @@
     </div>
   </div>
   <script src="mblink.js"></script>
+  <script src="rulelab.js"></script>
   <script src="maestro.js"></script>
+  <script src="maestro-lab.js"></script>
 </body>
 </html>

@@ -40,10 +40,11 @@ EV.sort((a, b) => a.beat - b.beat);
 
 /* ---------- 狀態 ---------- */
 const S = { mode: null, running: false, pos: 0, rate: 0, bpm: 0, beats: [], lastBeat: 0, tilt: 0, next: 0, bar: -1, good: 0, total: 0,
-  extBpm: 0, extT: 0, swing: 0, flash: { str: 0, wood: 0, brass: 0, drum: 0 }, notes: [], t: 0, waiting: true };
+  extBpm: 0, extT: 0, swing: 0, flash: { str: 0, wood: 0, brass: 0, drum: 0 }, notes: [], t: 0, waiting: true , vol: { str: 1, wood: 1, brass: 1, drum: 1 }, labTarget: 0, light: "warm", fw: [], side: "mid" };
 const SECT = { str: { name: "弦樂", col: "#e9a34a", side: -1 }, wood: { name: "木管", col: "#7cc46a", side: -1 }, brass: { name: "銅管", col: "#f2d04b", side: 1 }, drum: { name: "打擊", col: "#e0605a", side: 1 } };
-function gainOf(sec) { const s = (SECT[sec] || SECT.str).side; return clamp(1 + s * S.tilt * 0.9, 0.15, 1.9); }
-function target() { const bar = Math.floor(S.pos / 4); let t = TARGETS[0]; for (const x of TARGETS) if (bar >= x[0]) t = x; return t; }
+function gainOf(sec) { const s = (SECT[sec] || SECT.str).side; return clamp(1 + s * S.tilt * 0.9, 0.15, 1.9) * (S.vol[sec] ?? 1); }
+const labFire = (ev, arg) => (S.mode === "lab" && typeof LAB !== "undefined" ? LAB.fire(ev, arg) : 0);
+function target() { if (S.mode === "lab") return [0, S.labTarget || 0, "目標"]; const bar = Math.floor(S.pos / 4); let t = TARGETS[0]; for (const x of TARGETS) if (bar >= x[0]) t = x; return t; }
 
 /* ---------- 輸入 ---------- */
 MB.on((ev) => {
@@ -67,7 +68,7 @@ function beat() {
   if (S.waiting) { S.waiting = false; S.pos = Math.round(S.pos); }
   else { const want = Math.round(S.pos); S.pos += (want - S.pos) * 0.5; }
   if (S.mode === "challenge" && S.pos > 1) { const [, tg] = target(); S.total++; if (Math.abs(S.bpm - tg) / tg < 0.15) S.good++; }
-  hud();
+  hud(); labFire("beat");
 }
 function hud() {
   $("bpm").textContent = S.bpm ? Math.round(S.bpm) : "--";
@@ -124,6 +125,8 @@ function update(dt) {
   if (!MB.live()) { if (keys.ArrowLeft) S.tilt = Math.max(-1, S.tilt - dt * 2); else if (keys.ArrowRight) S.tilt = Math.min(1, S.tilt + dt * 2); else S.tilt *= 0.95; }
   for (const k in S.flash) S.flash[k] = Math.max(0, S.flash[k] - dt * 2.5);
   S.notes = S.notes.filter((n) => (n.life -= dt) > 0); for (const n of S.notes) { n.y -= 40 * dt; n.x += n.vx * dt; }
+  S.fw = S.fw.filter((p) => (p.life -= dt) > 0); for (const p of S.fw) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 60 * dt; }
+  if (S.mode === "lab" && S.running) { const side = S.tilt > 0.5 ? "right" : S.tilt < -0.5 ? "left" : "mid"; if (side !== S.side) { S.side = side; labFire("tilt", side); } }
   if (!S.running || S.waiting) return;
   const now = performance.now() / 1000, iv = S.bpm ? 60 / S.bpm : 1;
   // 指揮停下來：樂團慢慢停住，等下一拍
@@ -138,14 +141,15 @@ function update(dt) {
     const key = ev.sec === "bass" ? "str" : ev.sec; setTimeout(() => { S.flash[key] = 1; if (ev.sec !== "bass" && Math.random() < 0.5) S.notes.push({ sec: key, x: 0, y: 0, vx: rnd(-20, 20), life: 1.4 }); }, Math.max(0, (ev.beat - S.pos) / bps * 1000));
   }
   const bar = Math.floor(S.pos / 4);
-  if (bar !== S.bar && bar < BARS) { S.bar = bar; MB.send("bar"); hud(); if (S.mode === "challenge") { const t = TARGETS.find((x) => x[0] === bar); if (t) toast(`${t[2]}：大約每分鐘 ${t[1]} 拍`); } }
-  if (S.pos >= BEATS + 1) finish();
+  if (bar !== S.bar && bar < BARS) { S.bar = bar; if (S.mode !== "lab") MB.send("bar"); hud(); labFire("everybar"); labFire("bar", bar + 1); if (S.mode === "challenge") { const t = TARGETS.find((x) => x[0] === bar); if (t) toast(`${t[2]}：大約每分鐘 ${t[1]} 拍`); } }
+  if (S.pos >= BEATS + 1) { if (S.mode === "lab") labSongEnd(); else finish(); }
 }
 
 /* ---------- 畫面 ---------- */
 function secPos(key) { const order = { str: 0, wood: 1, brass: 2, drum: 3 }[key]; const ang = Math.PI * (1.12 + order * 0.25); return { x: W / 2 + Math.cos(ang) * W * 0.36, y: H * 0.78 + Math.sin(ang) * H * 0.48 }; }
 function draw() {
   const bg = g.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, "#1a080b"); bg.addColorStop(1, "#4a1a1c"); g.fillStyle = bg; g.fillRect(0, 0, W, H);
+  if (S.mode === "lab" && S.light !== "warm") { g.fillStyle = { blue: "rgba(40,90,220,.35)", red: "rgba(220,40,60,.35)", green: "rgba(40,200,120,.3)", rainbow: `hsla(${(S.t * 90) % 360},80%,50%,.3)`, dark: "rgba(0,0,0,.55)" }[S.light] || "transparent"; g.fillRect(0, 0, W, H); }
   // 布幕
   g.fillStyle = "#7a1420"; for (let i = 0; i < 14; i++) { const x = (i / 13) * W; g.fillStyle = i % 2 ? "#6a1019" : "#851a26"; g.fillRect(x - W / 26, 0, W / 13, H * 0.12); }
   // 舞台
@@ -168,17 +172,18 @@ function draw() {
   const ang = 0.5 + S.tilt * 0.35 - (1 - S.swing) * 0.9 + S.swing * 0.5; g.save(); g.translate(cx + 62, cy - 4); g.fillStyle = "#f3eee1"; g.beginPath(); g.arc(0, 0, 7, 0, 7); g.fill(); g.rotate(ang); g.strokeStyle = "#fff"; g.lineWidth = 4; g.beginPath(); g.moveTo(0, 0); g.lineTo(0, -80); g.stroke(); g.restore();
   // 速度錶
   const mx = W - 130, my = H * 0.86, r = 80; g.lineWidth = 12; g.strokeStyle = "#ffffff22"; g.beginPath(); g.arc(mx, my, r, Math.PI, 0); g.stroke();
-  if (S.mode === "challenge") { const [, tg] = target(); const a1 = Math.PI + clamp((tg * 0.85 - 40) / 200, 0, 1) * Math.PI, a2 = Math.PI + clamp((tg * 1.15 - 40) / 200, 0, 1) * Math.PI; g.strokeStyle = "#3ee69a"; g.beginPath(); g.arc(mx, my, r, a1, a2); g.stroke(); }
+  if (S.mode === "challenge" || (S.mode === "lab" && S.labTarget)) { const [, tg] = target(); const a1 = Math.PI + clamp((tg * 0.85 - 40) / 200, 0, 1) * Math.PI, a2 = Math.PI + clamp((tg * 1.15 - 40) / 200, 0, 1) * Math.PI; g.strokeStyle = "#3ee69a"; g.beginPath(); g.arc(mx, my, r, a1, a2); g.stroke(); }
   const na = Math.PI + clamp(((S.bpm || 40) - 40) / 200, 0, 1) * Math.PI; g.strokeStyle = "#ffc94a"; g.lineWidth = 4; g.beginPath(); g.moveTo(mx, my); g.lineTo(mx + Math.cos(na) * r, my + Math.sin(na) * r); g.stroke();
   g.fillStyle = "#f3eee1"; g.font = "700 12px Space Mono, monospace"; g.textAlign = "center"; g.fillText("40", mx - r, my + 18); g.fillText("240", mx + r, my + 18); g.fillText("BPM", mx, my + 18);
+  for (const p of S.fw) { g.globalAlpha = clamp(p.life, 0, 1); g.fillStyle = p.col; g.fillRect(p.x - 2, p.y - 2, 4, 4); } g.globalAlpha = 1;
   if (S.running && S.waiting) { g.fillStyle = "#ffc94a"; g.font = "900 30px Noto Sans TC, sans-serif"; g.fillText(S.pos < 0.5 ? "往下揮一下，開始演奏！" : "樂團在等你…", W / 2, H * 0.22); }
 }
 let last = performance.now();
 function loop(now) { const dt = Math.min(0.05, (now - last) / 1000); last = now; update(dt); draw(); requestAnimationFrame(loop); }
 requestAnimationFrame(loop);
 
-document.querySelectorAll(".mode").forEach((b) => b.addEventListener("click", () => start(b.dataset.mode)));
+document.querySelectorAll(".mode[data-mode]").forEach((b) => b.addEventListener("click", () => start(b.dataset.mode)));
 $("againBtn").onclick = () => start(S.mode);
 $("backBtn").onclick = () => { $("endOv").hidden = true; $("menu").hidden = false; };
-$("menuBtn").onclick = () => { S.running = false; $("menu").hidden = false; };
+$("menuBtn").onclick = () => { if (S.mode === "lab") LAB.stop(); S.running = false; $("menu").hidden = false; };
 $("soundBtn").onclick = () => { SFX.set(!SFX.on); $("soundBtn").textContent = SFX.on ? "音效 開" : "音效 關"; };

@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Space+Mono:wght@700&display=swap" />
   <link rel="stylesheet" href="kuding.css" />
   <link rel="stylesheet" href="game.css" />
+  <link rel="stylesheet" href="rulelab.css" />
   <style>
     html, body { background: #2d5a27; }
     .dash { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); display: flex; gap: 16px; align-items: center;
@@ -59,6 +60,7 @@
         <button class="mode" data-mode="race"><span class="tag">第七堂</span><b>三圈計時賽</b><p>跑完 3 圈，挑戰最快一圈的紀錄。</p></button>
         <button class="mode" data-mode="ghost"><span class="tag">挑戰</span><b>幽靈對決</b><p>跟自己最快一圈的「幽靈車」比賽，超越過去的自己！</p></button>
       </div>
+      <button class="mode rl-card" id="labCard" style="margin-top:12px;width:100%"><span class="tag">規則實驗室</span><b>用積木改賽車規則</b><p>在賽道放金幣、香蕉皮、加速板，自己決定怎麼計分、幾圈結束，D、E 鍵也能拿來用。</p></button>
       <div class="mode" style="margin-top:12px;cursor:default"><b>選擇賽道</b><p><label><input type="radio" name="track" value="0" checked> 小島環道</label>　<label><input type="radio" name="track" value="1"> 森林 S 彎</label>　<label><input type="radio" name="track" value="2"> 狐狸之心</label></p></div>
       <div class="proto">
         <div><b>micro:bit 送出（每 0.1 秒）</b><br><code>k:數字</code>　旋鈕（0～1023）<br><code>b:數字</code>　按下的鍵：0 沒按、1 A、2 B、3 C、4 D、5 E<br><b>micro:bit 收到</b>　<code>go#</code> 開始　<code>lap#</code> 跑完一圈　<code>end#</code> 完賽</div>
@@ -75,6 +77,8 @@
     </div>
   </div>
   <script src="mblink.js"></script>
+  <script src="rulelab.js"></script>
   <script src="race.js"></script>
+  <script src="race-lab.js"></script>
 </body>
 </html>

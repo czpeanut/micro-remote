@@ -1,0 +1,43 @@
+/* rulelab.css — 主題B 遊戲的規則積木編輯畫面（配合 rulelab.js） */
+#rlEditor { position: fixed; inset: 0; z-index: 40; display: flex; flex-direction: column; background: #fff; }
+#rlEditor[hidden] { display: none !important; }
+#rlEditor .bar { flex: none; display: flex; align-items: center; gap: 8px; padding: 10px 14px; flex-wrap: wrap; }
+#rlEditor .bar .brand { display: flex; align-items: center; gap: 10px; margin-right: 6px; background: none; padding: 0; }
+#rlEditor .bar .brand b { font-size: 17px; letter-spacing: 1px; }
+#rlEditor .bar .brand small { font-size: 12px; }
+#rlEditor .bar .grow { flex: 1; }
+#rlEditor .bar .status { font-size: 12px; }
+#rlEditor .bar .btn { padding: 8px 14px; font-size: 14px; }
+#rlEditor select.btn { appearance: none; padding-right: 30px; color: var(--kd-ink); }
+#rlEditor select.btn option { color: #111; background: #fff; }
+#rlEditor .work { flex: 1; position: relative; display: flex; min-height: 0; }
+#rlBlockly { position: absolute; inset: 0; }
+#rlEditor .tip { position: absolute; right: 16px; top: 12px; z-index: 5; width: 280px; padding: 12px 14px; font-size: 13px; line-height: 1.7; }
+#rlEditor .tip[hidden] { display: none; }
+#rlEditor .tip .x { float: right; cursor: pointer; font-size: 16px; line-height: 1; }
+#rlEditor .check { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 5; padding: 8px 16px; font-size: 14px; }
+#rlEditor .check[hidden] { display: none; }
+#rlEditor .rl-loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font: 900 20px var(--kd-font); color: var(--kd-ink-2); pointer-events: none; }
+#rlEditor .rl-loading[hidden] { display: none; }
+#rlEditor .blocklyToolboxDiv { background: #2b1d14 !important; padding-top: 6px !important; }
+#rlEditor .blocklyTreeRow { height: 40px !important; line-height: 40px !important; margin-bottom: 2px !important; }
+#rlEditor .blocklyTreeLabel { color: #f3eee1 !important; font-size: 15px !important; font-weight: 700; font-family: var(--kd-font); }
+#rlEditor .blocklyTreeRow:hover { background: rgba(255,255,255,.08) !important; }
+#rlEditor .dot { flex: none; }
+
+/* 用規則玩的時候：換成規則的分數框 */
+.rl-stats { display: none; }
+body.rl-run .hud .center > .stats:not(.rl-stats) { display: none !important; }
+body.rl-run .rl-stats { display: flex; }
+.rl-stats .stat.custom span { color: #5fe1ff; }
+.rl-stats.rl-float { position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 6; }
+.rl-back { position: fixed; left: 18px; top: 72px; z-index: 8; }
+.rl-back[hidden] { display: none; }
+.rl-errs { position: fixed; left: 50%; bottom: 70px; transform: translateX(-50%); max-width: 70vw; z-index: 30; background: #7a1f2b; color: #fff;
+  border: 2px solid #2b1d14; padding: 6px 14px; font: 700 13px var(--kd-font, sans-serif); }
+.rl-errs[hidden] { display: none; }
+#rlEnd { z-index: 35; }
+
+/* 選單裡的「規則實驗室」卡片 */
+.mode.rl-card { border-style: dashed; }
+.mode.rl-card .tag { background: #8a5cf6; }

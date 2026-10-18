@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#2d5a27" />
+  <title>旋鈕賽車</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="mbgame.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Space+Mono:wght@700&display=swap" />
+  <link rel="stylesheet" href="kuding.css" />
+  <link rel="stylesheet" href="game.css" />
+  <style>
+    html, body { background: #2d5a27; }
+    .dash { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); display: flex; gap: 16px; align-items: center;
+      background: rgba(10,20,10,.75); border: 2px solid rgba(243,238,225,.35); padding: 8px 16px; color: #e9f4ff; font: 700 13px var(--kd-font); }
+    .wheel { width: 54px; height: 54px; border-radius: 50%; border: 6px solid #e9f4ff; position: relative; transition: transform .08s; }
+    .wheel::before { content: ""; position: absolute; left: 50%; top: 2px; bottom: 50%; width: 6px; transform: translateX(-3px); background: #ffc94a; }
+    .keys5 { display: flex; gap: 6px; }
+    .keys5 span { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; border: 2px solid #ffffff44; font: 900 13px var(--kd-mono); }
+    .keys5 span.on { background: #ffc94a; color: #2b1d14; border-color: #ffc94a; }
+    .keys5 small { display: block; font-size: 9px; }
+    .dash b { font-family: var(--kd-mono); color: #ffc94a; font-size: 18px; min-width: 70px; display: inline-block; }
+  </style>
+</head>
+<body>
+  <a class="kd-float" href="index.html" title="回到酷丁狐的科技實驗室"><span class="kd-logo" aria-hidden="true"></span>實驗室</a>
+  <canvas id="view"></canvas>
+  <div class="hud">
+    <div class="chip"><span class="dot" id="dot"></span><b>旋鈕賽車</b><span class="status" id="status">未連接</span></div>
+    <div class="center"><div class="stats">
+      <div class="stat"><small>圈數</small><span id="lap">0/3</span></div>
+      <div class="stat"><small>這一圈</small><span id="cur">0.0</span></div>
+      <div class="stat"><small>最快一圈</small><span id="best">--</span></div>
+      <div class="stat"><small>氮氣</small><span id="nitro" style="color:#5fe1ff">●●●</span></div>
+    </div></div>
+    <div class="right">
+      <button class="btn ghost" id="soundBtn">音效 開</button>
+      <button class="btn" id="connectBtn">連接 micro:bit</button>
+      <button class="btn ghost" id="menuBtn">選單</button>
+    </div>
+  </div>
+  <div class="dash">
+    <div class="wheel" id="wheel"></div><span>旋鈕 <b id="knob">512</b></span>
+    <div class="keys5"><span id="k1">A<small>油門</small></span><span id="k2">B<small>煞車</small></span><span id="k3">C<small>氮氣</small></span><span id="k4">D</span><span id="k5">E</span></div>
+    <span>速度 <b id="spd">0</b></span>
+  </div>
+  <div class="toast" id="toast"></div>
+  <div class="log" id="log"></div>
+
+  <div class="overlay" id="menu">
+    <div class="card">
+      <h1>旋鈕賽車</h1>
+      <p class="sub">旋鈕是方向盤：往左轉車子左轉、往右轉車子右轉。五鍵按鍵的 A 是油門、B 是煞車、C 是氮氣加速（每場 3 次）。開出跑道會變慢喔！</p>
+      <div class="modes" style="grid-template-columns:1fr 1fr 1fr;display:grid">
+        <button class="mode" data-mode="free"><span class="tag">暖身</span><b>自由練習</b><p>沒有圈數限制，熟悉方向盤和油門。</p></button>
+        <button class="mode" data-mode="race"><span class="tag">第七堂</span><b>三圈計時賽</b><p>跑完 3 圈，挑戰最快一圈的紀錄。</p></button>
+        <button class="mode" data-mode="ghost"><span class="tag">挑戰</span><b>幽靈對決</b><p>跟自己最快一圈的「幽靈車」比賽，超越過去的自己！</p></button>
+      </div>
+      <div class="mode" style="margin-top:12px;cursor:default"><b>選擇賽道</b><p><label><input type="radio" name="track" value="0" checked> 小島環道</label>　<label><input type="radio" name="track" value="1"> 森林 S 彎</label>　<label><input type="radio" name="track" value="2"> 狐狸之心</label></p></div>
+      <div class="proto">
+        <div><b>micro:bit 送出（每 0.1 秒）</b><br><code>k:數字</code>　旋鈕（0～1023）<br><code>b:數字</code>　按下的鍵：0 沒按、1 A、2 B、3 C、4 D、5 E<br><b>micro:bit 收到</b>　<code>go#</code> 開始　<code>lap#</code> 跑完一圈　<code>end#</code> 完賽</div>
+        <div><b>沒有 micro:bit？</b><br>← → 轉方向盤，↑ 油門，↓ 煞車，空白鍵氮氣。</div>
+      </div>
+    </div>
+  </div>
+  <div class="overlay" id="endOv" hidden>
+    <div class="card result">
+      <h1 id="endTitle">完賽！</h1>
+      <p class="sub" id="endText"></p>
+      <div class="big" id="endScore">0</div>
+      <div class="row"><button class="btn primary" id="againBtn">再跑一次</button><button class="btn" id="backBtn">回到選單</button></div>
+    </div>
+  </div>
+  <script src="mblink.js"></script>
+  <script src="race.js"></script>
+</body>
+</html>

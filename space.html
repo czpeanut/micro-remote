@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#05061a" />
+  <title>超音波太空梭</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="mbgame.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Space+Mono:wght@700&display=swap" />
+  <link rel="stylesheet" href="kuding.css" />
+  <link rel="stylesheet" href="game.css" />
+  <style>
+    html, body { background: #05061a; }
+    .gauge { position: fixed; right: 18px; top: 50%; transform: translateY(-50%); width: 64px; height: 56vh; background: rgba(10,14,40,.7);
+      border: 2px solid rgba(243,238,225,.35); display: flex; flex-direction: column; align-items: center; padding: 8px 0; gap: 6px; }
+    .gauge small { font: 700 11px var(--kd-mono); color: #8fb0c9; }
+    .gauge .gbar { position: relative; flex: 1; width: 16px; background: linear-gradient(#5fe1ff33, #ffc94a33); border: 1px solid #ffffff33; }
+    .gauge .gbar i { position: absolute; left: -8px; width: 30px; height: 4px; background: #ffc94a; box-shadow: 0 0 8px #ffc94a; transform: translateY(-2px); }
+    .gauge b { font: 900 18px var(--kd-mono); color: #ffc94a; }
+  </style>
+</head>
+<body>
+  <a class="kd-float" href="index.html" title="回到酷丁狐的科技實驗室"><span class="kd-logo" aria-hidden="true"></span>實驗室</a>
+  <canvas id="view"></canvas>
+  <div class="hud">
+    <div class="chip"><span class="dot" id="dot"></span><b>超音波太空梭</b><span class="status" id="status">未連接</span></div>
+    <div class="center"><div class="stats">
+      <div class="stat"><small>能量</small><span id="score">0</span></div>
+      <div class="stat" id="timeBox"><small>時間</small><span id="time">60</span></div>
+      <div class="stat"><small>護盾</small><span id="lives" style="color:#ff6f6f;letter-spacing:2px">♥♥♥</span></div>
+    </div></div>
+    <div class="right">
+      <button class="btn ghost" id="soundBtn">音效 開</button>
+      <button class="btn" id="connectBtn">連接 micro:bit</button>
+      <button class="btn ghost" id="menuBtn">選單</button>
+    </div>
+  </div>
+  <div class="gauge"><small>距離</small><div class="gbar" id="gbar"><i id="gmark" style="top:50%"></i></div><b id="dist">--</b><small>公分</small></div>
+  <div class="toast" id="toast"></div>
+  <div class="log" id="log"></div>
+
+  <div class="overlay" id="menu">
+    <div class="card">
+      <h1>超音波太空梭</h1>
+      <p class="sub">把手放在超音波感應器上方：手抬高，太空梭就往上飛；手放低，太空梭就往下飛。閃過隕石，收集發光的能量水晶！</p>
+      <div class="modes" style="grid-template-columns:1fr 1fr 1fr;display:grid">
+        <button class="mode" data-mode="practice"><span class="tag">暖身</span><b>練習飛行</b><p>沒有隕石，只有能量水晶。先找到自己的手能控制的範圍。</p></button>
+        <button class="mode" data-mode="timed"><span class="tag">第五堂</span><b>限時 60 秒</b><p>60 秒內收集最多能量水晶，撞到隕石會扣護盾。</p></button>
+        <button class="mode" data-mode="endless"><span class="tag">挑戰</span><b>無盡航行</b><p>隕石越來越快，護盾用完就結束。看你能飛多遠！</p></button>
+      </div>
+      <div class="proto">
+        <div><b>micro:bit 送出</b><br><code>d:數字</code>　手的距離（公分），每 0.1 秒一次<br><b>micro:bit 收到</b><br><code>star#</code>　吃到能量　<code>hit#</code>　撞到隕石</div>
+        <div><b>沒有 micro:bit？</b><br>用滑鼠／手指在畫面上下移動，或用 ↑ ↓ 方向鍵試玩。<br>連上 micro:bit 後，太空梭就跟著你的手飛。</div>
+      </div>
+    </div>
+  </div>
+  <div class="overlay" id="endOv" hidden>
+    <div class="card result">
+      <h1 id="endTitle">任務完成！</h1>
+      <p class="sub" id="endText"></p>
+      <div class="big" id="endScore">0</div>
+      <div class="row"><button class="btn primary" id="againBtn">再玩一次</button><button class="btn" id="backBtn">回到選單</button></div>
+    </div>
+  </div>
+  <script src="mblink.js"></script>
+  <script src="space.js"></script>
+</body>
+</html>

@@ -6,6 +6,7 @@
   <title>低年級簡化積木｜酷丁狐的科技實驗室</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Space+Mono:wght@700&display=swap" />
@@ -90,6 +91,7 @@
       <div class="ch-right">
         <button class="bigcopy" id="bigCopy" type="button"><span class="bc-main">複製擴展網址</span><span class="bc-sub mono">github.com/czpeanut/pxt-deepsea</span></button>
         <a class="btn ghost" href="https://makecode.microbit.org/" target="_blank" rel="noopener">開啟 MakeCode</a>
+        <button class="kd-install-btn" type="button" data-kd-install style="justify-content:center"><img src="icon-192.png" alt="">實驗室加到主畫面</button>
       </div>
     </section>
 
@@ -191,5 +193,6 @@
     document.getElementById("bigCopy").onclick = (e) => onCopy(e.currentTarget);
     document.getElementById("copyBtn").onclick = (e) => onCopy(e.currentTarget);
   </script>
+<script src="install.js"></script>
 </body>
 </html>

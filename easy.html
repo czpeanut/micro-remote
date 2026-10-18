@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>低年級簡化積木｜酷丁狐的科技實驗室</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Space+Mono:wght@700&display=swap" />
+  <link rel="stylesheet" href="kuding.css" />
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--kd-paper); color: var(--kd-ink); font-family: var(--kd-font);
+      background-image: linear-gradient(var(--kd-grid) 1px, transparent 1px), linear-gradient(90deg, var(--kd-grid) 1px, transparent 1px); background-size: 24px 24px; }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 28px 16px 60px; }
+    .mono { font-family: var(--kd-mono); letter-spacing: .06em; }
+    h1 { font-size: clamp(28px, 5vw, 44px); font-weight: 900; margin: 10px 0 8px; }
+    .lead { font-size: 16px; line-height: 1.8; color: var(--kd-ink-2); max-width: 760px; }
+    .tag { display: inline-block; background: var(--kd-ink); color: var(--kd-mustard); padding: 4px 8px; font-size: 12px; }
+    .card { background: var(--kd-paper-2); border: 3px solid var(--kd-ink); box-shadow: 8px 8px 0 var(--kd-ink); padding: 20px; }
+    .ways { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 28px 0 40px; }
+    .ways h2 { margin: 6px 0 10px; font-size: 22px; font-weight: 900; }
+    .ways p, .ways li { font-size: 15px; line-height: 1.75; }
+    .ways ol { padding-left: 20px; margin: 8px 0; }
+    .url { display: flex; gap: 8px; align-items: stretch; margin: 12px 0; }
+    .url code { flex: 1; min-width: 0; overflow-wrap: anywhere; background: #fff; border: 2px solid var(--kd-ink); padding: 10px; font: 700 14px/1.4 var(--kd-mono); }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 2px solid var(--kd-ink); background: var(--kd-mustard); color: var(--kd-ink);
+      box-shadow: 3px 3px 0 var(--kd-ink); font: 900 14px/1 var(--kd-font); padding: 10px 14px; text-decoration: none; cursor: pointer; white-space: nowrap; }
+    .btn.orange { background: var(--kd-orange); color: #fff; }
+    .btn.ghost { background: var(--kd-paper); }
+    .btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--kd-ink); }
+    .qr { display: flex; gap: 14px; align-items: center; margin-top: 10px; }
+    .qr img { width: 112px; height: 112px; border: 2px solid var(--kd-ink); background: #fff; }
+    .qr small { font-size: 13px; color: var(--kd-ink-2); line-height: 1.6; }
+    .lessons { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+    .lesson { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
+    .lesson .shot { background: #e9edf0; border-bottom: 3px solid var(--kd-ink); height: 300px; display: flex; align-items: center; justify-content: center; padding: 10px; }
+    .lesson .shot img { width: 100%; height: 100%; object-fit: contain; }
+    .lesson .body { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+    .lesson h3 { margin: 0; font-size: 20px; font-weight: 900; }
+    .lesson p { margin: 0; font-size: 14px; line-height: 1.7; color: var(--kd-ink-2); flex: 1; }
+    .lesson .row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .note { margin-top: 36px; }
+    .note h2 { margin: 0 0 8px; font-size: 18px; font-weight: 900; }
+    .note li { font-size: 14px; line-height: 1.8; }
+    .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--kd-ink); color: var(--kd-mustard); padding: 10px 16px; font-weight: 900; opacity: 0; transition: opacity .2s; pointer-events: none; }
+    .toast.show { opacity: 1; }
+    @media (max-width: 760px) { .ways, .lessons { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header class="kd-top">
+    <a class="kd-home" href="index.html"><span class="kd-logo"></span><span>酷丁狐的科技實驗室<small>KUDING LAB</small></span></a>
+    <span class="kd-unit">主題1 低年級版</span>
+  </header>
+
+  <main class="wrap">
+    <span class="tag mono">DEEP SEA / EASY BLOCKS</span>
+    <h1>深海探險隊・低年級簡化積木</h1>
+    <p class="lead">第五～八堂的低年級版本。一塊積木做完一件事：藍牙、讀取文字、比較、限制範圍都藏在積木裡面，每一課大約十幾塊、最多兩層。網頁遊戲和原版一樣，不用改。</p>
+
+    <section class="ways">
+      <div class="card">
+        <span class="tag mono">方法 1</span>
+        <h2>打開起始專案（推薦）</h2>
+        <p>積木區已經有「深海探險」，不用加擴展、不用設定配對。</p>
+        <ol>
+          <li>在下面選這一課，按「下載起始專案」。</li>
+          <li>在 MakeCode 按「匯入」選這個檔案，或在平板上用「分享 → micro:bit App」打開。</li>
+        </ol>
+      </div>
+      <div class="card">
+        <span class="tag mono">方法 2</span>
+        <h2>自己加入擴展</h2>
+        <p>新專案 → 擴展 → 在搜尋框貼上這個網址。問要不要移除「廣播」時，選移除。</p>
+        <div class="url"><code id="extUrl">https://github.com/czpeanut/pxt-deepsea</code><button class="btn" id="copyBtn" type="button">複製</button></div>
+        <div class="qr"><img src="easy/qr-extension.png" alt="擴展網址 QR Code" /><small>平板掃描這個 QR Code，<br>就能拿到擴展網址。<br>「不需配對」已經內建。</small></div>
+      </div>
+    </section>
+
+    <section class="lessons">
+      <article class="card lesson">
+        <div class="shot"><img src="easy/L5.webp" alt="第五課簡化版完整程式" /></div>
+        <div class="body">
+          <span class="tag mono">第五課 / 16 塊</span>
+          <h3>潛艇出航</h3>
+          <p>「當收到 前進」就「潛艇往上移動一格」。放一顆水雷，撞到時自己決定要發出什麼聲音、顯示什麼圖示；撞到會自動告訴網頁 boom#。</p>
+          <div class="row"><a class="btn orange" href="easy/L5_start.mkcd" download>下載起始專案</a><a class="btn ghost" href="easy/L5_answer.mkcd" download>答案（老師）</a><a class="btn ghost" href="cockpit.html">潛艇出航網頁</a></div>
+        </div>
+      </article>
+      <article class="card lesson">
+        <div class="shot"><img src="easy/L6.webp" alt="第六課簡化版完整程式" /></div>
+        <div class="body">
+          <span class="tag mono">第六課 / 14 塊</span>
+          <h3>傾斜駕駛</h3>
+          <p>「把傾斜傳給網頁」就能在大螢幕開潛艇。再用「如果 micro:bit 往左歪」自己決定要顯示什麼箭頭。</p>
+          <div class="row"><a class="btn orange" href="easy/L6_start.mkcd" download>下載起始專案</a><a class="btn ghost" href="easy/L6_answer.mkcd" download>答案（老師）</a><a class="btn ghost" href="sub.html">深海探險網頁</a></div>
+        </div>
+      </article>
+      <article class="card lesson">
+        <div class="shot"><img src="easy/L7.webp" alt="第七課簡化版完整程式" /></div>
+        <div class="body">
+          <span class="tag mono">第七課 / 17 塊</span>
+          <h3>聲納雷達</h3>
+          <p>用傾斜開進 10×10 大海。拿「離寶藏的距離」自己決定多近算近、要顯示什麼；找到寶藏會自動告訴網頁 found#。</p>
+          <div class="row"><a class="btn orange" href="easy/L7_start.mkcd" download>下載起始專案</a><a class="btn ghost" href="easy/L7_answer.mkcd" download>答案（老師）</a><a class="btn ghost" href="sonar.html">聲納尋寶網頁</a></div>
+        </div>
+      </article>
+      <article class="card lesson">
+        <div class="shot"><img src="easy/L8.webp" alt="第八課簡化版完整程式" /></div>
+        <div class="body">
+          <span class="tag mono">第八課 / 14 塊</span>
+          <h3>雙屏尋寶</h3>
+          <p>「當收到網頁的雷達強度」就畫雷達；「當網頁說 找到寶藏」就加分。按 A 發射聲納。</p>
+          <div class="row"><a class="btn orange" href="easy/L8_start.mkcd" download>下載起始專案</a><a class="btn ghost" href="easy/L8_answer.mkcd" download>答案（老師）</a><a class="btn ghost" href="sub.html">深海探險網頁</a></div>
+        </div>
+      </article>
+    </section>
+
+    <section class="card note">
+      <h2>老師注意</h2>
+      <ul>
+        <li>簡化版和原版的網頁遊戲完全相同，同一班可以混用。</li>
+        <li>起始專案和答案固定使用目前這一版擴展，之後擴展更新也不會影響上課中的專案。</li>
+        <li>連不上時：平板 App 先中斷連線；還是不行就到平板的藍牙設定，把 micro:bit 移除再連。</li>
+      </ul>
+    </section>
+  </main>
+  <div class="toast" id="toast"></div>
+  <a class="kd-float" href="index.html"><span class="kd-logo"></span>實驗室</a>
+  <script>
+    document.getElementById("copyBtn").onclick = async () => {
+      const t = document.getElementById("extUrl").textContent, el = document.getElementById("toast");
+      try { await navigator.clipboard.writeText(t); el.textContent = "已複製擴展網址"; }
+      catch (e) { el.textContent = "請長按網址手動複製"; }
+      el.classList.add("show"); setTimeout(() => el.classList.remove("show"), 1500);
+    };
+  </script>
+</body>
+</html>

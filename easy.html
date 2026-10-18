@@ -47,6 +47,20 @@
     .note li { font-size: 14px; line-height: 1.8; }
     .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--kd-ink); color: var(--kd-mustard); padding: 10px 16px; font-weight: 900; opacity: 0; transition: opacity .2s; pointer-events: none; }
     .toast.show { opacity: 1; }
+    .copyhero { display: grid; grid-template-columns: 1.3fr 1fr; gap: 20px; align-items: center; margin-top: 28px; background: var(--kd-cream); }
+    .copyhero h2 { margin: 8px 0 6px; font-size: 26px; font-weight: 900; }
+    .copyhero p { margin: 0; font-size: 15px; line-height: 1.75; }
+    .ch-steps { list-style: none; padding: 0; margin: 12px 0 0; display: flex; flex-wrap: wrap; gap: 8px; }
+    .ch-steps li { display: flex; align-items: center; gap: 6px; background: var(--kd-paper-2); border: 2px solid var(--kd-ink); padding: 6px 10px; font-size: 14px; font-weight: 700; }
+    .ch-steps b { display: inline-flex; width: 22px; height: 22px; align-items: center; justify-content: center; background: var(--kd-orange); color: #fff; font-size: 13px; }
+    .ch-right { display: flex; flex-direction: column; gap: 12px; align-items: stretch; }
+    .bigcopy { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 22px 16px; border: 3px solid var(--kd-ink); background: var(--kd-orange); color: #fff;
+      box-shadow: 6px 6px 0 var(--kd-ink); cursor: pointer; font-family: var(--kd-font); transition: transform .08s, box-shadow .08s; }
+    .bigcopy:active { transform: translate(4px, 4px); box-shadow: 2px 2px 0 var(--kd-ink); }
+    .bigcopy .bc-main { font-size: 26px; font-weight: 900; }
+    .bigcopy .bc-sub { font-size: 13px; opacity: .9; overflow-wrap: anywhere; }
+    .bigcopy.done { background: var(--kd-olive); }
+    @media (max-width: 760px) { .copyhero { grid-template-columns: 1fr; } }
     @media (max-width: 760px) { .ways, .lessons { grid-template-columns: 1fr; } }
   </style>
 </head>
@@ -60,6 +74,24 @@
     <span class="tag mono">DEEP SEA / EASY BLOCKS</span>
     <h1>深海探險隊・低年級簡化積木</h1>
     <p class="lead">第五～八堂的低年級版本。一塊積木做完一件事：藍牙、讀取文字、比較、限制範圍都藏在積木裡面，每一課大約十幾塊、最多兩層。網頁遊戲和原版一樣，不用改。</p>
+
+    <section class="card copyhero" id="copyHero">
+      <div class="ch-left">
+        <span class="tag mono">ONE TAP</span>
+        <h2>一鍵複製擴展網址</h2>
+        <p>按下橘色按鈕，再到 MakeCode 的「擴展」，<b>長按搜尋框 → 貼上</b>，點 deepsea 卡片就好了。</p>
+        <ol class="ch-steps">
+          <li><b>1</b>按「複製」</li>
+          <li><b>2</b>MakeCode → 擴展</li>
+          <li><b>3</b>長按搜尋框 → 貼上</li>
+          <li><b>4</b>點 deepsea</li>
+        </ol>
+      </div>
+      <div class="ch-right">
+        <button class="bigcopy" id="bigCopy" type="button"><span class="bc-main">複製擴展網址</span><span class="bc-sub mono">github.com/czpeanut/pxt-deepsea</span></button>
+        <a class="btn ghost" href="https://makecode.microbit.org/" target="_blank" rel="noopener">開啟 MakeCode</a>
+      </div>
+    </section>
 
     <section class="ways">
       <div class="card">
@@ -131,12 +163,33 @@
   <div class="toast" id="toast"></div>
   <a class="kd-float" href="index.html"><span class="kd-logo"></span>實驗室</a>
   <script>
-    document.getElementById("copyBtn").onclick = async () => {
-      const t = document.getElementById("extUrl").textContent, el = document.getElementById("toast");
-      try { await navigator.clipboard.writeText(t); el.textContent = "已複製擴展網址"; }
-      catch (e) { el.textContent = "請長按網址手動複製"; }
-      el.classList.add("show"); setTimeout(() => el.classList.remove("show"), 1500);
-    };
+    const EXT = "https://github.com/czpeanut/pxt-deepsea";
+    function toast(t) { const el = document.getElementById("toast"); el.textContent = t; el.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("show"), 2200); }
+    async function copyExt() {
+      let ok = false;
+      try { await navigator.clipboard.writeText(EXT); ok = true; } catch (e) {}
+      if (!ok) {
+        // 舊平板沒有 clipboard API：用隱藏的文字框複製
+        const ta = document.createElement("textarea"); ta.value = EXT; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
+        document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, EXT.length);
+        try { ok = document.execCommand("copy"); } catch (e) {}
+        document.body.removeChild(ta);
+      }
+      return ok;
+    }
+    async function onCopy(btn) {
+      const ok = await copyExt();
+      if (ok) {
+        toast("已複製！到 MakeCode 的擴展，長按搜尋框貼上");
+        if (btn && btn.id === "bigCopy") { btn.classList.add("done"); btn.querySelector(".bc-main").textContent = "已複製 ✓"; setTimeout(() => { btn.classList.remove("done"); btn.querySelector(".bc-main").textContent = "複製擴展網址"; }, 2500); }
+      } else {
+        toast("這台裝置不能自動複製，請長按網址手動複製");
+        const r = document.createRange(); r.selectNodeContents(document.getElementById("extUrl")); const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+        document.getElementById("extUrl").scrollIntoView({ block: "center" });
+      }
+    }
+    document.getElementById("bigCopy").onclick = (e) => onCopy(e.currentTarget);
+    document.getElementById("copyBtn").onclick = (e) => onCopy(e.currentTarget);
   </script>
 </body>
 </html>

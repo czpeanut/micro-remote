@@ -294,7 +294,7 @@
               <h3>低年級簡化積木</h3>
               <p>一塊積木做完一件事，每課十幾塊、最多兩層。下載起始專案就能開始寫，網頁遊戲和原版一樣。</p>
               <div class="chips"><span>MakeCode 擴展</span><span>起始專案</span></div>
-              <a class="btn orange small" href="easy.html">打開簡化版</a>
+              <div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn orange small" href="easy.html">打開簡化版</a><button class="btn mustard small" type="button" id="copyExtIdx" style="cursor:pointer">複製擴展網址</button></div>
             </div>
           </article>
         </div>
@@ -472,5 +472,17 @@
   <script>
     if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
   </script>
+<script>
+  (function () {
+    const b = document.getElementById("copyExtIdx"); if (!b) return;
+    const EXT = "https://github.com/czpeanut/pxt-deepsea";
+    b.onclick = async () => {
+      let ok = false;
+      try { await navigator.clipboard.writeText(EXT); ok = true; } catch (e) {}
+      if (!ok) { const ta = document.createElement("textarea"); ta.value = EXT; ta.style.position = "fixed"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.select(); try { ok = document.execCommand("copy"); } catch (e) {} ta.remove(); }
+      const t = b.textContent; b.textContent = ok ? "已複製 ✓" : "請到簡化版頁面複製"; setTimeout(() => (b.textContent = t), 2200);
+    };
+  })();
+</script>
 </body>
 </html>

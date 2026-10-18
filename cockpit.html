@@ -64,6 +64,10 @@
     .grid5 button.start { background: #ff3b2f; box-shadow: 0 0 10px #ff3b2f; color: #fff; }
     .grid5 button.home { outline: 2px dashed rgba(255,255,255,.5); outline-offset: -4px; }
     .grid5 button:disabled { cursor: default; }
+    .how { display: grid; gap: 8px; }
+    .how div { background: rgba(255,255,255,.06); border-radius: 10px; padding: 10px 12px; font-size: 13px; line-height: 1.6; }
+    .how b { display: block; color: var(--accent, #ffc94a); font-size: 12px; }
+    .how code { background: #000; padding: 1px 6px; border-radius: 4px; color: #ff9d2e; }
     .gridnote { font-size: 12px; color: var(--muted); line-height: 1.7; margin-top: 8px; }
     .modes { display: grid; gap: 12px; }
     .mode { text-align: left; border: 1px solid var(--line); background: rgba(255,255,255,.04); color: var(--ink); border-radius: 16px; padding: 14px 16px; cursor: pointer; font-family: inherit; }
@@ -113,18 +117,22 @@
   <div class="overlay" id="menu">
     <div class="card">
       <h1>潛艇出航</h1>
-      <p class="sub">海底一片漆黑，電腦只照得到潛艇自己這一格；micro:bit 的 LED 才是海圖。水雷在電腦上幾乎看不到，只有在隔壁格時會有一團糊糊的影子，所以一定要看著 micro:bit 開。</p>
+      <p class="sub">海底一片漆黑，網頁只照得到潛艇附近；水雷只畫在 micro:bit 的 LED 上，網頁完全看不到，所以一定要看著 micro:bit 開。</p>
       <div class="cols">
         <div>
-          <div class="grid5" id="grid5"></div>
-          <div class="gridnote">點格子放水雷（最多 6 顆），要和 micro:bit 程式裡的水雷位置一樣。<br>亮紅色：起點 (2, 2)　虛線：被炸後回到 (0, 0)</div>
+          <div class="how">
+            <div><b>網頁看得到</b>潛艇、發光珍珠、海底</div>
+            <div><b>micro:bit 看得到</b>潛艇（亮）、水雷（暗）</div>
+            <div><b>撞到水雷</b>micro:bit 送出 <code>boom#</code>，網頁跟著爆炸，潛艇回到 (0, 0)</div>
+          </div>
+          <div class="gridnote">起點 (2, 2)。連上之後按 micro:bit 背面的重設鈕，兩邊才會從同一格出發。<br>沒有 micro:bit 試玩時，按 X 鍵可以假裝撞到水雷。</div>
         </div>
         <div>
           <div class="modes">
-            <button class="mode" id="modeFree"><b>自由巡航</b><p>沒有時間限制。海底有 3 顆發光珍珠，只有電腦看得到；水雷只有 micro:bit 看得到。</p></button>
+            <button class="mode" id="modeFree"><b>自由巡航</b><p>沒有時間限制。海底有 3 顆發光珍珠，只有網頁看得到；水雷只有 micro:bit 看得到。</p></button>
             <button class="mode" id="modeTime"><b>限時尋寶 60 秒</b><p>60 秒內收集最多珍珠。被水雷炸到會回到 (0, 0)，浪費時間！</p></button>
           </div>
-          <div class="keys">先按右上角「連接 micro:bit」（第五堂的程式）。<br>方向鍵或下方按鈕：送出 f　b　l　r，和手機遙控一樣。<br>按一下走一格，和 LED 上的點一起動。</div>
+          <div class="keys">先按右上角「連接 micro:bit」（第五堂的程式）。<br>方向鍵或下方按鈕：送出 f　b　l　r，和潛艇遙控器一樣。<br>按一下走一格，和 LED 上的點一起動。</div>
         </div>
       </div>
     </div>

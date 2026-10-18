@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#2a0f12" />
+  <title>體感指揮家</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="mbgame.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Space+Mono:wght@700&display=swap" />
+  <link rel="stylesheet" href="kuding.css" />
+  <link rel="stylesheet" href="game.css" />
+  <link rel="stylesheet" href="rulelab.css" />
+  <style> html, body { background: #2a0f12; } </style>
+</head>
+<body>
+  <a class="kd-float" href="index.html" title="回到酷丁狐的科技實驗室"><span class="kd-logo" aria-hidden="true"></span>實驗室</a>
+  <canvas id="view"></canvas>
+  <div class="hud">
+    <div class="chip"><span class="dot" id="dot"></span><b>體感指揮家</b><span class="status" id="status">未連接</span></div>
+    <div class="center"><div class="stats">
+      <div class="stat"><small>速度 BPM</small><span id="bpm">--</span></div>
+      <div class="stat" id="tgtBox"><small>目標速度</small><span id="tgt">--</span></div>
+      <div class="stat" id="accBox"><small>準確度</small><span id="acc">--</span></div>
+      <div class="stat"><small>小節</small><span id="bar">0/16</span></div>
+    </div></div>
+    <div class="right">
+      <button class="btn ghost" id="soundBtn">音效 開</button>
+      <button class="btn" id="connectBtn">連接 micro:bit</button>
+      <button class="btn ghost" id="menuBtn">選單</button>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+  <div class="log" id="log"></div>
+
+  <div class="overlay" id="menu">
+    <div class="card">
+      <h1>體感指揮家</h1>
+      <p class="sub">你是樂團的指揮！拿著 micro:bit 一下一下往下揮，每揮一下就是一拍：揮得快，樂團就演奏得快；停下來，樂團就等你。往左傾斜讓弦樂和木管大聲，往右傾斜讓銅管和鼓大聲。</p>
+      <div class="modes" style="grid-template-columns:1fr 1fr;display:grid">
+        <button class="mode" data-mode="free"><span class="tag">第八堂</span><b>自由指揮《歡樂頌》</b><p>想快就快、想慢就慢，感受樂團跟著你的手走。</p></button>
+        <button class="mode" data-mode="challenge"><span class="tag">挑戰</span><b>速度挑戰</b><p>樂譜上會寫「慢板、中板、快板」，揮出接近目標的速度，拿到最高的準確度！</p></button>
+      </div>
+      <button class="mode rl-card" id="labCard" style="margin-top:12px;width:100%"><span class="tag">規則實驗室</span><b>用積木設計音樂會</b><p>自己決定每一段的目標速度、哪個聲部大聲、燈光和煙火，再上台指揮。</p></button>
+      <div class="proto">
+        <div><b>micro:bit 送出</b><br><code>beat#</code>　揮一下（一拍）<br><code>t:數字</code>　自己算出的速度 BPM（挑戰）<br><code>x:數字</code>　左右傾斜（加速度 x）<br><b>micro:bit 收到</b>　<code>bar#</code> 每一小節　<code>end#</code> 演奏完畢</div>
+        <div><b>沒有 micro:bit？</b><br>按空白鍵打拍子，← → 方向鍵傾斜。</div>
+      </div>
+    </div>
+  </div>
+  <div class="overlay" id="endOv" hidden>
+    <div class="card result">
+      <h1 id="endTitle">演奏完畢！</h1>
+      <p class="sub" id="endText"></p>
+      <div class="big" id="endScore">0</div>
+      <div class="row"><button class="btn primary" id="againBtn">再指揮一次</button><button class="btn" id="backBtn">回到選單</button></div>
+    </div>
+  </div>
+  <script src="mblink.js"></script>
+  <script src="rulelab.js"></script>
+  <script src="maestro.js"></script>
+  <script src="maestro-lab.js"></script>
+</body>
+</html>

@@ -189,6 +189,7 @@
       </a>
       <nav class="main" aria-label="主選單">
         <a href="#t1">主題1 深海探險隊</a>
+        <a href="#t2">主題2 聲音與感應</a>
         <a href="#ta">主題A 機械手臂</a>
         <a href="#steps">實驗步驟</a>
         <a href="#help">故障排除</a>
@@ -208,11 +209,14 @@
         <div class="text">
           <div class="tags mono"><span>LAB No.01</span><span>MakeCode × micro:bit</span></div>
           <h1>寫程式、<br>做遙控、<br><mark>玩實驗！</mark></h1>
-          <p class="lead">歡迎來到酷丁狐的實驗室。在 MakeCode 拼好程式、下載到 micro:bit，再回到這裡：依照主題找到這一堂課：深海探險隊用手機和電腦開潛艇、找寶藏，機械手臂用手機遙控手臂和吊車。每一堂要用的網頁都在這一頁。</p>
+          <p class="lead">歡迎來到酷丁狐的實驗室。在 MakeCode 拼好程式、下載到 micro:bit，再回到這裡：依照主題找到這一堂課：深海探險隊用手機和電腦開潛艇、找寶藏，機械手臂用手機遙控手臂和吊車，聲音與感應做樂器、玩體感遊戲。每一堂要用的網頁都在這一頁。</p>
           <div class="ctas">
             <a class="btn orange" href="#t1">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><rect x="2" y="6" width="20" height="12"></rect><path d="M7 10v4M5 12h4M15 11h.01M18 13h.01"></path></svg>
               主題1 深海探險隊</a>
+            <a class="btn" href="#t2">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4l14 8-14 8z"></path></svg>
+              主題2 聲音與感應</a>
             <a class="btn" href="#ta">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4l14 8-14 8z"></path></svg>
               主題A 機械手臂</a>
@@ -303,6 +307,73 @@
               <tr><td class="code">1-06</td><td class="name">傾斜駕駛艙</td><td>加速度感測器變成方向盤，把傾斜數值傳給電腦開潛艇。</td><td class="tools"><a href="sub.html">深海探險</a><a href="lab.html">規則實驗室</a></td></tr>
               <tr><td class="code">1-07</td><td class="name">聲納雷達</td><td>海底放大成 10×10 畫在電腦上；micro:bit 用絕對值算距離，LED 和蜂鳴器當雷達，把位置和 found# 傳給電腦。</td><td class="tools"><a href="sonar.html">聲納尋寶</a><a href="lab.html">規則實驗室</a></td></tr>
               <tr><td class="code">1-08</td><td class="name">雙屏尋寶</td><td>電腦看海底、micro:bit 看雷達，兩台機器互相傳暗號找寶藏。</td><td class="tools"><a href="sub.html">深海探險</a><a href="lab.html">規則實驗室</a></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="band dark" id="t2" style="border-top:4px solid var(--kd-mustard)">
+      <div class="wrap">
+        <div class="sec-head">
+          <div><span class="topic mono">主題 2 / SOUND &amp; SENSOR</span><h2>聲音與感應</h2><p>前四堂用 micro:bit V2 內建喇叭做樂器：電子鋼琴、音樂盒、測謊機、特雷門琴。後四堂把超音波、加速度、旋鈕和按鍵的數值用藍牙傳給平板，玩體感小遊戲。平板請用 Chrome（iPad 用 Bluefy），沒有 micro:bit 也能先用鍵盤試玩。每個遊戲都有「規則實驗室」，可以用積木改遊戲規則。</p></div>
+          <span class="mono">4 GAMES + 4 LABS / 第五～八堂</span>
+        </div>
+        <div class="toolgrid two">
+          <article class="tool">
+            <div class="shot" style="background-image:url('assets/shot-space.webp')"><span class="mono">平板／電腦</span></div>
+            <div class="body">
+              <span class="lessons mono">第五堂</span>
+              <h3>超音波太空梭</h3>
+              <p>手放在超音波感測器上方，手抬高、太空梭就飛高。躲開隕石、收集星星寶石，有練習、60 秒計時和無盡三種模式。</p>
+              <div class="chips"><span>micro:bit → 平板</span><span>d:公分</span><span>star# hit#</span></div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn mustard small" href="space.html">發射太空梭</a><a class="btn small" href="space.html#lab">規則實驗室</a></div>
+            </div>
+          </article>
+          <article class="tool">
+            <div class="shot" style="background-image:url('assets/shot-sports.webp')"><span class="mono">平板／電腦</span></div>
+            <div class="body">
+              <span class="lessons mono">第六堂</span>
+              <h3>micro:bit 運動會</h3>
+              <p>拿著 micro:bit 當球拍、球棒、保齡球：左右傾斜瞄準，用力一揮決定力道。保齡球、網球、棒球三種比賽。</p>
+              <div class="chips"><span>micro:bit ⇄ 平板</span><span>x:傾斜 s:力道</span><span>good# miss#</span></div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn mustard small" href="sports.html">進入運動會</a><a class="btn small" href="sports.html#lab">規則實驗室</a></div>
+            </div>
+          </article>
+          <article class="tool">
+            <div class="shot" style="background-image:url('assets/shot-race.webp')"><span class="mono">平板／電腦</span></div>
+            <div class="body">
+              <span class="lessons mono">第七堂</span>
+              <h3>旋鈕賽車</h3>
+              <p>坐在酷丁狐的卡丁車後面，像早期賽車遊戲的仿 3D 視角。旋鈕是方向盤，五鍵按鍵是油門、煞車和氮氣。三條賽道、三圈計時，還能跟自己最快一圈的幽靈車比賽。</p>
+              <div class="chips"><span>micro:bit ⇄ 平板</span><span>k:旋鈕 b:按鍵</span><span>go# lap# end#</span></div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn mustard small" href="race.html">開始比賽</a><a class="btn small" href="race.html#lab">規則實驗室</a></div>
+            </div>
+          </article>
+          <article class="tool">
+            <div class="shot" style="background-image:url('assets/shot-maestro.webp')"><span class="mono">平板／電腦</span></div>
+            <div class="body">
+              <span class="lessons mono">第八堂</span>
+              <h3>體感指揮家</h3>
+              <p>揮一下 micro:bit 就是一拍，樂團跟著你的速度演奏《歡樂頌》；左右傾斜讓不同聲部變大聲。速度挑戰看你能不能跟上慢板、中板、快板。</p>
+              <div class="chips"><span>micro:bit ⇄ 平板</span><span>beat# t:速度 x:傾斜</span><span>bar# end#</span></div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn mustard small" href="maestro.html">拿起指揮棒</a><a class="btn small" href="maestro.html#lab">規則實驗室</a></div>
+            </div>
+          </article>
+        </div>
+        <h3 class="sub-h">單元對照</h3>
+        <div class="tablebox">
+          <table>
+            <thead><tr><th style="width:90px">單元</th><th style="width:190px">名稱</th><th>實驗內容</th><th style="width:320px">要用的網頁</th></tr></thead>
+            <tbody>
+              <tr><td class="code">2-01</td><td class="name">電子鋼琴</td><td>按鈕和旋鈕彈出 Do Re Mi，用 micro:bit V2 內建喇叭發聲。</td><td class="tools"><span class="none">只用 micro:bit</span></td></tr>
+              <tr><td class="code">2-02</td><td class="name">音樂盒</td><td>用旋律編輯器寫一首歌，旋鈕調整播放速度。</td><td class="tools"><span class="none">只用 micro:bit</span></td></tr>
+              <tr><td class="code">2-03</td><td class="name">測謊機</td><td>溼度感應器量手指的導電程度，用內建 LED 長條圖和圖示顯示緊張指數。</td><td class="tools"><span class="none">只用 micro:bit</span></td></tr>
+              <tr><td class="code">2-04</td><td class="name">特雷門琴</td><td>超音波量手的距離，換成音高，內建 LED 跟著亮起高低。</td><td class="tools"><span class="none">只用 micro:bit</span></td></tr>
+              <tr><td class="code">2-05</td><td class="name">超音波太空梭</td><td>把超音波距離用藍牙傳給平板，手的高度控制太空梭。</td><td class="tools"><a href="space.html">超音波太空梭</a><a href="space.html#lab">規則實驗室</a></td></tr>
+              <tr><td class="code">2-06</td><td class="name">micro:bit 運動會</td><td>加速度感測器抓「揮動的最大力道」和傾斜方向，傳給平板打保齡球、網球、棒球。</td><td class="tools"><a href="sports.html">micro:bit 運動會</a><a href="sports.html#lab">規則實驗室</a></td></tr>
+              <tr><td class="code">2-07</td><td class="name">旋鈕賽車</td><td>旋鈕和五鍵按鍵組成賽車方向盤，每 0.1 秒回報一次給平板。</td><td class="tools"><a href="race.html">旋鈕賽車</a><a href="race.html#lab">規則實驗室</a></td></tr>
+              <tr><td class="code">2-08</td><td class="name">體感指揮家</td><td>偵測每一次揮動、用時間差算出速度 BPM，指揮平板上的樂團。</td><td class="tools"><a href="maestro.html">體感指揮家</a><a href="maestro.html#lab">規則實驗室</a></td></tr>
             </tbody>
           </table>
         </div>

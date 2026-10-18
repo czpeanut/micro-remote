@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#1b3a1f" />
+  <title>micro:bit 運動會</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="mbgame.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Space+Mono:wght@700&display=swap" />
+  <link rel="stylesheet" href="kuding.css" />
+  <link rel="stylesheet" href="game.css" />
+  <link rel="stylesheet" href="rulelab.css" />
+  <style>
+    html, body { background: #1b3a1f; }
+    .meter { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); display: flex; gap: 14px; align-items: center;
+      background: rgba(10,20,10,.7); border: 2px solid rgba(243,238,225,.35); padding: 8px 14px; color: #e9f4ff; font: 700 13px var(--kd-font); }
+    .meter .pw { width: 220px; height: 14px; background: #ffffff22; position: relative; }
+    .meter .pw i { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: linear-gradient(90deg, #3ee69a, #ffc94a, #ff6f6f); transition: width .15s; }
+    .meter .tl { width: 120px; height: 14px; background: #ffffff22; position: relative; }
+    .meter .tl i { position: absolute; top: -3px; width: 4px; height: 20px; background: #ffc94a; left: 50%; transform: translateX(-2px); }
+    .meter b { font-family: var(--kd-mono); color: #ffc94a; min-width: 48px; display: inline-block; }
+  </style>
+</head>
+<body>
+  <a class="kd-float" href="index.html" title="回到酷丁狐的科技實驗室"><span class="kd-logo" aria-hidden="true"></span>實驗室</a>
+  <canvas id="view"></canvas>
+  <div class="hud">
+    <div class="chip"><span class="dot" id="dot"></span><b id="gameName">micro:bit 運動會</b><span class="status" id="status">未連接</span></div>
+    <div class="center"><div class="stats">
+      <div class="stat"><small id="l1">得分</small><span id="v1">0</span></div>
+      <div class="stat"><small id="l2">回合</small><span id="v2">1/5</span></div>
+    </div></div>
+    <div class="right">
+      <button class="btn ghost" id="soundBtn">音效 開</button>
+      <button class="btn" id="connectBtn">連接 micro:bit</button>
+      <button class="btn ghost" id="menuBtn">選單</button>
+    </div>
+  </div>
+  <div class="meter"><span>傾斜</span><div class="tl"><i id="tilt"></i></div><span>力道</span><div class="pw"><i id="pw"></i></div><b id="pwv">0</b></div>
+  <div class="toast" id="toast"></div>
+  <div class="log" id="log"></div>
+
+  <div class="overlay" id="menu">
+    <div class="card">
+      <h1>micro:bit 運動會</h1>
+      <p class="sub">把 micro:bit 綁在手腕上，揮動手臂就能打球！揮得越用力，球飛得越快；左右傾斜可以瞄準。<b>揮動前先看看四周，不要打到同學喔。</b></p>
+      <div class="modes" style="grid-template-columns:1fr 1fr 1fr;display:grid">
+        <button class="mode" data-game="bowl"><span class="tag">項目一</span><b>保齡球</b><p>左右傾斜瞄準，往前一甩把球丟出去。5 球，看你能打倒幾支瓶。</p></button>
+        <button class="mode" data-game="tennis"><span class="tag">項目二</span><b>網球</b><p>球飛過來時揮拍！太早或太晚都會打歪，先得 5 分獲勝。</p></button>
+        <button class="mode" data-game="base"><span class="tag">項目三</span><b>棒球</b><p>看準時機揮棒，力道越大飛越遠。10 球裡能打出幾支全壘打？</p></button>
+      </div>
+      <button class="mode rl-card" id="labCard" style="margin-top:12px;width:100%"><span class="tag">規則實驗室</span><b>用積木改比賽規則</b><p>自己決定怎麼計分、幾球結束、球速多快、電腦有多強，設計你的運動會。</p></button>
+      <div class="proto">
+        <div><b>micro:bit 送出</b><br><code>x:數字</code>　左右傾斜（加速度 x），每 0.1 秒<br><code>s:數字</code>　揮動的力道（強度超過門檻才送）<br><b>micro:bit 收到</b><br><code>good#</code>　打得好　<code>miss#</code>　沒打到</div>
+        <div><b>沒有 micro:bit？</b><br>← → 方向鍵傾斜，按住空白鍵蓄力、放開就揮動。</div>
+      </div>
+    </div>
+  </div>
+  <div class="overlay" id="endOv" hidden>
+    <div class="card result">
+      <h1 id="endTitle">比賽結束！</h1>
+      <p class="sub" id="endText"></p>
+      <div class="big" id="endScore">0</div>
+      <div class="row"><button class="btn primary" id="againBtn">再玩一次</button><button class="btn" id="backBtn">回到選單</button></div>
+    </div>
+  </div>
+  <script src="mblink.js"></script>
+  <script src="rulelab.js"></script>
+  <script src="sports.js"></script>
+  <script src="sports-lab.js"></script>
+</body>
+</html>

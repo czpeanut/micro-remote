@@ -7,6 +7,10 @@
   <title>酷丁狐的科技實驗室</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="酷丁狐實驗室" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Space+Mono:wght@700&display=swap" />
@@ -211,6 +215,7 @@
           <h1>寫程式、<br>做遙控、<br><mark>玩實驗！</mark></h1>
           <p class="lead">歡迎來到酷丁狐的實驗室。在 MakeCode 拼好程式、下載到 micro:bit，再回到這裡：依照主題找到這一堂課：深海探險隊用手機和電腦開潛艇、找寶藏，機械手臂用手機遙控手臂和吊車，聲音與感應做樂器、玩體感遊戲。每一堂要用的網頁都在這一頁。</p>
           <div class="ctas">
+            <button class="kd-install-btn" type="button" data-kd-install><img src="icon-192.png" alt="">加到主畫面</button>
             <a class="btn orange" href="#t1">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><rect x="2" y="6" width="20" height="12"></rect><path d="M7 10v4M5 12h4M15 11h.01M18 13h.01"></path></svg>
               主題1 深海探險隊</a>
@@ -484,5 +489,6 @@
     };
   })();
 </script>
+<script src="install.js"></script>
 </body>
 </html>

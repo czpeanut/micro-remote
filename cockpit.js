@@ -2,7 +2,7 @@
 /*
  * 潛艇駕駛艙 — 第五堂「潛艇出航」的電腦端（第一人稱）
  *  電腦 → micro:bit：f#　b#　l#　r#（和手機遙控相同）
- *  電腦用同樣的規則算出潛艇位置：起點 (2,2)，邊界 0～4，碰到水雷回到 (0,0)
+ *  電腦用同樣的規則算出潛艇位置：起點 (0,0)，邊界 0～4，碰到水雷回到 (0,0)
  */
 const NUS = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
 const NUS_RX = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
@@ -188,7 +188,7 @@ function command(c) {
   if (face !== S.face) sfx.turn();
   S.face = face;
   if (nx === S.gx && ny === S.gy) { S.bump = 1; S.bumpDir = [dx, dy]; S.pendingBump = true; }
-  else { S.gx = nx; S.gy = ny; S.pendingArrive = performance.now(); sfx.move(); }
+  else { if (S.pendingArrive) arrive(); S.gx = nx; S.gy = ny; S.pendingArrive = performance.now(); sfx.move(); }
   hud();
   const b = document.querySelector(`.pad [data-c="${c}"]`); if (b) { b.classList.add("hit"); setTimeout(() => b.classList.remove("hit"), 140); }
 }
@@ -371,6 +371,11 @@ function render(now) {
     ctx.save(); ctx.translate(Math.round(wx2s(f.x)), Math.round(wy2s(f.y))); ctx.rotate(f.a);
     ctx.drawImage(TEX.fish.c, -8, -5); ctx.restore();
   }
+  // 珍珠（畫在黑暗下面：只有潛艇的燈照到才看得見）
+  for (const p of S.pearls) {
+    const cx = wx2s(p.gx + 1.5), cy = wy2s(p.gy + 1.5), a = Math.min(1, (now - p.born) / 400);
+    ctx.save(); ctx.globalAlpha = a; ctx.drawImage(TEX.pearl.c, Math.round(cx - 16), Math.round(cy - 14)); ctx.restore();
+  }
   // 潛艇
   const bumpOff = Math.sin(S.bump * Math.PI) * 0.22;
   const sx = wx2s(S.x + S.bumpDir[0] * bumpOff), sy = wy2s(S.y + S.bumpDir[1] * bumpOff) + Math.sin(t * 2) * 0.8;
@@ -400,14 +405,6 @@ function render(now) {
   ctx.save(); ctx.globalCompositeOperation = "lighter";
   const g4 = ctx.createRadialGradient(sx, sy, 0, sx, sy, T * 1.8); g4.addColorStop(0, "rgba(255,240,180,.08)"); g4.addColorStop(1, "rgba(255,240,180,0)");
   ctx.fillStyle = g4; ctx.beginPath(); ctx.moveTo(sx, sy); ctx.arc(sx, sy, T * 1.8, S.ang - 0.3, S.ang + 0.3); ctx.closePath(); ctx.fill(); ctx.restore();
-  // 珍珠（自己發光，在黑暗上面）
-  for (const p of S.pearls) {
-    const cx = wx2s(p.gx + 1.5), cy = wy2s(p.gy + 1.5), a = Math.min(1, (now - p.born) / 400);
-    ctx.save(); ctx.globalAlpha = a; ctx.globalCompositeOperation = "lighter";
-    const R = 18 + Math.sin(t * 3 + p.ph) * 3, g = ctx.createRadialGradient(cx, cy - 2, 0, cx, cy - 2, R);
-    g.addColorStop(0, "rgba(255,245,210,.6)"); g.addColorStop(1, "rgba(255,245,210,0)"); ctx.fillStyle = g; ctx.fillRect(cx - R, cy - R - 2, R * 2, R * 2);
-    ctx.globalCompositeOperation = "source-over"; ctx.drawImage(TEX.pearl.c, Math.round(cx - 16), Math.round(cy - 14)); ctx.restore();
-  }
   // 海雪
   ctx.fillStyle = "rgba(210,235,255,.55)";
   for (const p of snow) { p.y += 0.0004 * p.z; p.x += 0.0002 * p.z; if (p.y > 1) p.y = 0; if (p.x > 1) p.x = 0; ctx.globalAlpha = 0.2 + p.z * 0.4; ctx.fillRect(Math.floor(p.x * W), Math.floor(p.y * H), 1, 1); }

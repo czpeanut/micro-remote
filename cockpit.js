@@ -2,7 +2,7 @@
 /*
  * 潛艇駕駛艙 — 第五堂「潛艇出航」的電腦端（第一人稱）
  *  電腦 → micro:bit：f#　b#　l#　r#（和手機遙控相同）
- *  電腦用同樣的規則算出潛艇位置：起點 (2,2)，邊界 0～4，碰到水雷回到 (0,0)
+ *  電腦用同樣的規則算出潛艇位置：起點 (0,0)，邊界 0～4，碰到水雷回到 (0,0)
  */
 const NUS = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
 const NUS_RX = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
@@ -10,7 +10,7 @@ const NUS_TX = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
 const $ = (id) => document.getElementById(id);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rnd = (a, b) => a + Math.random() * (b - a);
-const START = [2, 2], HOME = [0, 0], N = 5, MW = N + 2;
+const START = [0, 0], HOME = [0, 0], N = 5, MW = N + 2;
 const FACE_ANG = [-Math.PI / 2, 0, Math.PI / 2, Math.PI]; // 北 東 南 西
 const CMD = { f: [0, -1, 0], r: [1, 0, 1], b: [0, 1, 2], l: [-1, 0, 3] };
 
@@ -127,12 +127,16 @@ async function connect() {
   try {
     setStatus("wait");
     device = await navigator.bluetooth.requestDevice({ filters: [{ services: [NUS] }, { namePrefix: "BBC micro:bit" }], optionalServices: [NUS] });
-    device.addEventListener("gattserverdisconnected", () => { rxChar = null; setStatus("off"); log("已中斷連接", "e"); });
+    device.addEventListener("gattserverdisconnected", () => {
+      rxChar = null; setStatus("off"); log("已中斷連接", "e");
+      if (S.running && !S.demo) { openMenu(); toast("micro:bit 斷線了，重新連接後再開始"); }
+      updateModes();
+    });
     const svc = await nusService(device);
     const ch = await nusChars(svc); rxChar = ch.rx;
     try { await ch.tx.startNotifications(); ch.tx.addEventListener("characteristicvaluechanged", (e) => receive(new TextDecoder().decode(e.target.value))); } catch (e) {}
-    setStatus("on", device.name); log(`已連接 ${device.name || "micro:bit"}`);
-    toast("連接成功！micro:bit 按重設鈕，潛艇回到 (2, 2)");
+    setStatus("on", device.name); log(`已連接 ${device.name || "micro:bit"}`); updateModes();
+    toast("連接成功！micro:bit 按重設鈕，潛艇回到 (0, 0)");
   } catch (err) { if (!err || err.name !== "NotFoundError") log(`連接失敗：${(err && err.message) || err}`, "e"); setStatus("off"); }
 }
 function send(word) {
@@ -184,7 +188,7 @@ function command(c) {
   if (face !== S.face) sfx.turn();
   S.face = face;
   if (nx === S.gx && ny === S.gy) { S.bump = 1; S.bumpDir = [dx, dy]; S.pendingBump = true; }
-  else { S.gx = nx; S.gy = ny; S.pendingArrive = performance.now(); sfx.move(); }
+  else { if (S.pendingArrive) arrive(); S.gx = nx; S.gy = ny; S.pendingArrive = performance.now(); sfx.move(); }
   hud();
   const b = document.querySelector(`.pad [data-c="${c}"]`); if (b) { b.classList.add("hit"); setTimeout(() => b.classList.remove("hit"), 140); }
 }
@@ -202,9 +206,24 @@ function receive(text) {
     const w = rxBuf.slice(0, i).trim(); rxBuf = rxBuf.slice(i + 1);
     if (!w) continue;
     log(`收到 ${w}#`);
-    if (w.toLowerCase() === "boom" && !S.boom) explode();
+    if (w.toLowerCase() === "boom") onBoom();
   }
   if (rxBuf.length > 64) rxBuf = "";
+}
+// micro:bit 每送一次 boom# 就延後「修理完成」；連續一直送，代表程式在水雷上卡住了
+function onBoom() {
+  const now = performance.now();
+  if (!S.running) return;
+  if (S.boom) {
+    S.boomRepeat = (S.boomRepeat || 0) + 1; S.lastBoomRx = now;
+    if (S.boomRepeat >= 2) showStuck(true);
+    return;
+  }
+  S.boomRepeat = 0; S.lastBoomRx = now; explode();
+}
+function showStuck(on) {
+  const el = $("stuck"); if (!el) return;
+  el.hidden = !on;
 }
 function explode() {
   S.boom = performance.now(); S.hits++; S.shake = 1; S.flash = 1; sfx.boom(); hud();
@@ -214,14 +233,26 @@ function explode() {
   toast("轟！撞到水雷了");
 }
 function finishBoom() {
+  showStuck(false); S.boomRepeat = 0;
   S.boom = 0; S.cracks = []; S.gx = HOME[0]; S.gy = HOME[1]; S.x = HOME[0] + 1.5; S.y = HOME[1] + 1.5; S.fade = 1;
   hud(); toast("回到 (0, 0) 重新出發");
   if (S.pearls.some((p) => p.gx === S.gx && p.gy === S.gy)) arrive();
 }
 
 /* ---------------- 流程 ---------------- */
-function start(mode) {
+function updateModes() {
+  const ok = !!rxChar;
+  ["modeFree", "modeTime"].forEach((id) => $(id).classList.toggle("locked", !ok));
+  const n = $("needConnect"); if (n) n.hidden = ok;
+}
+function start(mode, demo) {
   audio();
+  if (!demo && !rxChar) {
+    toast("先按右上角「連接 micro:bit」，連上之後才能出航");
+    const b = $("connectBtn"); b.classList.remove("pulse"); void b.offsetWidth; b.classList.add("pulse");
+    return;
+  }
+  S.demo = !!demo; showStuck(false); S.boomRepeat = 0; S.lastBoomRx = 0;
   S.mode = mode; S.running = true; S.score = 0; S.hits = 0; S.left = 60; S.boom = 0; S.cracks = [];
   S.gx = START[0]; S.gy = START[1]; S.face = 0; S.x = START[0] + 1.5; S.y = START[1] + 1.5; S.ang = FACE_ANG[0]; S.fade = 1;
   S.pearls = []; for (let i = 0; i < 3; i++) placePearl();
@@ -340,6 +371,11 @@ function render(now) {
     ctx.save(); ctx.translate(Math.round(wx2s(f.x)), Math.round(wy2s(f.y))); ctx.rotate(f.a);
     ctx.drawImage(TEX.fish.c, -8, -5); ctx.restore();
   }
+  // 珍珠（畫在黑暗下面：只有潛艇的燈照到才看得見）
+  for (const p of S.pearls) {
+    const cx = wx2s(p.gx + 1.5), cy = wy2s(p.gy + 1.5), a = Math.min(1, (now - p.born) / 400);
+    ctx.save(); ctx.globalAlpha = a; ctx.drawImage(TEX.pearl.c, Math.round(cx - 16), Math.round(cy - 14)); ctx.restore();
+  }
   // 潛艇
   const bumpOff = Math.sin(S.bump * Math.PI) * 0.22;
   const sx = wx2s(S.x + S.bumpDir[0] * bumpOff), sy = wy2s(S.y + S.bumpDir[1] * bumpOff) + Math.sin(t * 2) * 0.8;
@@ -369,14 +405,6 @@ function render(now) {
   ctx.save(); ctx.globalCompositeOperation = "lighter";
   const g4 = ctx.createRadialGradient(sx, sy, 0, sx, sy, T * 1.8); g4.addColorStop(0, "rgba(255,240,180,.08)"); g4.addColorStop(1, "rgba(255,240,180,0)");
   ctx.fillStyle = g4; ctx.beginPath(); ctx.moveTo(sx, sy); ctx.arc(sx, sy, T * 1.8, S.ang - 0.3, S.ang + 0.3); ctx.closePath(); ctx.fill(); ctx.restore();
-  // 珍珠（自己發光，在黑暗上面）
-  for (const p of S.pearls) {
-    const cx = wx2s(p.gx + 1.5), cy = wy2s(p.gy + 1.5), a = Math.min(1, (now - p.born) / 400);
-    ctx.save(); ctx.globalAlpha = a; ctx.globalCompositeOperation = "lighter";
-    const R = 18 + Math.sin(t * 3 + p.ph) * 3, g = ctx.createRadialGradient(cx, cy - 2, 0, cx, cy - 2, R);
-    g.addColorStop(0, "rgba(255,245,210,.6)"); g.addColorStop(1, "rgba(255,245,210,0)"); ctx.fillStyle = g; ctx.fillRect(cx - R, cy - R - 2, R * 2, R * 2);
-    ctx.globalCompositeOperation = "source-over"; ctx.drawImage(TEX.pearl.c, Math.round(cx - 16), Math.round(cy - 14)); ctx.restore();
-  }
   // 海雪
   ctx.fillStyle = "rgba(210,235,255,.55)";
   for (const p of snow) { p.y += 0.0004 * p.z; p.x += 0.0002 * p.z; if (p.y > 1) p.y = 0; if (p.x > 1) p.x = 0; ctx.globalAlpha = 0.2 + p.z * 0.4; ctx.fillRect(Math.floor(p.x * W), Math.floor(p.y * H), 1, 1); }
@@ -417,7 +445,7 @@ function update(dt, now) {
   }
   if (S.bump > 0 && !S.pendingBump) S.bump = Math.max(0, S.bump - dt * 3);
   S.shake *= Math.exp(-dt * 4); S.flash = Math.max(0, S.flash - dt * 2.2); S.fade = Math.max(0, S.fade - dt * 1.5);
-  if (S.boom && now - S.boom > 1600) finishBoom();
+  if (S.boom && now - S.boom > 1600 && now - (S.lastBoomRx || 0) > 1800) finishBoom();
   for (const f of S.fish) {
     f.a += Math.sin(now / 900 + f.sp * 10) * dt * 0.8;
     f.x += Math.cos(f.a) * f.sp * dt; f.y += Math.sin(f.a) * f.sp * dt;
@@ -439,15 +467,17 @@ function init() {
   setStatus("off");
   $("connectBtn").onclick = () => (device && device.gatt.connected ? device.gatt.disconnect() : connect());
   $("soundBtn").onclick = () => { S.sound = !S.sound; $("soundBtn").textContent = S.sound ? "音效 開" : "音效 關"; };
-  $("menuBtn").onclick = openMenu; $("backBtn").onclick = openMenu; $("againBtn").onclick = () => start(S.mode);
+  $("menuBtn").onclick = openMenu; $("backBtn").onclick = openMenu; $("againBtn").onclick = () => start(S.mode, S.demo);
   $("modeFree").onclick = () => start("free"); $("modeTime").onclick = () => start("time");
+  $("modeDemo").onclick = () => start("free", true);
+  updateModes();
   document.querySelectorAll(".pad button").forEach((b) => b.addEventListener("pointerdown", (e) => { e.preventDefault(); command(b.dataset.c); }));
   const KEY = { ArrowUp: "f", ArrowDown: "b", ArrowLeft: "l", ArrowRight: "r", w: "f", s: "b", a: "l", d: "r" };
   addEventListener("keydown", (e) => {
     const c = KEY[e.key] || KEY[e.key.toLowerCase && e.key.toLowerCase()];
     if (c) { e.preventDefault(); if (!e.repeat) command(c); }
     if (e.key === "Escape") openMenu();
-    if ((e.key === "x" || e.key === "X") && !rxChar && $("menu").hidden && !S.boom) explode();
+    if ((e.key === "x" || e.key === "X") && S.demo && $("menu").hidden && !S.boom) explode();
   });
   hud(); requestAnimationFrame(frame);
 }
@@ -463,24 +493,31 @@ async function nusChars(svc) {
   return canWrite(a) ? { rx: a, tx: b } : { rx: b, tx: a };
 }
 
-// 連上後再取服務；有些電腦會在剛連上時斷一下，所以重試三次。
+// 連上後再取服務；有些電腦會在剛連上時斷一下，所以重試。
+// 找不到串口時，常見原因是平板還記著「上一個程式」的藍牙資料（快取），
+// 所以先斷開、等一下再重連，讓平板重新讀一次。
 async function nusService(device) {
   let last;
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 4; i++) {
     try {
       const server = device.gatt.connected ? device.gatt : await device.gatt.connect();
       await new Promise((r) => setTimeout(r, 300 + i * 400));
       if (!device.gatt.connected) throw new Error("disconnected");
-      return await server.getPrimaryService("6e400001-b5a3-f393-e0a9-e50e24dcca9e");
+      return await server.getPrimaryService(NUS);
     } catch (e) {
       last = e;
-      await new Promise((r) => setTimeout(r, 700));
+      if (/No Services matching|not found/i.test(String(e && e.message))) {
+        try { device.gatt.disconnect(); } catch (_) {}
+        await new Promise((r) => setTimeout(r, 1500));
+      } else {
+        await new Promise((r) => setTimeout(r, 700));
+      }
     }
   }
   const msg = String((last && last.message) || last);
   if (/disconnected|GATT Server/i.test(msg))
     throw new Error("micro:bit 一連上就斷線。請確認：① MakeCode 專案設定選「不需配對」後重新下載；② 到電腦或平板的藍牙設定，把這台 micro:bit 移除（忘記裝置）；③ 平板 App 已中斷連線。");
   if (/No Services matching|not found/i.test(msg))
-    throw new Error("這台 micro:bit 沒有藍牙串口：程式要加「藍牙串口服務」，並用 bluetooth 擴展下載。");
+    throw new Error("找不到藍牙串口。請依序試：① 關掉 micro:bit App（它可能還連著 micro:bit）；② 平板藍牙關掉再打開；③ 按 micro:bit 背面重設鈕，再按「連接」。都不行再確認程式有「藍牙串口服務」積木。");
   throw last;
 }

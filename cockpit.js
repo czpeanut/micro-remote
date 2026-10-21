@@ -470,7 +470,6 @@ function init() {
   $("soundBtn").onclick = () => { S.sound = !S.sound; $("soundBtn").textContent = S.sound ? "音效 開" : "音效 關"; };
   $("menuBtn").onclick = openMenu; $("backBtn").onclick = openMenu; $("againBtn").onclick = () => start(S.mode, S.demo);
   $("modeFree").onclick = () => start("free"); $("modeTime").onclick = () => start("time");
-  $("modeDemo").onclick = () => start("free", true);
   updateModes();
   document.querySelectorAll(".pad button").forEach((b) => b.addEventListener("pointerdown", (e) => { e.preventDefault(); command(b.dataset.c); }));
   const KEY = { ArrowUp: "f", ArrowDown: "b", ArrowLeft: "l", ArrowRight: "r", w: "f", s: "b", a: "l", d: "r" };
@@ -478,7 +477,6 @@ function init() {
     const c = KEY[e.key] || KEY[e.key.toLowerCase && e.key.toLowerCase()];
     if (c) { e.preventDefault(); if (!e.repeat) command(c); }
     if (e.key === "Escape") openMenu();
-    if ((e.key === "x" || e.key === "X") && S.demo && $("menu").hidden && !S.boom) explode();
   });
   hud(); requestAnimationFrame(frame);
 }

@@ -72,7 +72,6 @@
     .how code { background: #000; padding: 1px 6px; border-radius: 4px; color: #ff9d2e; }
     .mode.locked { opacity: .45; }
     .need { background: #ffe1d6; color: #7a1a10; border: 2px solid #c62d1f; padding: 8px 10px; font-size: 13px; font-weight: 700; }
-    .demo { margin-top: 10px; background: none; border: 0; color: var(--muted); text-decoration: underline; cursor: pointer; font: inherit; font-size: 12px; padding: 0; }
     #connectBtn.pulse { animation: pulse .6s 3; }
     @keyframes pulse { 50% { transform: scale(1.12); background: #F5C547; } }
     .stuck { position: fixed; left: 50%; top: 84px; transform: translateX(-50%); z-index: 30; max-width: 560px; width: calc(100% - 32px); background: #FFE1D6; color: #5a1208; border: 3px solid #c62d1f; padding: 12px 14px; font-size: 14px; line-height: 1.7; box-shadow: 6px 6px 0 #2B1D14; }
@@ -143,7 +142,6 @@
             <div class="need" id="needConnect">連上 micro:bit 之後才能出航。<button class="btn primary" id="menuConnect" type="button">連接 micro:bit</button></div>
             <button class="mode" id="modeTime"><b>限時尋寶 60 秒</b><p>60 秒內收集最多珍珠。被水雷炸到會回到 (0, 0)，浪費時間！</p></button>
           </div>
-          <button class="demo" id="modeDemo" type="button">沒有 micro:bit？鍵盤試玩（按 X 假裝撞到水雷）</button>
           <div class="keys">先按右上角「連接 micro:bit」（第五堂的程式）。<br>方向鍵或下方按鈕：送出 f　b　l　r，和潛艇遙控器一樣。<br>按一下走一格，和 LED 上的點一起動。</div>
         </div>
       </div>

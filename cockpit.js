@@ -466,6 +466,7 @@ function init() {
   buildTextures(); buildMap(); resize(); addEventListener("resize", resize);
   setStatus("off");
   $("connectBtn").onclick = () => (device && device.gatt.connected ? device.gatt.disconnect() : connect());
+  $("menuConnect").onclick = () => { if (!(device && device.gatt.connected)) connect(); };
   $("soundBtn").onclick = () => { S.sound = !S.sound; $("soundBtn").textContent = S.sound ? "音效 開" : "音效 關"; };
   $("menuBtn").onclick = openMenu; $("backBtn").onclick = openMenu; $("againBtn").onclick = () => start(S.mode, S.demo);
   $("modeFree").onclick = () => start("free"); $("modeTime").onclick = () => start("time");

@@ -25,7 +25,7 @@
     .dot.on { background: var(--ok); box-shadow: 0 0 0 3px rgba(62,230,154,.22); }
     .dot.wait { background: var(--amber); animation: blink 1s infinite; }
     @keyframes blink { 50% { opacity: .3; } }
-    .hud { position: fixed; top: 0; left: 0; right: 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 14px 18px; pointer-events: none; }
+    .hud { position: fixed; top: 0; left: 0; right: 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 14px 18px; pointer-events: none; z-index: 25; }
     .hud > * { pointer-events: auto; }
     .chip { display: flex; align-items: center; gap: 10px; background: var(--glass); border: 1px solid var(--line); border-radius: 14px; padding: 8px 14px; backdrop-filter: blur(6px); }
     .chip b { font-size: 16px; letter-spacing: 1px; }
@@ -55,6 +55,7 @@
     .overlay { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 10;
       background: radial-gradient(ellipse at center, rgba(2,20,36,.6), rgba(1,8,15,.9)); overflow: auto; }
     .overlay[hidden] { display: none; }
+    #needConnect .btn { display: block; margin: 10px auto 0; }
     .card { width: min(820px, 100%); background: rgba(6, 30, 50, .9); border: 1px solid var(--line); border-radius: 24px; padding: 24px 28px; box-shadow: 0 30px 80px rgba(0,0,0,.5); }
     .card h1 { margin: 0 0 4px; font-size: 30px; letter-spacing: 2px; }
     .card .sub { color: var(--muted); margin: 0 0 16px; line-height: 1.7; }
@@ -139,7 +140,7 @@
         <div>
           <div class="modes">
             <button class="mode" id="modeFree"><b>自由巡航</b><p>沒有時間限制。海底有 3 顆發光珍珠，只有網頁看得到；水雷只有 micro:bit 看得到。</p></button>
-            <div class="need" id="needConnect">先按右上角「連接 micro:bit」，連上之後才能出航。</div>
+            <div class="need" id="needConnect">連上 micro:bit 之後才能出航。<button class="btn primary" id="menuConnect" type="button">連接 micro:bit</button></div>
             <button class="mode" id="modeTime"><b>限時尋寶 60 秒</b><p>60 秒內收集最多珍珠。被水雷炸到會回到 (0, 0)，浪費時間！</p></button>
           </div>
           <button class="demo" id="modeDemo" type="button">沒有 micro:bit？鍵盤試玩（按 X 假裝撞到水雷）</button>

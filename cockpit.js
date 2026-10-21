@@ -10,7 +10,7 @@ const NUS_TX = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
 const $ = (id) => document.getElementById(id);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rnd = (a, b) => a + Math.random() * (b - a);
-const START = [2, 2], HOME = [0, 0], N = 5, MW = N + 2;
+const START = [0, 0], HOME = [0, 0], N = 5, MW = N + 2;
 const FACE_ANG = [-Math.PI / 2, 0, Math.PI / 2, Math.PI]; // 北 東 南 西
 const CMD = { f: [0, -1, 0], r: [1, 0, 1], b: [0, 1, 2], l: [-1, 0, 3] };
 
@@ -136,7 +136,7 @@ async function connect() {
     const ch = await nusChars(svc); rxChar = ch.rx;
     try { await ch.tx.startNotifications(); ch.tx.addEventListener("characteristicvaluechanged", (e) => receive(new TextDecoder().decode(e.target.value))); } catch (e) {}
     setStatus("on", device.name); log(`已連接 ${device.name || "micro:bit"}`); updateModes();
-    toast("連接成功！micro:bit 按重設鈕，潛艇回到 (2, 2)");
+    toast("連接成功！micro:bit 按重設鈕，潛艇回到 (0, 0)");
   } catch (err) { if (!err || err.name !== "NotFoundError") log(`連接失敗：${(err && err.message) || err}`, "e"); setStatus("off"); }
 }
 function send(word) {
@@ -496,24 +496,31 @@ async function nusChars(svc) {
   return canWrite(a) ? { rx: a, tx: b } : { rx: b, tx: a };
 }
 
-// 連上後再取服務；有些電腦會在剛連上時斷一下，所以重試三次。
+// 連上後再取服務；有些電腦會在剛連上時斷一下，所以重試。
+// 找不到串口時，常見原因是平板還記著「上一個程式」的藍牙資料（快取），
+// 所以先斷開、等一下再重連，讓平板重新讀一次。
 async function nusService(device) {
   let last;
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 4; i++) {
     try {
       const server = device.gatt.connected ? device.gatt : await device.gatt.connect();
       await new Promise((r) => setTimeout(r, 300 + i * 400));
       if (!device.gatt.connected) throw new Error("disconnected");
-      return await server.getPrimaryService("6e400001-b5a3-f393-e0a9-e50e24dcca9e");
+      return await server.getPrimaryService(NUS);
     } catch (e) {
       last = e;
-      await new Promise((r) => setTimeout(r, 700));
+      if (/No Services matching|not found/i.test(String(e && e.message))) {
+        try { device.gatt.disconnect(); } catch (_) {}
+        await new Promise((r) => setTimeout(r, 1500));
+      } else {
+        await new Promise((r) => setTimeout(r, 700));
+      }
     }
   }
   const msg = String((last && last.message) || last);
   if (/disconnected|GATT Server/i.test(msg))
     throw new Error("micro:bit 一連上就斷線。請確認：① MakeCode 專案設定選「不需配對」後重新下載；② 到電腦或平板的藍牙設定，把這台 micro:bit 移除（忘記裝置）；③ 平板 App 已中斷連線。");
   if (/No Services matching|not found/i.test(msg))
-    throw new Error("這台 micro:bit 沒有藍牙串口：程式要加「藍牙串口服務」，並用 bluetooth 擴展下載。");
+    throw new Error("找不到藍牙串口。請依序試：① 關掉 micro:bit App（它可能還連著 micro:bit）；② 平板藍牙關掉再打開；③ 按 micro:bit 背面重設鈕，再按「連接」。都不行再確認程式有「藍牙串口服務」積木。");
   throw last;
 }

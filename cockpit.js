@@ -127,11 +127,15 @@ async function connect() {
   try {
     setStatus("wait");
     device = await navigator.bluetooth.requestDevice({ filters: [{ services: [NUS] }, { namePrefix: "BBC micro:bit" }], optionalServices: [NUS] });
-    device.addEventListener("gattserverdisconnected", () => { rxChar = null; setStatus("off"); log("已中斷連接", "e"); });
+    device.addEventListener("gattserverdisconnected", () => {
+      rxChar = null; setStatus("off"); log("已中斷連接", "e");
+      if (S.running && !S.demo) { openMenu(); toast("micro:bit 斷線了，重新連接後再開始"); }
+      updateModes();
+    });
     const svc = await nusService(device);
     const ch = await nusChars(svc); rxChar = ch.rx;
     try { await ch.tx.startNotifications(); ch.tx.addEventListener("characteristicvaluechanged", (e) => receive(new TextDecoder().decode(e.target.value))); } catch (e) {}
-    setStatus("on", device.name); log(`已連接 ${device.name || "micro:bit"}`);
+    setStatus("on", device.name); log(`已連接 ${device.name || "micro:bit"}`); updateModes();
     toast("連接成功！micro:bit 按重設鈕，潛艇回到 (2, 2)");
   } catch (err) { if (!err || err.name !== "NotFoundError") log(`連接失敗：${(err && err.message) || err}`, "e"); setStatus("off"); }
 }
@@ -202,9 +206,24 @@ function receive(text) {
     const w = rxBuf.slice(0, i).trim(); rxBuf = rxBuf.slice(i + 1);
     if (!w) continue;
     log(`收到 ${w}#`);
-    if (w.toLowerCase() === "boom" && !S.boom) explode();
+    if (w.toLowerCase() === "boom") onBoom();
   }
   if (rxBuf.length > 64) rxBuf = "";
+}
+// micro:bit 每送一次 boom# 就延後「修理完成」；連續一直送，代表程式在水雷上卡住了
+function onBoom() {
+  const now = performance.now();
+  if (!S.running) return;
+  if (S.boom) {
+    S.boomRepeat = (S.boomRepeat || 0) + 1; S.lastBoomRx = now;
+    if (S.boomRepeat >= 2) showStuck(true);
+    return;
+  }
+  S.boomRepeat = 0; S.lastBoomRx = now; explode();
+}
+function showStuck(on) {
+  const el = $("stuck"); if (!el) return;
+  el.hidden = !on;
 }
 function explode() {
   S.boom = performance.now(); S.hits++; S.shake = 1; S.flash = 1; sfx.boom(); hud();
@@ -214,14 +233,26 @@ function explode() {
   toast("轟！撞到水雷了");
 }
 function finishBoom() {
+  showStuck(false); S.boomRepeat = 0;
   S.boom = 0; S.cracks = []; S.gx = HOME[0]; S.gy = HOME[1]; S.x = HOME[0] + 1.5; S.y = HOME[1] + 1.5; S.fade = 1;
   hud(); toast("回到 (0, 0) 重新出發");
   if (S.pearls.some((p) => p.gx === S.gx && p.gy === S.gy)) arrive();
 }
 
 /* ---------------- 流程 ---------------- */
-function start(mode) {
+function updateModes() {
+  const ok = !!rxChar;
+  ["modeFree", "modeTime"].forEach((id) => $(id).classList.toggle("locked", !ok));
+  const n = $("needConnect"); if (n) n.hidden = ok;
+}
+function start(mode, demo) {
   audio();
+  if (!demo && !rxChar) {
+    toast("先按右上角「連接 micro:bit」，連上之後才能出航");
+    const b = $("connectBtn"); b.classList.remove("pulse"); void b.offsetWidth; b.classList.add("pulse");
+    return;
+  }
+  S.demo = !!demo; showStuck(false); S.boomRepeat = 0; S.lastBoomRx = 0;
   S.mode = mode; S.running = true; S.score = 0; S.hits = 0; S.left = 60; S.boom = 0; S.cracks = [];
   S.gx = START[0]; S.gy = START[1]; S.face = 0; S.x = START[0] + 1.5; S.y = START[1] + 1.5; S.ang = FACE_ANG[0]; S.fade = 1;
   S.pearls = []; for (let i = 0; i < 3; i++) placePearl();
@@ -417,7 +448,7 @@ function update(dt, now) {
   }
   if (S.bump > 0 && !S.pendingBump) S.bump = Math.max(0, S.bump - dt * 3);
   S.shake *= Math.exp(-dt * 4); S.flash = Math.max(0, S.flash - dt * 2.2); S.fade = Math.max(0, S.fade - dt * 1.5);
-  if (S.boom && now - S.boom > 1600) finishBoom();
+  if (S.boom && now - S.boom > 1600 && now - (S.lastBoomRx || 0) > 1800) finishBoom();
   for (const f of S.fish) {
     f.a += Math.sin(now / 900 + f.sp * 10) * dt * 0.8;
     f.x += Math.cos(f.a) * f.sp * dt; f.y += Math.sin(f.a) * f.sp * dt;
@@ -439,15 +470,17 @@ function init() {
   setStatus("off");
   $("connectBtn").onclick = () => (device && device.gatt.connected ? device.gatt.disconnect() : connect());
   $("soundBtn").onclick = () => { S.sound = !S.sound; $("soundBtn").textContent = S.sound ? "音效 開" : "音效 關"; };
-  $("menuBtn").onclick = openMenu; $("backBtn").onclick = openMenu; $("againBtn").onclick = () => start(S.mode);
+  $("menuBtn").onclick = openMenu; $("backBtn").onclick = openMenu; $("againBtn").onclick = () => start(S.mode, S.demo);
   $("modeFree").onclick = () => start("free"); $("modeTime").onclick = () => start("time");
+  $("modeDemo").onclick = () => start("free", true);
+  updateModes();
   document.querySelectorAll(".pad button").forEach((b) => b.addEventListener("pointerdown", (e) => { e.preventDefault(); command(b.dataset.c); }));
   const KEY = { ArrowUp: "f", ArrowDown: "b", ArrowLeft: "l", ArrowRight: "r", w: "f", s: "b", a: "l", d: "r" };
   addEventListener("keydown", (e) => {
     const c = KEY[e.key] || KEY[e.key.toLowerCase && e.key.toLowerCase()];
     if (c) { e.preventDefault(); if (!e.repeat) command(c); }
     if (e.key === "Escape") openMenu();
-    if ((e.key === "x" || e.key === "X") && !rxChar && $("menu").hidden && !S.boom) explode();
+    if ((e.key === "x" || e.key === "X") && S.demo && $("menu").hidden && !S.boom) explode();
   });
   hud(); requestAnimationFrame(frame);
 }

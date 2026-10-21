@@ -4,6 +4,10 @@
   const ua = navigator.userAgent;
   const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   const isBluefy = /Bluefy/i.test(ua);
+  // 三星網際網路：安裝的 App 會被 Play 安全防護擋下，而且不支援藍牙連 micro:bit，改請學生用 Chrome
+  const isSamsung = /SamsungBrowser/i.test(ua);
+  const isAndroid = /Android/i.test(ua);
+  const CHROME_URL = "intent://" + location.host + location.pathname + location.search + "#Intent;scheme=https;package=com.android.chrome;end";
   let deferred = null;
 
   const css = `
@@ -17,6 +21,7 @@
   .kd-install-card h3 img{width:40px;height:40px;border:2px solid var(--kd-ink,#2B1D14)}
   .kd-install-card ol{margin:8px 0 12px;padding-left:22px;font-size:16px;line-height:1.9}
   .kd-install-card .note{font-size:13px;line-height:1.7;background:var(--kd-cream,#FFE9C7);border:2px solid var(--kd-ink,#2B1D14);padding:8px 10px;margin-bottom:12px}
+  .kd-install-card .kd-chrome{display:inline-block;margin-right:10px;border:2px solid var(--kd-ink,#2B1D14);background:var(--kd-mustard,#F5C547);color:var(--kd-ink,#2B1D14);font:900 15px/1 var(--kd-font,sans-serif);padding:10px 16px;box-shadow:3px 3px 0 var(--kd-ink,#2B1D14);text-decoration:none}
   .kd-install-card .share{display:inline-block;width:20px;height:20px;vertical-align:-4px}
   .kd-install-card button{cursor:pointer;border:2px solid var(--kd-ink,#2B1D14);background:var(--kd-orange,#C4521A);color:#fff;font:900 15px/1 var(--kd-font,sans-serif);padding:10px 16px;box-shadow:3px 3px 0 var(--kd-ink,#2B1D14)}`;
   const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
@@ -24,7 +29,11 @@
   const SHARE = '<svg class="share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 12v8h14v-8"/></svg>';
   function guide() {
     let title = "加到主畫面", steps, note = "";
-    if (isIOS && isBluefy) {
+    if (isSamsung) {
+      title = "請改用 Chrome";
+      steps = ["按下面的<b>用 Chrome 打開</b>", "在 Chrome 再按一次「<b>加到主畫面</b>」", "按<b>安裝</b>，主畫面就會出現酷丁狐"];
+      note = "三星瀏覽器（Samsung Internet）安裝的 App 會被 Google Play 安全防護擋下，而且它<b>不能用藍牙連 micro:bit</b>。上課請一律用 <b>Chrome</b>。<br>只想要捷徑的話：三星瀏覽器右下角 <b>≡</b> → 新增頁面至 → 主畫面。";
+    } else if (isIOS && isBluefy) {
       steps = ["點 Bluefy 下方的 <b>⋯</b> 或分享按鈕", "選「<b>加入主畫面</b>」或「加入書籤」", "名稱用「酷丁狐實驗室」，按<b>新增</b>"];
       note = "iPad、iPhone 只有 Bluefy 能連 micro:bit。如果 Bluefy 沒有「加入主畫面」，就把這一頁加入書籤，每次打開 Bluefy 點書籤就好。";
     } else if (isIOS) {
@@ -34,12 +43,13 @@
       steps = ["點 Chrome 右上角的 <b>⋮</b>", "選「<b>加到主畫面</b>」或「<b>安裝應用程式</b>」", "按<b>安裝</b>，主畫面就會出現酷丁狐"];
     }
     const ov = document.createElement("div"); ov.className = "kd-install-ov";
-    ov.innerHTML = `<div class="kd-install-card" role="dialog" aria-modal="true"><h3><img src="icon-192.png" alt="">${title}</h3><ol>${steps.map((s) => `<li>${s}</li>`).join("")}</ol>${note ? `<div class="note">${note}</div>` : ""}<button type="button">知道了</button></div>`;
+    const chromeBtn = isSamsung ? `<a class="kd-chrome" href="${CHROME_URL}">用 Chrome 打開</a>` : "";
+    ov.innerHTML = `<div class="kd-install-card" role="dialog" aria-modal="true"><h3><img src="icon-192.png" alt="">${title}</h3><ol>${steps.map((s) => `<li>${s}</li>`).join("")}</ol>${note ? `<div class="note">${note}</div>` : ""}${chromeBtn}<button type="button">知道了</button></div>`;
     ov.addEventListener("click", (e) => { if (e.target === ov || e.target.tagName === "BUTTON") ov.remove(); });
     document.body.appendChild(ov);
   }
   async function install() {
-    if (deferred) {
+    if (deferred && !isSamsung) {
       deferred.prompt();
       const r = await deferred.userChoice.catch(() => null);
       deferred = null;
@@ -51,7 +61,15 @@
   function hideAll() { document.querySelectorAll("[data-kd-install]").forEach((b) => (b.hidden = true)); }
   addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); deferred = e; });
   addEventListener("appinstalled", hideAll);
+  function samsungBanner() {
+    if (!isSamsung || document.getElementById("kdSamsung")) return;
+    const b = document.createElement("div"); b.id = "kdSamsung";
+    b.style.cssText = "position:sticky;top:0;z-index:9998;background:#C4521A;color:#fff;padding:10px 14px;font:700 14px/1.6 var(--kd-font,sans-serif);display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-bottom:3px solid #2B1D14";
+    b.innerHTML = `<span style="flex:1;min-width:200px">你正在用三星瀏覽器：它不能用藍牙連 micro:bit，請改用 Chrome。</span><a href="${CHROME_URL}" style="background:#F5C547;color:#2B1D14;border:2px solid #2B1D14;padding:6px 12px;font-weight:900;text-decoration:none">用 Chrome 打開</a>`;
+    document.body.prepend(b);
+  }
   function wire() {
+    samsungBanner();
     document.querySelectorAll("[data-kd-install]").forEach((b) => {
       if (standalone) { b.hidden = true; return; }
       b.addEventListener("click", (e) => { e.preventDefault(); install(); });

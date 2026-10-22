@@ -25,7 +25,7 @@
     .dot.on { background: var(--ok); box-shadow: 0 0 0 3px rgba(62,230,154,.22); }
     .dot.wait { background: var(--amber); animation: blink 1s infinite; }
     @keyframes blink { 50% { opacity: .3; } }
-    .hud { position: fixed; top: 0; left: 0; right: 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 14px 18px; pointer-events: none; }
+    .hud { position: fixed; top: 0; left: 0; right: 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 14px 18px; pointer-events: none; z-index: 25; }
     .hud > * { pointer-events: auto; }
     .chip { display: flex; align-items: center; gap: 10px; background: var(--glass); border: 1px solid var(--line); border-radius: 14px; padding: 8px 14px; backdrop-filter: blur(6px); }
     .chip b { font-size: 16px; letter-spacing: 1px; }
@@ -110,21 +110,27 @@
       <button class="btn ghost" id="menuBtn">選單</button>
     </div>
   </div>
-  <div class="keys" id="link" style="position:fixed;right:18px;bottom:18px;font:700 12px var(--kd-mono);color:#8fb0c9">方向鍵試玩</div>
+  <div class="pad" id="pad">
+    <button class="u" data-c="f">▲<small>f</small></button>
+    <button class="l" data-c="l">◀<small>l</small></button>
+    <button class="d" data-c="b">▼<small>b</small></button>
+    <button class="r" data-c="r">▶<small>r</small></button>
+  </div>
+  <div class="keys" id="link" style="position:fixed;right:22px;bottom:138px;font:700 12px var(--kd-mono);color:#8fb0c9">方向鍵試玩</div>
   <div class="toast" id="toast"></div>
   <div class="log" id="log"></div>
 
   <div class="overlay" id="menu">
     <div class="card">
       <h1>聲納尋寶</h1>
-      <p class="sub">這片海底有 10×10 這麼大，只畫在電腦上；雷達只在 micro:bit 上：寶藏在 10 格以內，micro:bit 的 LED 長條會亮，越近越滿；micro:bit 把距離傳過來，網頁就會嗶嗶叫，越近越快。傾斜 micro:bit 開潛艇，小心慢慢游的鯊魚，黑暗中只看得到牠的紅眼睛。</p>
+      <p class="sub">這片海底有 10×10 這麼大，只畫在電腦上；雷達只在 micro:bit 上：寶藏在 10 格以內，micro:bit 的 LED 長條會亮，越近越滿；micro:bit 把距離傳過來，網頁就會嗶嗶叫，越近越快。按方向鍵（和第五堂一樣送 f、b、l、r）開潛艇，小心慢慢游的鯊魚，黑暗中只看得到牠的紅眼睛。</p>
       <div class="modes" style="grid-template-columns:1fr 1fr;display:grid">
         <button class="mode" id="modeFree"><span class="tag">第七堂</span><b>自由尋寶</b><p>沒有時間限制，海裡有 3 隻鯊魚。被咬 3 次遊戲結束。</p></button>
         <button class="mode" id="modeTime"><span class="tag">第七堂</span><b>限時挑戰 90 秒</b><p>90 秒內找最多寶藏，海裡有 4 隻鯊魚。</p></button>
       </div>
       <div class="proto">
-        <div><b>micro:bit 送出</b><br><code>x:數字</code>　<code>y:數字</code>　潛艇座標（0～9）<br><code>d:數字</code>　離寶藏幾步（網頁照它嗶嗶叫）<br><code>found#</code>　找到寶藏</div>
-        <div><b>沒有 micro:bit？</b><br>方向鍵可以先試試開潛艇和躲鯊魚；雷達只在 micro:bit 上，所以要接上 micro:bit 才找得到寶藏。<br>連上 micro:bit 後，潛艇改成跟著 micro:bit 動。</div>
+        <div><b>網頁送出</b>　<code>f#</code>　<code>b#</code>　<code>l#</code>　<code>r#</code>（按方向鍵）<br><b>micro:bit 送回</b><br><code>x:數字</code>　<code>y:數字</code>　潛艇座標（0～9）<br><code>d:數字</code>　離寶藏幾步（網頁照它嗶嗶叫）<br><code>found#</code>　找到寶藏</div>
+        <div><b>沒有 micro:bit？</b><br>方向鍵可以先試試開潛艇和躲鯊魚；雷達只在 micro:bit 上，所以要接上 micro:bit 才找得到寶藏。<br>連上 micro:bit 後，按方向鍵送指令給 micro:bit，潛艇照 micro:bit 傳回來的座標走。</div>
       </div>
     </div>
   </div>

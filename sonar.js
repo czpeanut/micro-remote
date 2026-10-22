@@ -2,6 +2,7 @@
 /*
  * 聲納尋寶 — 主題1 第七堂「聲納雷達」的連動遊戲（俯視角）
  *  micro:bit → 電腦：x:數字、y:數字、d:數字（藍牙串口 寫入值），找到寶藏時 found#
+ *  嗶嗶聲由網頁照 d 發出（micro:bit 連著藍牙時播聲音會當機 070）
  *  電腦只負責「看」：潛艇跟著 micro:bit 的座標移動，雷達照 d 叫，海裡還有慢慢游的鯊魚
  *  沒有 micro:bit 時：方向鍵開潛艇，電腦自己藏寶藏
  */
@@ -160,6 +161,7 @@ function receive(chunk) {
       const k = m[1].toLowerCase(), v = Math.round(parseFloat(m[2]));
       if (k === "x") moveTo(clamp(v, 0, N - 1), S.gy);
       else if (k === "y") moveTo(S.gx, clamp(v, 0, N - 1));
+      else if (k === "d") { S.d = Math.max(0, v); S.dAt = performance.now(); }
     } else if (msg.toLowerCase() === "found") { log("收到 found#", "r"); found(); }
     else log(`收到 ${msg}#`, "r");
   }
@@ -186,6 +188,7 @@ const sfx = {
   move() { noise(0.25, 0.08, 300); },
   bump() { tone(110, 45, 0.35, "sawtooth", 0.14); noise(0.2, 0.2, 500); },
   found() { [523, 659, 784, 1046, 1318].forEach((f, i) => tone(f, f * 1.01, 0.28, "triangle", 0.16, i * 0.09)); },
+  beep() { tone(1319, 1319, 0.07, "square", 0.07); },
   bite() { noise(0.5, 0.5, 600); tone(160, 60, 0.4, "sawtooth", 0.2); },
   end() { [784, 659, 523].forEach((f, i) => tone(f, f, 0.35, "triangle", 0.14, i * 0.16)); },
 };
@@ -238,7 +241,7 @@ function finish(title) {
   if (!S.running) return;
   S.running = false; clearInterval(S.timer); sfx.end();
   $("endTitle").textContent = title; $("endScore").textContent = `${S.score} 個寶藏`;
-  $("endText").textContent = S.lives > 0 ? `還剩 ${S.lives} 顆心。micro:bit 嗶得越快、長條越滿，寶藏就越近。` : "鯊魚游得很慢，看到附近有紅眼睛就先繞開。";
+  $("endText").textContent = S.lives > 0 ? `還剩 ${S.lives} 顆心。嗶嗶聲越快、micro:bit 的長條越滿，寶藏就越近。` : "鯊魚游得很慢，看到附近有紅眼睛就先繞開。";
   $("endOv").hidden = false;
 }
 function openMenu() { S.running = false; clearInterval(S.timer); $("endOv").hidden = true; $("menu").hidden = false; }
@@ -446,6 +449,10 @@ function render(now) {
 /* ---------------- 主迴圈 ---------------- */
 let last = performance.now();
 function update(dt, now) {
+  // 雷達嗶嗶聲：照 micro:bit 傳來的距離 d，越近越快，10 格以外不叫
+  if (S.running && live() && S.d != null && S.d < RANGE && now - (S.dAt || 0) < 2000 && now >= S.nextBeep) {
+    sfx.beep(); S.nextBeep = now + beepGap(S.d) * 1000;
+  }
   const tx = S.gx + 1.5, ty = S.gy + 1.5, ta = FACE_ANG[S.face];
   let da = ta - S.ang; while (da > Math.PI) da -= 2 * Math.PI; while (da < -Math.PI) da += 2 * Math.PI;
   S.ang += da * (1 - Math.exp(-dt * 9));

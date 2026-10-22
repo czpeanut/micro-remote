@@ -1,9 +1,10 @@
 "use strict";
 /*
  * 聲納尋寶 — 主題1 第七堂「聲納雷達」的連動遊戲（俯視角）
+ *  電腦 → micro:bit：f#　b#　l#　r#（按方向鍵，和第五堂相同）
  *  micro:bit → 電腦：x:數字、y:數字、d:數字（藍牙串口 寫入值），找到寶藏時 found#
  *  嗶嗶聲由網頁照 d 發出（micro:bit 連著藍牙時播聲音會當機 070）
- *  電腦只負責「看」：潛艇跟著 micro:bit 的座標移動，雷達照 d 叫，海裡還有慢慢游的鯊魚
+ *  潛艇位置以 micro:bit 為準：網頁送指令，micro:bit 移動後傳回 x、y，網頁才跟著動
  *  沒有 micro:bit 時：方向鍵開潛艇，電腦自己藏寶藏
  */
 const NUS = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
@@ -103,7 +104,7 @@ const S = {
   bump: 0, bumpDir: [0, 0], shake: 0, flash: 0, bite: 0, fade: 0,
   d: null, lastRx: 0, sim: { x: 0, y: 0 }, nextBeep: 0, rings: [], chests: [], sharks: [], fish: [],
 };
-const live = () => S.lastRx > 0 && performance.now() - S.lastRx < 3000;
+const live = () => !!rxChar; // 連上 micro:bit：按方向鍵送 f/b/l/r，位置照 micro:bit 傳回來的 x、y
 let MAP = [];
 function buildMap() {
   MAP = [];
@@ -135,10 +136,11 @@ async function connect() {
     device = await navigator.bluetooth.requestDevice({ filters: [{ services: [NUS] }, { namePrefix: "BBC micro:bit" }], optionalServices: [NUS] });
     device.addEventListener("gattserverdisconnected", () => { rxChar = null; setStatus("off"); log("已中斷連接", "e"); });
     const svc = await nusService(device);
+    S.d = null; S.dAt = 0;
     const ch = await nusChars(svc); rxChar = ch.rx; const tx = ch.tx; await tx.startNotifications();
     tx.addEventListener("characteristicvaluechanged", (e) => receive(new TextDecoder().decode(e.target.value)));
     setStatus("on", device.name); log(`已連接 ${device.name || "micro:bit"}`);
-    toast("連接成功！傾斜 micro:bit 開潛艇");
+    toast("連接成功！按方向鍵開潛艇");
   } catch (err) { if (!err || err.name !== "NotFoundError") log(`連接失敗：${(err && err.message) || err}`, "e"); setStatus("off"); }
 }
 function send(word) {
@@ -204,12 +206,18 @@ function moveTo(nx, ny) {
 function keyMove(dx, dy) {
   audio();
   if (!$("menu").hidden || !$("endOv").hidden || !S.running) return;
-  if (live()) { toast("micro:bit 已連線：傾斜 micro:bit 開潛艇"); return; }
   const nx = clamp(S.gx + dx, 0, N - 1), ny = clamp(S.gy + dy, 0, N - 1);
-  if (nx === S.gx && ny === S.gy) { S.face = dx > 0 ? 1 : dx < 0 ? 3 : dy > 0 ? 2 : 0; S.bump = 1; S.bumpDir = [dx, dy]; S.pendingBump = true; return; }
+  if (nx === S.gx && ny === S.gy) { S.face = dx > 0 ? 1 : dx < 0 ? 3 : dy > 0 ? 2 : 0; S.bump = 1; S.bumpDir = [dx, dy]; S.pendingBump = true; if (!live()) return; }
+  // 連上 micro:bit：送出 f/b/l/r，由 micro:bit 移動、算距離，再把 x、y、d 傳回來
+  if (live()) { send(dy < 0 ? "f" : dy > 0 ? "b" : dx < 0 ? "l" : "r"); padHit(dx, dy); return; }
+  padHit(dx, dy);
   moveTo(nx, ny);
   S.d = Math.abs(S.gx - S.sim.x) + Math.abs(S.gy - S.sim.y);
   if (S.d === 0) { found(); hideSim(); S.d = Math.abs(S.gx - S.sim.x) + Math.abs(S.gy - S.sim.y); }
+}
+function padHit(dx, dy) {
+  const c = dy < 0 ? "f" : dy > 0 ? "b" : dx < 0 ? "l" : "r", b = document.querySelector(`.pad [data-c="${c}"]`);
+  if (b) { b.classList.add("hit"); setTimeout(() => b.classList.remove("hit"), 140); }
 }
 function found() {
   if (!S.running) return;
@@ -228,14 +236,15 @@ function bite(k) {
 function start(mode) {
   audio();
   S.mode = mode; S.running = true; S.score = 0; S.lives = 3; S.safeUntil = 0; S.left = 90; S.chests = []; S.rings = [];
-  S.gx = START[0]; S.gy = START[1]; S.face = 0; S.x = START[0] + 1.5; S.y = START[1] + 1.5; S.ang = FACE_ANG[0]; S.fade = 1;
+  if (!live()) { S.gx = START[0]; S.gy = START[1]; } // 連著 micro:bit 時，位置以 micro:bit 為準，不重設
+  S.face = 0; S.x = S.gx + 1.5; S.y = S.gy + 1.5; S.ang = FACE_ANG[0]; S.fade = 1;
   hideSim(); if (!live()) S.d = Math.abs(S.gx - S.sim.x) + Math.abs(S.gy - S.sim.y);
   spawnSharks(mode === "time" ? 4 : 3);
   S.fish = []; for (let i = 0; i < 6; i++) S.fish.push({ x: rnd(LO, HI), y: rnd(LO, HI), a: rnd(0, 6.28), sp: rnd(0.3, 0.6) });
   $("menu").hidden = true; $("endOv").hidden = true; $("timeBox").hidden = mode !== "time";
   clearInterval(S.timer);
   if (mode === "time") S.timer = setInterval(() => { if (!S.running) return; S.left--; hud(); if (S.left <= 0) finish("時間到！"); }, 1000);
-  hud(); toast(live() ? "傾斜 micro:bit，看 micro:bit 的雷達找寶藏！" : "方向鍵試玩：沒有雷達，只能碰運氣");
+  hud(); toast(live() ? "按方向鍵開潛艇，看 micro:bit 的雷達、聽嗶嗶聲找寶藏！" : "方向鍵試玩：沒有雷達，只能碰運氣");
 }
 function finish(title) {
   if (!S.running) return;
@@ -450,7 +459,7 @@ function render(now) {
 let last = performance.now();
 function update(dt, now) {
   // 雷達嗶嗶聲：照 micro:bit 傳來的距離 d，越近越快，10 格以外不叫
-  if (S.running && live() && S.d != null && S.d < RANGE && now - (S.dAt || 0) < 2000 && now >= S.nextBeep) {
+  if (S.running && live() && S.dAt && S.d != null && S.d < RANGE && now >= S.nextBeep) {
     sfx.beep(); S.nextBeep = now + beepGap(S.d) * 1000;
   }
   const tx = S.gx + 1.5, ty = S.gy + 1.5, ta = FACE_ANG[S.face];
@@ -484,7 +493,7 @@ function update(dt, now) {
   while (bubbles.length && bubbles[0].life <= 0) bubbles.shift();
   for (const d of debris) { d.x += d.vx * dt; d.y += d.vy * dt; d.vx *= 0.96; d.vy *= 0.96; d.life -= dt * 1.1; }
   for (let i = debris.length - 1; i >= 0; i--) if (debris[i].life <= 0) debris.splice(i, 1);
-  if (now - (update.lastHud || 0) > 250) { update.lastHud = now; hud(); $("link").textContent = live() ? "micro:bit 傳送中" : rxChar ? "等待 micro:bit 資料…" : "方向鍵試玩"; }
+  if (now - (update.lastHud || 0) > 250) { update.lastHud = now; hud(); $("link").textContent = live() ? "已連上 micro:bit" : "方向鍵試玩"; }
 }
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
@@ -498,6 +507,8 @@ function init() {
   $("soundBtn").onclick = () => { S.sound = !S.sound; $("soundBtn").textContent = S.sound ? "音效 開" : "音效 關"; };
   $("menuBtn").onclick = openMenu; $("backBtn").onclick = openMenu; $("againBtn").onclick = () => start(S.mode);
   $("modeFree").onclick = () => start("free"); $("modeTime").onclick = () => start("time");
+  const PADMOVE = { f: [0, -1], b: [0, 1], l: [-1, 0], r: [1, 0] };
+  document.querySelectorAll(".pad [data-c]").forEach((b) => b.addEventListener("pointerdown", (e) => { e.preventDefault(); const m = PADMOVE[b.dataset.c]; keyMove(m[0], m[1]); }));
   addEventListener("keydown", (e) => {
     const m = KEYMOVE[e.key] || KEYMOVE[e.key.toLowerCase && e.key.toLowerCase()];
     if (m) { e.preventDefault(); if (!e.repeat) keyMove(m[0], m[1]); }

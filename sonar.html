@@ -123,13 +123,13 @@
   <div class="overlay" id="menu">
     <div class="card">
       <h1>聲納尋寶</h1>
-      <p class="sub">這片海底有 10×10 這麼大，只畫在電腦上；雷達只在 micro:bit 上：寶藏在 10 格以內，micro:bit 的 LED 長條會亮、喇叭會嗶嗶叫，越近越滿、越快。按方向鍵（和第五堂一樣送 f、b、l、r）開潛艇，小心慢慢游的鯊魚，黑暗中只看得到牠的紅眼睛。</p>
+      <p class="sub">這片海底有 10×10 這麼大，只畫在電腦上；雷達只在 micro:bit 上：寶藏在 10 格以內，micro:bit 的 LED 長條會閃，越近越滿、閃得越快；micro:bit 把距離傳過來，電腦就會嗶嗶叫，越近越快。按方向鍵（和第五堂一樣送 f、b、l、r）開潛艇，小心慢慢游的鯊魚，黑暗中只看得到牠的紅眼睛。</p>
       <div class="modes" style="grid-template-columns:1fr 1fr;display:grid">
         <button class="mode" id="modeFree"><span class="tag">第七堂</span><b>自由尋寶</b><p>沒有時間限制，海裡有 3 隻鯊魚。被咬 3 次遊戲結束。</p></button>
         <button class="mode" id="modeTime"><span class="tag">第七堂</span><b>限時挑戰 90 秒</b><p>90 秒內找最多寶藏，海裡有 4 隻鯊魚。</p></button>
       </div>
       <div class="proto">
-        <div><b>網頁送出</b>　<code>f#</code>　<code>b#</code>　<code>l#</code>　<code>r#</code>（按方向鍵）<br><b>micro:bit 送回</b><br><code>x:數字</code>　<code>y:數字</code>　潛艇座標（0～9）<br><code>found#</code>　找到寶藏</div>
+        <div><b>網頁送出</b>　<code>f#</code>　<code>b#</code>　<code>l#</code>　<code>r#</code>（按方向鍵）<br><b>micro:bit 送回</b><br><code>x:數字</code>　<code>y:數字</code>　潛艇座標（0～9）<br><code>d:數字</code>　離寶藏幾步（電腦照它嗶嗶叫）<br><code>found#</code>　找到寶藏</div>
         <div><b>沒有 micro:bit？</b><br>方向鍵可以先試試開潛艇和躲鯊魚；雷達只在 micro:bit 上，所以要接上 micro:bit 才找得到寶藏。<br>連上 micro:bit 後，按方向鍵送指令給 micro:bit，潛艇照 micro:bit 傳回來的座標走。</div>
       </div>
     </div>

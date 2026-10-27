@@ -12,7 +12,6 @@ const cv = $("view"), g = cv.getContext("2d");
 let W = 0, H = 0;
 function resize() { const d = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight; cv.width = W * d; cv.height = H * d; g.setTransform(d, 0, 0, d, 0, 0); }
 addEventListener("resize", resize); resize();
-const fox = new Image(); fox.src = "assets/fox-head.webp";
 
 /* ---------- 樂譜 ---------- */
 const mf = (m) => 440 * Math.pow(2, (m - 69) / 12);
@@ -40,7 +39,7 @@ EV.sort((a, b) => a.beat - b.beat);
 
 /* ---------- 狀態 ---------- */
 const S = { mode: null, running: false, pos: 0, rate: 0, bpm: 0, beats: [], lastBeat: 0, tilt: 0, next: 0, bar: -1, good: 0, total: 0,
-  extBpm: 0, extT: 0, swing: 0, flash: { str: 0, wood: 0, brass: 0, drum: 0 }, notes: [], t: 0, waiting: true , vol: { str: 1, wood: 1, brass: 1, drum: 1 }, labTarget: 0, light: "warm", fw: [], side: "mid" };
+  extBpm: 0, extT: 0, swing: 0, flash: { str: 0, wood: 0, brass: 0, drum: 0 }, notes: [], t: 0, waiting: true , vol: { str: 1, wood: 1, brass: 1, drum: 1 }, labTarget: 0, light: "warm", fw: [], side: "mid" , scene: "hall" };
 const SECT = { str: { name: "弦樂", col: "#e9a34a", side: -1 }, wood: { name: "木管", col: "#7cc46a", side: -1 }, brass: { name: "銅管", col: "#f2d04b", side: 1 }, drum: { name: "打擊", col: "#e0605a", side: 1 } };
 function gainOf(sec) { const s = (SECT[sec] || SECT.str).side; return clamp(1 + s * S.tilt * 0.9, 0.15, 1.9) * (S.vol[sec] ?? 1); }
 const labFire = (ev, arg) => (S.mode === "lab" && typeof LAB !== "undefined" ? LAB.fire(ev, arg) : 0);
@@ -105,6 +104,7 @@ function play(ev, when, dur) {
 
 /* ---------- 流程 ---------- */
 function start(mode) {
+  const sc = document.querySelector("input[name=scene]:checked"); if (sc && mode !== "lab") S.scene = sc.value;
   Object.assign(S, { mode, running: true, pos: 0, rate: 0, bpm: 0, beats: [], lastBeat: 0, next: 0, bar: -1, good: 0, total: 0, waiting: true, notes: [] });
   $("menu").hidden = true; $("endOv").hidden = true; $("tgtBox").hidden = $("accBox").hidden = mode !== "challenge";
   hud(); out(); toast("舉起指揮棒，往下揮一下開始！");
@@ -138,45 +138,79 @@ function update(dt) {
     if (ev.beat < S.pos - 0.25) continue;
     const when = (a ? a.currentTime : 0) + Math.max(0, (ev.beat - S.pos) / bps);
     play(ev, when, ev.len / bps);
-    const key = ev.sec === "bass" ? "str" : ev.sec; setTimeout(() => { S.flash[key] = 1; if (ev.sec !== "bass" && Math.random() < 0.5) S.notes.push({ sec: key, x: 0, y: 0, vx: rnd(-20, 20), life: 1.4 }); }, Math.max(0, (ev.beat - S.pos) / bps * 1000));
+    const key = ev.sec === "bass" ? "str" : ev.sec; setTimeout(() => { S.flash[key] = 1; if (ev.sec !== "bass" && Math.random() < 0.5) S.notes.push({ sec: key, x: rnd(-60, 60), y: 0, vx: rnd(-20, 20), life: 1.4 }); }, Math.max(0, (ev.beat - S.pos) / bps * 1000));
   }
   const bar = Math.floor(S.pos / 4);
   if (bar !== S.bar && bar < BARS) { S.bar = bar; if (S.mode !== "lab") MB.send("bar"); hud(); labFire("everybar"); labFire("bar", bar + 1); if (S.mode === "challenge") { const t = TARGETS.find((x) => x[0] === bar); if (t) toast(`${t[2]}：大約每分鐘 ${t[1]} 拍`); } }
   if (S.pos >= BEATS + 1) { if (S.mode === "lab") labSongEnd(); else finish(); }
 }
 
-/* ---------- 畫面 ---------- */
-function secPos(key) { const order = { str: 0, wood: 1, brass: 2, drum: 3 }[key]; const ang = Math.PI * (1.12 + order * 0.25); return { x: W / 2 + Math.cos(ang) * W * 0.36, y: H * 0.78 + Math.sin(ang) * H * 0.48 }; }
+/* ---------- 畫面：指揮台背後視角（音樂廳／練習室） ---------- */
+const IMG = {};
+for (const k of ["hall", "room", "str", "wood", "brass", "drum", "fox-up", "fox-down"]) { IMG[k] = new Image(); IMG[k].src = `assets/maestro-${k}.webp`; }
+const ok = (im) => im && im.complete && im.naturalWidth;
+// 各聲部在背景圖上的位置（比例，以腳底中心為準）和寬度
+const LAYOUT = {
+  hall: { wood: [0.34, 0.60, 0.25], brass: [0.66, 0.60, 0.25], str: [0.23, 0.79, 0.33], drum: [0.77, 0.79, 0.30] },
+  room: { wood: [0.35, 0.58, 0.24], brass: [0.66, 0.58, 0.24], str: [0.24, 0.78, 0.32], drum: [0.77, 0.78, 0.29] },
+};
+let BG = { x: 0, y: 0, w: 1, h: 1 };
+function bgRect(im) { const iw = im.naturalWidth || 1376, ih = im.naturalHeight || 768, s = Math.max(W / iw, H / ih); BG = { w: iw * s, h: ih * s, x: (W - iw * s) / 2, y: (H - ih * s) * 0.35 }; return BG; }
+function secPos(key) { const L = LAYOUT[S.scene] || LAYOUT.hall, [fx, fy, fw] = L[key]; return { x: BG.x + fx * BG.w, y: BG.y + fy * BG.h, w: fw * BG.w }; }
+function drawSection(key) {
+  const im = IMG[key], p = secPos(key), f = S.flash[key], gm = gainOf(key), v = S.vol[key] ?? 1;
+  if (!ok(im)) return;
+  const w = p.w, h = w * im.naturalHeight / im.naturalWidth;
+  // 聚光燈：聲部越大聲越亮
+  g.save(); g.globalCompositeOperation = "lighter";
+  const gr = g.createRadialGradient(p.x, p.y - h * 0.5, 10, p.x, p.y - h * 0.5, w * 0.62);
+  gr.addColorStop(0, `rgba(255,214,140,${(0.08 + f * 0.28) * Math.min(1.6, gm)})`); gr.addColorStop(1, "rgba(255,214,140,0)");
+  g.fillStyle = gr; g.fillRect(p.x - w, p.y - h * 1.6, w * 2, h * 2.2); g.restore();
+  // 演奏時上下跳一下
+  const bob = f * h * 0.035, sq = 1 - f * 0.03;
+  g.save(); if (v === 0) { g.filter = "grayscale(1) brightness(.6)"; g.globalAlpha = 0.75; }
+  g.translate(p.x, p.y); g.scale(1 + f * 0.012, sq); g.drawImage(im, -w / 2, -h - bob, w, h); g.restore(); g.filter = "none";
+  // 名牌和音量
+  const bars = v === 0 ? "靜音" : "▮".repeat(clamp(Math.round(gm * 3), 1, 6));
+  g.font = "900 15px Noto Sans TC, sans-serif"; g.textAlign = "center"; const label = `${SECT[key].name} ${bars}`, tw = g.measureText(label).width + 20;
+  const ly = key === "wood" || key === "brass" ? p.y - h - 30 : p.y + 4;
+  g.fillStyle = "rgba(43,29,20,.82)"; g.fillRect(p.x - tw / 2, ly, tw, 24); g.strokeStyle = SECT[key].col; g.lineWidth = 2; g.strokeRect(p.x - tw / 2, ly, tw, 24);
+  g.fillStyle = "#f3eee1"; g.fillText(label, p.x, ly + 17);
+}
+function drawFox() {
+  const down = S.swing > 0.55, im = IMG[down ? "fox-down" : "fox-up"]; if (!ok(im)) return;
+  const h = Math.min(H * 0.44, W * 0.38), w = h * im.naturalWidth / im.naturalHeight;
+  const cx = W / 2 + S.tilt * 10, by = H + h * 0.06 + S.swing * h * 0.025;
+  // 指揮台上的光
+  const gr = g.createRadialGradient(cx, by - h * 0.45, 20, cx, by - h * 0.45, h * 0.75); gr.addColorStop(0, "rgba(255,230,170,.22)"); gr.addColorStop(1, "rgba(255,230,170,0)");
+  g.fillStyle = gr; g.fillRect(cx - h, by - h * 1.3, h * 2, h * 1.4);
+  g.save(); g.translate(cx, by); g.rotate(S.tilt * 0.07); g.drawImage(im, -w / 2, -h, w, h); g.restore();
+  // 指揮棒揮過的軌跡
+  if (S.swing > 0.05) { g.strokeStyle = `rgba(255,255,255,${S.swing * 0.6})`; g.lineWidth = 3; g.beginPath(); const tx = cx + w * 0.3, ty = by - h * 0.92;
+    g.arc(tx - w * 0.05, ty + h * 0.12, h * 0.16, -1.9, -1.9 + S.swing * 1.6); g.stroke(); }
+}
 function draw() {
-  const bg = g.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, "#1a080b"); bg.addColorStop(1, "#4a1a1c"); g.fillStyle = bg; g.fillRect(0, 0, W, H);
-  if (S.mode === "lab" && S.light !== "warm") { g.fillStyle = { blue: "rgba(40,90,220,.35)", red: "rgba(220,40,60,.35)", green: "rgba(40,200,120,.3)", rainbow: `hsla(${(S.t * 90) % 360},80%,50%,.3)`, dark: "rgba(0,0,0,.55)" }[S.light] || "transparent"; g.fillRect(0, 0, W, H); }
-  // 布幕
-  g.fillStyle = "#7a1420"; for (let i = 0; i < 14; i++) { const x = (i / 13) * W; g.fillStyle = i % 2 ? "#6a1019" : "#851a26"; g.fillRect(x - W / 26, 0, W / 13, H * 0.12); }
-  // 舞台
-  g.fillStyle = "#6b4426"; g.beginPath(); g.ellipse(W / 2, H * 0.98, W * 0.62, H * 0.62, 0, Math.PI, 0); g.fill();
-  g.fillStyle = "#7d5230"; g.beginPath(); g.ellipse(W / 2, H * 0.98, W * 0.5, H * 0.48, 0, Math.PI, 0); g.fill();
-  for (const key of ["str", "wood", "brass", "drum"]) {
-    const p = secPos(key), sc = SECT[key], f = S.flash[key], gm = gainOf(key);
-    const gr = g.createRadialGradient(p.x, p.y, 10, p.x, p.y, 110 + gm * 30); gr.addColorStop(0, `rgba(255,220,150,${0.1 + f * 0.35 * gm})`); gr.addColorStop(1, "rgba(255,220,150,0)"); g.fillStyle = gr; g.beginPath(); g.arc(p.x, p.y, 140 + gm * 30, 0, 7); g.fill();
-    for (let i = 0; i < 5; i++) { const x = p.x + (i - 2) * 30, y = p.y + Math.abs(i - 2) * 8 - (f * 4 * (i % 2 ? 1 : -1));
-      g.fillStyle = "#2b1d14"; g.fillRect(x - 9, y, 18, 22); g.fillStyle = "#f0c9a0"; g.beginPath(); g.arc(x, y - 6, 9, 0, 7); g.fill();
-      g.fillStyle = sc.col; if (key === "str") { g.save(); g.translate(x + 8, y + 6); g.rotate(-0.5); g.fillRect(-3, -10, 6, 20); g.restore(); }
-      else if (key === "wood") g.fillRect(x + 6, y - 4, 4, 22); else if (key === "brass") { g.beginPath(); g.arc(x + 12, y + 2, 6, 0, 7); g.fill(); g.fillRect(x, y, 12, 4); }
-      else { g.beginPath(); g.ellipse(x, y + 18, 11, 5, 0, 0, 7); g.fill(); } }
-    g.fillStyle = "#f3eee1"; g.font = "900 16px Noto Sans TC, sans-serif"; g.textAlign = "center"; g.fillText(`${sc.name} ${"▮".repeat(Math.round(gm * 3))}`, p.x, p.y + 50);
-  }
-  for (const n of S.notes) { const p = secPos(n.sec); g.globalAlpha = clamp(n.life, 0, 1); g.fillStyle = SECT[n.sec].col; g.font = "900 26px serif"; g.fillText("♪", p.x + n.x, p.y - 30 + n.y); } g.globalAlpha = 1;
-  // 指揮（酷丁狐）
-  const cx = W / 2, cy = H * 0.86; g.fillStyle = "#2b1d14"; g.fillRect(cx - 50, cy + 20, 100, 30);
-  if (fox.complete && fox.naturalWidth) g.drawImage(fox, cx - 46, cy - 70, 92, 96);
-  const ang = 0.5 + S.tilt * 0.35 - (1 - S.swing) * 0.9 + S.swing * 0.5; g.save(); g.translate(cx + 62, cy - 4); g.fillStyle = "#f3eee1"; g.beginPath(); g.arc(0, 0, 7, 0, 7); g.fill(); g.rotate(ang); g.strokeStyle = "#fff"; g.lineWidth = 4; g.beginPath(); g.moveTo(0, 0); g.lineTo(0, -80); g.stroke(); g.restore();
+  const bgIm = IMG[S.scene === "room" ? "room" : "hall"];
+  g.fillStyle = "#1a0e08"; g.fillRect(0, 0, W, H);
+  if (ok(bgIm)) { const r = bgRect(bgIm); g.drawImage(bgIm, r.x, r.y, r.w, r.h); } else bgRect({ naturalWidth: 1376, naturalHeight: 768 });
+  // 沒在指揮時燈光暗一點
+  const idle = !S.running || S.waiting ? 0.28 : 0;
+  if (idle) { g.fillStyle = `rgba(10,5,0,${idle})`; g.fillRect(0, 0, W, H); }
+  if (S.mode === "lab" && S.light !== "warm") { g.fillStyle = { blue: "rgba(40,90,220,.3)", red: "rgba(220,40,60,.3)", green: "rgba(40,200,120,.26)", rainbow: `hsla(${(S.t * 90) % 360},80%,50%,.26)`, dark: "rgba(0,0,0,.55)" }[S.light] || "transparent"; g.fillRect(0, 0, W, H); }
+  for (const key of ["wood", "brass", "str", "drum"]) drawSection(key);
+  for (const n of S.notes) { const p = secPos(n.sec); g.globalAlpha = clamp(n.life, 0, 1); g.fillStyle = SECT[n.sec].col; g.strokeStyle = "#2b1d14"; g.lineWidth = 3; g.font = "900 30px serif"; g.textAlign = "center";
+    g.strokeText("♪", p.x + n.x, p.y - p.w * 0.45 + n.y); g.fillText("♪", p.x + n.x, p.y - p.w * 0.45 + n.y); } g.globalAlpha = 1;
+  drawFox();
+  for (const p of S.fw) { g.globalAlpha = clamp(p.life, 0, 1); g.fillStyle = p.col; g.fillRect(p.x - 2, p.y - 2, 4, 4); } g.globalAlpha = 1;
   // 速度錶
-  const mx = W - 130, my = H * 0.86, r = 80; g.lineWidth = 12; g.strokeStyle = "#ffffff22"; g.beginPath(); g.arc(mx, my, r, Math.PI, 0); g.stroke();
+  const mx = W - 120, my = H - 70, r = 74;
+  g.fillStyle = "rgba(43,29,20,.78)"; g.beginPath(); g.arc(mx, my, r + 18, Math.PI, 0); g.lineTo(mx + r + 18, my + 30); g.lineTo(mx - r - 18, my + 30); g.closePath(); g.fill();
+  g.lineWidth = 12; g.strokeStyle = "#ffffff22"; g.beginPath(); g.arc(mx, my, r, Math.PI, 0); g.stroke();
   if (S.mode === "challenge" || (S.mode === "lab" && S.labTarget)) { const [, tg] = target(); const a1 = Math.PI + clamp((tg * 0.85 - 40) / 200, 0, 1) * Math.PI, a2 = Math.PI + clamp((tg * 1.15 - 40) / 200, 0, 1) * Math.PI; g.strokeStyle = "#3ee69a"; g.beginPath(); g.arc(mx, my, r, a1, a2); g.stroke(); }
   const na = Math.PI + clamp(((S.bpm || 40) - 40) / 200, 0, 1) * Math.PI; g.strokeStyle = "#ffc94a"; g.lineWidth = 4; g.beginPath(); g.moveTo(mx, my); g.lineTo(mx + Math.cos(na) * r, my + Math.sin(na) * r); g.stroke();
-  g.fillStyle = "#f3eee1"; g.font = "700 12px Space Mono, monospace"; g.textAlign = "center"; g.fillText("40", mx - r, my + 18); g.fillText("240", mx + r, my + 18); g.fillText("BPM", mx, my + 18);
-  for (const p of S.fw) { g.globalAlpha = clamp(p.life, 0, 1); g.fillStyle = p.col; g.fillRect(p.x - 2, p.y - 2, 4, 4); } g.globalAlpha = 1;
-  if (S.running && S.waiting) { g.fillStyle = "#ffc94a"; g.font = "900 30px Noto Sans TC, sans-serif"; g.fillText(S.pos < 0.5 ? "往下揮一下，開始演奏！" : "樂團在等你…", W / 2, H * 0.22); }
+  g.fillStyle = "#f3eee1"; g.font = "700 12px Space Mono, monospace"; g.textAlign = "center"; g.fillText("40", mx - r, my + 20); g.fillText("240", mx + r, my + 20); g.fillText("BPM", mx, my + 20);
+  if (S.running && S.waiting) { g.font = "900 30px Noto Sans TC, sans-serif"; g.lineWidth = 6; g.strokeStyle = "#2b1d14"; g.fillStyle = "#ffc94a"; const t = S.pos < 0.5 ? "往下揮一下，開始演奏！" : "樂團在等你…";
+    g.strokeText(t, W / 2, H * 0.2); g.fillText(t, W / 2, H * 0.2); }
 }
 let last = performance.now();
 function loop(now) { const dt = Math.min(0.05, (now - last) / 1000); last = now; update(dt); draw(); requestAnimationFrame(loop); }

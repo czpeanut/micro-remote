@@ -27,6 +27,7 @@ const LAB = RuleLab.create({
     act("ms_light", "舞台燈光 %1", [dd("L", [["溫暖", "warm"], ["藍色", "blue"], ["紅色", "red"], ["綠色", "green"], ["彩虹", "rainbow"], ["關燈", "dark"]])], CM),
     act("ms_fw", "放煙火 %1 顆", [vin("N", "Number")], CM),
     act("ms_clap", "觀眾鼓掌", [], CM),
+    act("ms_scene", "場景 %1", [dd("SC", [["音樂廳", "hall"], ["練習室", "room"]])], CM),
     act("ms_restart", "從頭再演奏一次", [], CM, "放在「當樂曲結束」裡面可以一直演奏下去"),
     val("ms_bpm", "目前速度（BPM）", [], CM),
     val("ms_diff", "和目標差幾 BPM", [], CM, "目前速度減掉目標速度的絕對值"),
@@ -46,10 +47,11 @@ const LAB = RuleLab.create({
     F.ms_fw = (b) => call("fw", v(b, "N", "3"));
     F.ms_clap = () => call("clap");
     F.ms_restart = () => call("restart");
+    F.ms_scene = (b) => call("scene", q(b.getFieldValue("SC")));
     for (const [t, f] of [["ms_bpm", "bpm"], ["ms_diff", "diff"], ["ms_barno", "barNo"], ["ms_tiltv", "tilt"]]) F[t] = () => [`api.${f}()`, O.FUNCTION_CALL];
   },
   toolbox: ({ n, b }) => [{ name: "音樂會", colour: CM, contents: [
-    b("ms_target", { N: n(100) }), b("ms_vol"), b("ms_light"), b("ms_fw", { N: n(3) }), b("ms_clap"), b("ms_restart"),
+    b("ms_target", { N: n(100) }), b("ms_vol"), b("ms_light"), b("ms_fw", { N: n(3) }), b("ms_clap"), b("ms_scene"), b("ms_restart"),
     b("ms_bpm"), b("ms_diff"), b("ms_barno"), b("ms_tiltv")] }],
   api: {
     target(n) { S.labTarget = clamp(Math.round(Number(n) || 0), 0, 240); },
@@ -57,6 +59,7 @@ const LAB = RuleLab.create({
     light(l) { S.light = l; },
     fw(n) { fireworks(clamp(Math.round(Number(n) || 0), 0, 8)); },
     clap() { SFX.noise(2, 0.25, 2200, 0, "bandpass"); },
+    scene(sc) { S.scene = sc === "room" ? "room" : "hall"; },
     restart() { S.pos = 0; S.next = 0; S.bar = -1; S.running = true; S.waiting = true; },
     bpm() { return Math.round(S.bpm || 0); },
     diff() { return S.labTarget ? Math.abs(Math.round((S.bpm || 0) - S.labTarget)) : 0; },
@@ -103,6 +106,7 @@ const LAB = RuleLab.create({
   },
   onPlay() {
     Object.assign(S, { vol: { str: 1, wood: 1, brass: 1, drum: 1 }, labTarget: 0, light: "warm", fw: [], side: "mid" });
+    const sc = document.querySelector("input[name=scene]:checked"); S.scene = sc ? sc.value : "hall";
     start("lab"); $("tgtBox").hidden = $("accBox").hidden = true;
   },
   onEnd() { S.running = false; },

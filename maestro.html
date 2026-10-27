@@ -45,6 +45,7 @@
         <button class="mode" data-mode="challenge"><span class="tag">挑戰</span><b>速度挑戰</b><p>樂譜上會寫「慢板、中板、快板」，揮出接近目標的速度，拿到最高的準確度！</p></button>
       </div>
       <button class="mode rl-card" id="labCard" style="margin-top:12px;width:100%"><span class="tag">規則實驗室</span><b>用積木設計音樂會</b><p>自己決定每一段的目標速度、哪個聲部大聲、燈光和煙火，再上台指揮。</p></button>
+      <div class="mode" style="margin-top:12px;cursor:default"><b>選擇場景</b><p><label><input type="radio" name="scene" value="hall" checked> 音樂廳</label>　<label><input type="radio" name="scene" value="room"> 練習室</label></p></div>
       <div class="proto">
         <div><b>micro:bit 送出</b><br><code>beat#</code>　揮一下（一拍）<br><code>t:數字</code>　自己算出的速度 BPM（挑戰）<br><code>x:數字</code>　左右傾斜（加速度 x）<br><b>micro:bit 收到</b>　<code>bar#</code> 每一小節　<code>end#</code> 演奏完畢</div>
         <div><b>沒有 micro:bit？</b><br>按空白鍵打拍子，← → 方向鍵傾斜。</div>

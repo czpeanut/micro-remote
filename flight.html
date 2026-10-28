@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#7cc4f0" />
+  <title>酷丁狐飛行島</title>
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="mbgame.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Space+Mono:wght@700&display=swap" />
+  <link rel="stylesheet" href="kuding.css" />
+  <link rel="stylesheet" href="game.css" />
+  <link rel="stylesheet" href="rulelab.css" />
+  <style>
+    html, body { background: #7cc4f0; }
+    #view { image-rendering: auto; }
+    .inst { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); display: flex; gap: 14px; align-items: center;
+      background: rgba(10,20,30,.72); border: 2px solid rgba(243,238,225,.35); padding: 8px 14px; color: #e9f4ff; font: 700 12px var(--kd-font); z-index: 5; }
+    .inst b { font: 900 18px var(--kd-mono); color: #ffc94a; min-width: 54px; display: inline-block; text-align: right; }
+    .inst .thr { display: inline-block; vertical-align: middle; width: 90px; height: 10px; border: 1px solid #ffffff55; position: relative; }
+    .inst .thr i { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, #5fe1ff, #ffc94a); }
+    .att { width: 54px; height: 54px; border-radius: 50%; border: 2px solid #e9f4ff; overflow: hidden; position: relative; background: #3b8fe0; }
+    .att div { position: absolute; left: -50%; width: 200%; height: 200%; top: 50%; background: #7a5a33; transform-origin: 50% 0; }
+    .att::after { content: ""; position: absolute; left: 12px; right: 12px; top: 25px; height: 3px; background: #ffc94a; }
+    #mini { position: fixed; right: 16px; top: 70px; width: 170px; height: 170px; border: 2px solid rgba(243,238,225,.6); background: rgba(10,20,30,.55); z-index: 5; }
+    .arrow { position: fixed; left: 50%; top: 92px; transform: translateX(-50%); z-index: 5; color: #ffc94a; font: 900 14px var(--kd-font); text-align: center; text-shadow: 0 2px 6px #000; pointer-events: none; }
+    .arrow span { display: inline-block; font-size: 34px; line-height: 1; }
+    .opt { font: 700 13px var(--kd-font); color: var(--kd-ink-2); margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <a class="kd-float" href="index.html" title="回到酷丁狐的科技實驗室"><span class="kd-logo" aria-hidden="true"></span>實驗室</a>
+  <canvas id="view"></canvas>
+  <canvas id="mini" width="170" height="170"></canvas>
+  <div class="arrow" id="arrow" hidden><span id="arrowIco">▲</span><br><small id="arrowTxt"></small></div>
+  <div class="hud">
+    <div class="chip"><span class="dot" id="dot"></span><b>酷丁狐飛行島</b><span class="status" id="status">未連接</span></div>
+    <div class="center"><div class="stats">
+      <div class="stat"><small id="l1">星星</small><span id="v1">0</span></div>
+      <div class="stat"><small id="l2">時間</small><span id="v2">--</span></div>
+    </div></div>
+    <div class="right">
+      <button class="btn ghost" id="soundBtn">音效 開</button>
+      <button class="btn" id="connectBtn">連接 micro:bit</button>
+      <button class="btn ghost" id="menuBtn">選單</button>
+    </div>
+  </div>
+  <div class="inst">
+    <div class="att" title="姿態儀"><div id="horizon"></div></div>
+    <span>速度 <b id="spd">0</b></span>
+    <span>高度 <b id="alt">0</b></span>
+    <span>油門 <span class="thr"><i id="thr" style="width:50%"></i></span></span>
+  </div>
+  <div class="toast" id="toast"></div>
+  <div class="log" id="log"></div>
+
+  <div class="overlay" id="menu">
+    <div class="card">
+      <h1>酷丁狐飛行島</h1>
+      <p class="sub">micro:bit 就是飛機的遙控器：往左右傾斜，飛機就轉彎；往前壓機頭往下，往後拉機頭往上。手在超音波上方抬高是加油門、放低是減速。在小島上空自由飛行，收集星星、穿過圓環！</p>
+      <div class="modes" style="grid-template-columns:1fr 1fr 1fr;display:grid">
+        <button class="mode" data-mode="free"><span class="tag">暖身</span><b>自由飛行</b><p>沒有時間限制，到處逛逛，撿起散落的星星。</p></button>
+        <button class="mode" data-mode="timed"><span class="tag">第五堂</span><b>限時 60 秒</b><p>60 秒內收集最多星星，撞到地面或海面會重新起飛。</p></button>
+        <button class="mode" data-mode="rings"><span class="tag">挑戰</span><b>圓環賽道</b><p>照順序穿過 12 個圓環，看你幾秒飛完一圈。</p></button>
+      </div>
+      <button class="mode rl-card" id="labCard" style="margin-top:12px;width:100%"><span class="tag">規則實驗室</span><b>用積木改飛行規則</b><p>自己決定星星和圓環放在哪、天空是白天還是晚上、撞到時怎麼辦，再起飛。</p></button>
+      <div class="opt"><label><input type="checkbox" id="invert" /> 上下相反（往前壓變成拉高）</label></div>
+      <div class="proto">
+        <div><b>micro:bit 送出（每 0.1 秒）</b><br><code>x:數字</code>　左右傾斜（加速度 x）<br><code>y:數字</code>　前後傾斜（加速度 y）<br><code>d:數字</code>　超音波距離（油門，可不送）<br><b>micro:bit 收到</b>　<code>star#</code> 星星　<code>ring#</code> 圓環　<code>crash#</code> 撞到　<code>end#</code> 結束</div>
+        <div><b>沒有 micro:bit？</b><br>← → 轉彎，↑ ↓ 機頭上下，W／S 油門。<br>沒有送 d 時，油門固定在一半，也可以用 W／S 調。</div>
+      </div>
+    </div>
+  </div>
+  <div class="overlay" id="endOv" hidden>
+    <div class="card result">
+      <h1 id="endTitle">降落！</h1>
+      <p class="sub" id="endText"></p>
+      <div class="big" id="endScore">0</div>
+      <div class="row"><button class="btn primary" id="againBtn">再飛一次</button><button class="btn" id="backBtn">回到選單</button></div>
+    </div>
+  </div>
+  <script src="vendor/three/three.min.js"></script>
+  <script src="mblink.js"></script>
+  <script src="rulelab.js"></script>
+  <script src="flight.js"></script>
+  <script src="flight-lab.js"></script>
+</body>
+</html>

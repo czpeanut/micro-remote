@@ -15,7 +15,6 @@ bluetooth.onUartDataReceived(serial.delimiters(Delimiters.Hash), function () {
         basic.showIcon(IconNames.EighthNote)
     } else if (指令 == "end") {
         basic.showIcon(IconNames.Happy)
-        music.play(music.builtInPlayableMelody(Melodies.Entertainer), music.PlaybackMode.InBackground)
     }
 })
 bluetooth.startUartService()

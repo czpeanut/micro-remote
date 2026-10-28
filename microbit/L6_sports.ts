@@ -11,10 +11,8 @@ bluetooth.onUartDataReceived(serial.delimiters(Delimiters.Hash), function () {
     指令 = bluetooth.uartReadUntil(serial.delimiters(Delimiters.Hash))
     if (指令 == "good") {
         basic.showIcon(IconNames.Happy)
-        music.play(music.tonePlayable(784, music.beat(BeatFraction.Eighth)), music.PlaybackMode.InBackground)
     } else if (指令 == "miss") {
         basic.showIcon(IconNames.Sad)
-        music.play(music.tonePlayable(196, music.beat(BeatFraction.Quarter)), music.PlaybackMode.InBackground)
     }
 })
 bluetooth.startUartService()

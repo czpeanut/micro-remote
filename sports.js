@@ -38,6 +38,13 @@ function swing(p, raw) {
 function say(t, good) { S.msg = t; S.msgT = 1.6; if (S.lab) return; if (good === true) MB.send("good"); if (good === false) MB.send("miss"); }
 function hud(l1, v1, l2, v2) { $("l1").textContent = l1; $("v1").textContent = v1; $("l2").textContent = l2; $("v2").textContent = v2; }
 function burst(x, y, col, n = 16, sp = 200) { for (let i = 0; i < n; i++) { const a = rnd(0, 6.28), v = rnd(30, sp); S.parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: rnd(0.4, 0.9), col }); } }
+/* ---------- 插圖（背景與角色） ---------- */
+const SPR = {};
+for (const k of ["bowl", "tennis", "base", "fox-bowl-a", "fox-bowl-b", "fox-ten-a", "fox-ten-b", "fox-bat-a", "fox-bat-b", "bear-a", "bear-b", "rabbit"]) { SPR[k] = new Image(); SPR[k].src = `assets/sp-${k}.webp`; }
+const sok = (k) => SPR[k] && SPR[k].complete && SPR[k].naturalWidth;
+function cover(k, ay = 0.5) { const im = SPR[k], iw = im.naturalWidth, ih = im.naturalHeight, s = Math.max(W / iw, H / ih), r = { s, x: (W - iw * s) / 2, y: (H - ih * s) * ay }; g.drawImage(im, r.x, r.y, iw * s, ih * s); return r; }
+function sprite(k, x, y, h, rot = 0, flip = false) { if (!sok(k)) return; const im = SPR[k], kk = h / 380, w = im.naturalWidth * kk, hh = im.naturalHeight * kk;
+  g.save(); g.translate(x, y); if (rot) g.rotate(rot); if (flip) g.scale(-1, 1); g.drawImage(im, -w / 2, -hh, w, hh); g.restore(); }
 function finish(title, text, score) { if (S.lab) return; S.running = false; $("endTitle").textContent = title; $("endText").textContent = text; $("endScore").textContent = score; setTimeout(() => { $("endOv").hidden = false; }, 900); }
 const sfx = {
   whoosh(p) { SFX.noise(0.25, 0.15 + p * 0.2, 1200 + p * 2000, 0, "bandpass"); },
@@ -100,11 +107,13 @@ const BOWL = (() => {
   }
   function proj(x, z) { const hz = H * 0.16, near = H * 1.0, k = 6; const s = k / (z + k); return { x: W / 2 + x * W * 0.9 * s, y: hz + (near - hz) * s, s }; }
   function draw() {
-    const sky = g.createLinearGradient(0, 0, 0, H); sky.addColorStop(0, "#2a1d33"); sky.addColorStop(1, "#4a2c3d"); g.fillStyle = sky; g.fillRect(0, 0, W, H);
+    if (sok("bowl")) { cover("bowl", 0.4); g.fillStyle = "rgba(20,10,30,.18)"; g.fillRect(0, 0, W, H); }
+    else { const sky = g.createLinearGradient(0, 0, 0, H); sky.addColorStop(0, "#2a1d33"); sky.addColorStop(1, "#4a2c3d"); g.fillStyle = sky; g.fillRect(0, 0, W, H); }
     // 後牆
     const wl = proj(-LW - 0.4, L + 1.5), wr = proj(LW + 0.4, L + 1.5);
+    if (!sok("bowl")) {
     g.fillStyle = "#1c1424"; g.fillRect(wl.x - 40, wl.y - (wr.x - wl.x) * 0.5, wr.x - wl.x + 80, (wr.x - wl.x) * 0.5);
-    g.fillStyle = "#f5c547"; g.font = `900 ${Math.round((wr.x - wl.x) * 0.08)}px Noto Sans TC, sans-serif`; g.textAlign = "center"; g.fillText("micro:bit BOWLING", W / 2, wl.y - (wr.x - wl.x) * 0.3);
+    g.fillStyle = "#f5c547"; g.font = `900 ${Math.round((wr.x - wl.x) * 0.08)}px Noto Sans TC, sans-serif`; g.textAlign = "center"; g.fillText("micro:bit BOWLING", W / 2, wl.y - (wr.x - wl.x) * 0.3); }
     // 球道
     const a = proj(-LW - 0.1, 0), b = proj(LW + 0.1, 0), c = proj(LW + 0.1, L + 1.5), d = proj(-LW - 0.1, L + 1.5);
     g.fillStyle = "#3a3a46"; g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.lineTo(c.x, c.y); g.lineTo(d.x, d.y); g.fill();
@@ -119,9 +128,13 @@ const BOWL = (() => {
     // 瓶（由遠到近畫）
     const items = st.pins.map((p) => ({ z: p.z, f: () => drawPin(p) }));
     const bb = st.ball || { x: S.tilt * (LW - BR), z: 0.5 };
-    items.push({ z: bb.z, f: () => { const p = proj(bb.x, bb.z), r = BR * W * 0.9 * p.s; const gr = g.createRadialGradient(p.x - r * 0.3, p.y - r * 1.3, r * 0.1, p.x, p.y - r, r);
+    if (st.ball || !sok("fox-bowl-a")) items.push({ z: bb.z, f: () => { const p = proj(bb.x, bb.z), r = BR * W * 0.9 * p.s; const gr = g.createRadialGradient(p.x - r * 0.3, p.y - r * 1.3, r * 0.1, p.x, p.y - r, r);
       gr.addColorStop(0, "#7fb8ff"); gr.addColorStop(1, "#1b3f8f"); g.fillStyle = gr; g.beginPath(); g.arc(p.x, p.y - r, r, 0, 7); g.fill(); } });
     items.sort((u, v) => v.z - u.z).forEach((it) => it.f());
+    // 酷丁狐（背對畫面）：瞄準時拿著球，丟出去後換成出手的姿勢
+    const aimX = st.ball ? clamp(st.ball.x, -LW, LW) : S.tilt * (LW - BR), fp = proj(aimX, 0);
+    const throwing = !!st.ball;
+    sprite(throwing ? "fox-bowl-b" : "fox-bowl-a", fp.x - W * 0.03, H + H * 0.02, H * 0.46, throwing ? 0 : S.tilt * 0.05);
   }
   function drawPin(p) {
     const q = proj(p.x, p.z), hgt = 0.28 * W * 0.9 * q.s, w = PR * W * 0.9 * q.s;
@@ -176,8 +189,15 @@ const TENNIS = (() => {
       }
     }
   }
-  function cp(x, y) { const top = H * 0.16, bot = H * 0.92, t = y; const wTop = W * 0.32, wBot = W * 0.78; const w = lerp(wTop, wBot, t); return { x: W / 2 + x * w, y: lerp(top, bot, t), s: lerp(0.55, 1, t) }; }
+  let BG = null;
+  function cp(x, y) {
+    if (BG) { // 照背景圖上球場的透視：遠端底線 y=345、寬 295；近端底線 y=595、寬 745（原圖座標）
+      const k = 0.316, t = clamp(y, -0.1, 1.15), ty = k * t / (1 + (k - 1) * t), Y = 345 + 250 * ty, hw = lerp(147.5, 372.5, ty);
+      return { x: BG.x + (687.5 + x * 2 * hw) * BG.s, y: BG.y + Y * BG.s, s: (hw / 372.5) * BG.s * 1.25 }; }
+    const top = H * 0.16, bot = H * 0.92, t = y; const wTop = W * 0.32, wBot = W * 0.78; const w = lerp(wTop, wBot, t); return { x: W / 2 + x * w, y: lerp(top, bot, t), s: lerp(0.55, 1, t) }; }
   function draw() {
+    BG = sok("tennis") ? cover("tennis", 0.3) : null;
+    if (BG) { drawArt(); return; }
     g.fillStyle = "#2d6a3a"; g.fillRect(0, 0, W, H);
     const c1 = cp(-0.5, 0), c2 = cp(0.5, 0), c3 = cp(0.5, 1), c4 = cp(-0.5, 1);
     g.fillStyle = "#3d7fc4"; g.beginPath(); g.moveTo(c1.x, c1.y); g.lineTo(c2.x, c2.y); g.lineTo(c3.x, c3.y); g.lineTo(c4.x, c4.y); g.fill();
@@ -193,6 +213,17 @@ const TENNIS = (() => {
       g.fillStyle = "#e8ff3a"; g.beginPath(); g.arc(p.x, p.y - b.h * 120 * p.s, r, 0, 7); g.fill();
       if (S.aim && b.from === "cpu" && b.y > 0.62) { const hz = cp(0, 0.9); g.strokeStyle = "rgba(255,255,255,.35)"; g.setLineDash([6, 6]); g.beginPath(); g.moveTo(cp(-0.5, 0.9).x, hz.y); g.lineTo(cp(0.5, 0.9).x, hz.y); g.stroke(); g.setLineDash([]); } }
   }
+  function drawArt() {
+    const b = st.ball, rp = cp(st.cpuX, 0.0), mp = cp(st.myX, 1.0);
+    if (b && b.from === "me") { const p = cp(b.x, b.y), r = 9 * p.s; ball(b, p, r); }
+    sprite("rabbit", rp.x, rp.y + 4 * BG.s, 120 * BG.s, 0, st.cpuX > 0.1);
+    if (b && b.from === "cpu") { const p = cp(b.x, b.y), r = 9 * p.s; ball(b, p, r);
+      if (S.aim && b.y > 0.62) { const a = cp(-0.5, 0.9), c = cp(0.5, 0.9); g.strokeStyle = "rgba(255,255,255,.5)"; g.lineWidth = 3; g.setLineDash([8, 8]); g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(c.x, c.y); g.stroke(); g.setLineDash([]); } }
+    const sw = S.t - st.swingT < 0.3;
+    sprite(sw ? "fox-ten-b" : "fox-ten-a", mp.x - W * 0.02, H + H * 0.03, H * 0.42, sw ? -0.05 : S.tilt * 0.06);
+  }
+  function ball(b, p, r) { g.fillStyle = "rgba(0,0,0,.3)"; g.beginPath(); g.ellipse(p.x, p.y, r, r * 0.4, 0, 0, 7); g.fill();
+    g.fillStyle = "#e8ff3a"; g.strokeStyle = "#7a8a10"; g.lineWidth = 1.5; g.beginPath(); g.arc(p.x, p.y - b.h * 120 * p.s, r, 0, 7); g.fill(); g.stroke(); }
   return { name: "網球", init, step, draw, swing };
 })();
 
@@ -224,7 +255,22 @@ const BASE = (() => {
     else if (st.phase === "pitch") { st.ball.t += dt; if (st.ball.t > st.ball.dur + 0.25) { say("好球！沒打到", false); sfx.boo(); st.ball = null; labFire("miss"); next(); } }
     else if (st.phase === "fly") { st.fly.t += dt; if (st.fly.t > 2) { st.fly = null; next(); } }
   }
+  function drawArt() {
+    const R = cover("base", 0.55), mx = R.x + 687 * R.s, my = R.y + 585 * R.s, px = R.x + 687 * R.s, py = Math.min(H - 20, R.y + 742 * R.s);
+    // 投手熊：投球那一瞬間換成出手的姿勢
+    const throwing = st.phase === "pitch" && st.ball && st.ball.t < 0.35;
+    sprite(throwing ? "bear-b" : "bear-a", mx, my + 6 * R.s, 150 * R.s);
+    if (st.ball) { const k = clamp(st.ball.t / st.ball.dur, 0, 1.3), y = lerp(my - 90 * R.s, py - 40 * R.s, k), x = mx + st.ball.curve * k * k * 260 * R.s, r = lerp(4, 18, Math.min(1, k)) * R.s;
+      g.fillStyle = "#fff"; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); g.strokeStyle = "#d33"; g.lineWidth = 1.5; g.beginPath(); g.arc(x - r * 0.4, y, r * 0.7, -1, 1); g.stroke(); }
+    // 打擊手酷丁狐（背對畫面）
+    const sw = S.t - st.swingT < 0.35;
+    sprite(sw ? "fox-bat-b" : "fox-bat-a", px - W * 0.13, H + H * 0.03, H * 0.5, sw ? 0 : S.tilt * 0.05);
+    if (st.fly) { const k = st.fly.t / 2, d = st.fly.dist, x = W / 2 + st.fly.ang * k * W * 0.45 * (st.fly.foul ? 1.6 : 1), y = H * 0.85 - Math.sin(k * Math.PI) * H * 0.55 * (d / 130) - k * H * 0.3;
+      g.fillStyle = "#fff"; g.strokeStyle = "#333"; g.lineWidth = 1.5; g.beginPath(); g.arc(x, y, lerp(14, 4, k), 0, 7); g.fill(); g.stroke();
+      g.fillStyle = "#ffc94a"; g.strokeStyle = "#2b1d14"; g.lineWidth = 6; g.font = "900 40px Noto Sans TC, sans-serif"; g.textAlign = "center"; const tx = st.fly.foul ? "界外" : `${Math.round(d * Math.min(1, k * 1.5))} m`; g.strokeText(tx, W / 2, H * 0.36); g.fillText(tx, W / 2, H * 0.36); }
+  }
   function draw() {
+    if (sok("base")) { drawArt(); return; }
     const sky = g.createLinearGradient(0, 0, 0, H * 0.45); sky.addColorStop(0, "#5aa7e8"); sky.addColorStop(1, "#bfe3ff"); g.fillStyle = sky; g.fillRect(0, 0, W, H);
     g.fillStyle = "#2f7a3a"; g.fillRect(0, H * 0.42, W, H); g.fillStyle = "#1f5a2a"; g.fillRect(0, H * 0.4, W, H * 0.03);
     g.fillStyle = "#c79a62"; g.beginPath(); g.moveTo(W / 2, H * 0.52); g.lineTo(W * 0.9, H); g.lineTo(W * 0.1, H); g.fill();

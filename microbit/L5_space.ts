@@ -9,9 +9,9 @@ bluetooth.onBluetoothDisconnected(function () {
 bluetooth.onUartDataReceived(serial.delimiters(Delimiters.Hash), function () {
     指令 = bluetooth.uartReadUntil(serial.delimiters(Delimiters.Hash))
     if (指令 == "star") {
-        music.play(music.tonePlayable(988, music.beat(BeatFraction.Sixteenth)), music.PlaybackMode.InBackground)
+        basic.showIcon(IconNames.Diamond)
     } else if (指令 == "hit") {
-        music.play(music.tonePlayable(131, music.beat(BeatFraction.Quarter)), music.PlaybackMode.InBackground)
+        basic.showIcon(IconNames.Skull)
     }
 })
 bluetooth.startUartService()

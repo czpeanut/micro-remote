@@ -55,14 +55,14 @@
   <div class="overlay" id="menu">
     <div class="card">
       <h1>旋鈕賽車</h1>
-      <p class="sub">旋鈕是方向盤：往左轉車子左轉、往右轉車子右轉。五鍵按鍵的 A 是油門、B 是煞車、C 是氮氣加速（每場 3 次）。開出跑道會變慢喔！</p>
+      <p class="sub">旋鈕是方向盤：往左轉車子左轉、往右轉車子右轉。五鍵按鍵的 A 是油門、B 是煞車、C 是氮氣加速（每場 3 次）。放開油門會慢慢滑行減速，開出跑道會變慢喔！</p>
       <div class="modes" style="grid-template-columns:1fr 1fr 1fr;display:grid">
         <button class="mode" data-mode="free"><span class="tag">暖身</span><b>自由練習</b><p>沒有圈數限制，熟悉方向盤和油門。</p></button>
         <button class="mode" data-mode="race"><span class="tag">第七堂</span><b>三圈計時賽</b><p>跑完 3 圈，挑戰最快一圈的紀錄。</p></button>
         <button class="mode" data-mode="ghost"><span class="tag">挑戰</span><b>幽靈對決</b><p>跟自己最快一圈的「幽靈車」比賽，超越過去的自己！</p></button>
       </div>
       <button class="mode rl-card" id="labCard" style="margin-top:12px;width:100%"><span class="tag">規則實驗室</span><b>用積木改賽車規則</b><p>在賽道放金幣、香蕉皮、加速板，自己決定怎麼計分、幾圈結束，D、E 鍵也能拿來用。</p></button>
-      <div class="mode" style="margin-top:12px;cursor:default"><b>選擇賽道</b><p><label><input type="radio" name="track" value="0" checked> 小島環道</label>　<label><input type="radio" name="track" value="1"> 森林 S 彎</label>　<label><input type="radio" name="track" value="2"> 狐狸之心</label></p></div>
+      <div class="mode" style="margin-top:12px;cursor:default"><b>選擇賽道</b><p><label><input type="radio" name="track" value="0" checked> 小島環道（海邊草地）</label>　<label><input type="radio" name="track" value="1"> 沙漠峽谷（長直線＋髮夾彎）</label>　<label><input type="radio" name="track" value="2"> 雪山連續彎</label>　<label><input type="radio" name="track" value="3"> 夜光城市（直角街區）</label></p></div>
       <div class="proto">
         <div><b>micro:bit 送出（每 0.1 秒）</b><br><code>k:數字</code>　旋鈕（0～1023）<br><code>b:數字</code>　按下的鍵：0 沒按、1 A、2 B、3 C、4 D、5 E<br><b>micro:bit 收到</b>　<code>go#</code> 開始　<code>lap#</code> 跑完一圈　<code>end#</code> 完賽</div>
         <div><b>沒有 micro:bit？</b><br>← → 轉方向盤，↑ 油門，↓ 煞車，空白鍵氮氣。</div>

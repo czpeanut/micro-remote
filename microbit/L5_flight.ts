@@ -1,5 +1,5 @@
 let 指令 = ""
-let 距離 = 0
+let 油門 = 0
 bluetooth.onBluetoothConnected(function () {
     basic.showIcon(IconNames.Yes)
 })
@@ -23,7 +23,13 @@ basic.showIcon(IconNames.No)
 basic.forever(function () {
     bluetooth.uartWriteValue("x", input.acceleration(Dimension.X))
     bluetooth.uartWriteValue("y", input.acceleration(Dimension.Y))
-    距離 = sonar.ping(DigitalPin.P15, DigitalPin.P15, PingUnit.Centimeters)
-    bluetooth.uartWriteValue("d", 距離)
+    if (input.buttonIsPressed(Button.A)) {
+        油門 = 1
+    } else if (input.buttonIsPressed(Button.B)) {
+        油門 = 2
+    } else {
+        油門 = 0
+    }
+    bluetooth.uartWriteValue("b", 油門)
     basic.pause(100)
 })

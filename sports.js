@@ -264,8 +264,8 @@ let last = performance.now();
 function loop(now) { const dt = Math.min(0.05, (now - last) / 1000); last = now; frame(dt); requestAnimationFrame(loop); }
 requestAnimationFrame(loop);
 
-document.querySelectorAll(".mode[data-game]").forEach((b) => b.addEventListener("click", () => start(b.dataset.game)));
-$("againBtn").onclick = () => start(S.game);
+document.querySelectorAll(".mode[data-game]").forEach((b) => b.addEventListener("click", MB.gate(() => start(b.dataset.game))));
+$("againBtn").onclick = MB.gate(() => start(S.game));
 $("backBtn").onclick = () => { $("endOv").hidden = true; $("menu").hidden = false; };
 $("menuBtn").onclick = () => { if (S.lab) LAB.stop(); S.running = false; $("menu").hidden = false; };
 $("soundBtn").onclick = () => { SFX.set(!SFX.on); $("soundBtn").textContent = SFX.on ? "音效 開" : "音效 關"; };

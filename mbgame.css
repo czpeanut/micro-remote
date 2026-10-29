@@ -80,3 +80,12 @@
 .proto { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; font-size: 13px; line-height: 1.7; }
 #view { image-rendering: auto; }
 .tag { display: inline-block; font-size: 11px; padding: 2px 8px; margin-bottom: 6px; }
+
+/* 先連 micro:bit 才能開始 */
+.pairnote { display: flex; flex-direction: column; gap: 2px; width: 100%; margin: 4px 0 14px; padding: 10px 14px; text-align: left; cursor: pointer;
+  background: #ffc94a; color: #2b1d14; border: 3px solid #2b1d14; box-shadow: 4px 4px 0 #2b1d14; font: 700 14px var(--kd-font, sans-serif); }
+.pairnote b { font-size: 17px; }
+.pairnote[hidden] { display: none; }
+@keyframes kdpulse { 0%, 100% { transform: scale(1); } 30% { transform: scale(1.06); } 60% { transform: scale(0.98); } }
+.pulse { animation: kdpulse .6s ease 2; outline: 4px solid #ff6f6f; }
+body:not(.mb-on) #menu .mode:not(.rl-card) { opacity: .55; }

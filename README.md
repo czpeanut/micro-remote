@@ -143,11 +143,11 @@ micro:bit 端：`當藍牙串口收到資料 #` → `指令 = 藍牙串口 讀�
 四個遊戲共用 `mblink.js`（藍牙串口連線、`MB.send` / `MB.on`、音效 `SFX`）和 `mbgame.css`。
 micro:bit 送出「名稱:數字」一行（MakeCode `藍牙串口 寫入數值`），平板回傳「單字#」。
 專案要加入 **bluetooth** 擴展（會移除 radio），專案設定選「不需配對」。每台平板一次只能連一台 micro:bit。
-沒有 micro:bit 時可用鍵盤試玩。參考程式在 `microbit/` 資料夾（MakeCode JavaScript，貼進 JavaScript 分頁即可轉成積木）。
+所有遊戲（含規則實驗室的「開始」）都要先連上 micro:bit 才能開始；沒有 micro:bit 的課堂示範，在網址後面加 `?test=1`（例如 `flight.html?test=1`）就能用鍵盤試玩。參考程式在 `microbit/` 資料夾（MakeCode JavaScript，貼進 JavaScript 分頁即可轉成積木）。
 
 | 頁面 | 堂次 | micro:bit → 平板 | 平板 → micro:bit | 鍵盤試玩 |
 | --- | --- | --- | --- | --- |
-| `flight.html` 酷丁狐飛行島（3D，Three.js 放在 `vendor/three/`） | 第五堂 | `x:`、`y:` 傾斜（轉彎、機頭上下），`d:` 超音波距離（油門，可不送） | `star#` 星星、`ring#` 圓環、`crash#` 撞到、`end#` 結束 | ← → ↑ ↓、W／S 油門 |
+| `flight.html` 酷丁狐飛行島（3D，Three.js 放在 `vendor/three/`） | 第五堂 | `x:`、`y:` 傾斜（轉彎、機頭上下），`b:` 油門按鈕（1＝A 加、2＝B 減、0＝放開），`d:` 超音波距離（進階油門，可不送） | `star#` 星星、`ring#` 圓環、`crash#` 撞到、`end#` 結束 | ← → ↑ ↓、W／S 油門 |
 | `space.html` 超音波太空梭（舊版第五堂，保留） | — | `d:公分` | `star#`、`hit#` | ↑ ↓ 或滑鼠 |
 | `sports.html` micro:bit 運動會 | 第六堂 | `x:加速度X`（傾斜瞄準）、`s:最大力道`（揮一下送一次，1500 以上算揮動） | `good#` 打得好、`miss#` 失誤 | ← → 瞄準，按住空白鍵蓄力 |
 | `race.html` 旋鈕賽車（四條風格賽道；放開油門慢慢滑行，不會倒退） | 第七堂 | `k:旋鈕 0～1023`、`b:按鍵 0～5`（A 油門、B 煞車、C 氮氣） | `go#` 開始、`lap#` 一圈、`end#` 完賽 | ← → ↑ ↓、空白鍵氮氣 |

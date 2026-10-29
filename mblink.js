@@ -11,13 +11,16 @@
 const MB = (() => {
   const NUS = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
   const $ = (id) => document.getElementById(id);
-  let device = null, rxChar = null, sending = Promise.resolve(), inbox = "", handlers = [], lastRx = 0;
+  let device = null, rxChar = null, sending = Promise.resolve(), inbox = "", handlers = [], lastRx = 0, fake = false;
+  const TEST = /[?&]test=1/.test(location.search);
 
   function setStatus(st, name) {
     const dot = $("dot"), status = $("status"), btn = $("connectBtn");
     if (dot) dot.className = "dot" + (st === "on" ? " on" : st === "wait" ? " wait" : "");
     if (status) status.textContent = st === "on" ? `已連接 ${name || ""}` : st === "wait" ? "連接中…" : "未連接";
     if (btn) btn.textContent = st === "on" ? "中斷連接" : "連接 micro:bit";
+    const pn = $("pairNote"); if (pn) pn.hidden = st === "on";
+    document.body.classList.toggle("mb-on", st === "on");
   }
   function log(t, cls) {
     const el = $("log"); if (!el) return;
@@ -87,10 +90,26 @@ const MB = (() => {
   function on(fn) { handlers.push(fn); }
   function live() { return lastRx > 0 && performance.now() - lastRx < 2500; }
   function connected() { return !!rxChar; }
+  /* 連上 micro:bit 才能開始遊戲（網址加 ?test=1 可以跳過，給老師示範和自動測試用） */
+  function ready() { return connected() || TEST || fake; }
+  function gate(fn) {
+    return (...a) => {
+      if (ready()) return fn(...a);
+      const b = $("connectBtn"); if (b) { b.classList.remove("pulse"); void b.offsetWidth; b.classList.add("pulse"); }
+      const pn = $("pairNote"); if (pn) { pn.hidden = false; pn.classList.remove("pulse"); void pn.offsetWidth; pn.classList.add("pulse"); }
+    };
+  }
   /* 給自動測試用：模擬 micro:bit 送來的字串 */
-  function inject(text) { lastRx = performance.now(); receive(text); }
-  document.addEventListener("DOMContentLoaded", () => { const b = $("connectBtn"); if (b) b.addEventListener("click", connect); });
-  return { connect, send, on, live, connected, log, inject };
+  function inject(text) { fake = true; lastRx = performance.now(); receive(text); }
+  document.addEventListener("DOMContentLoaded", () => {
+    const b = $("connectBtn"); if (b) b.addEventListener("click", connect);
+    // 選單上方的提示：還沒連線時顯示，按一下也能連線
+    const card = document.querySelector("#menu .card");
+    if (card && !$("pairNote")) { const d = document.createElement("button"); d.id = "pairNote"; d.className = "pairnote"; d.type = "button";
+      d.innerHTML = "<b>第一步：先連接 micro:bit</b><span>按這裡（或右上角「連接 micro:bit」），連上之後才能開始遊戲</span>";
+      d.addEventListener("click", connect); const h = card.querySelector(".sub") || card.firstChild; card.insertBefore(d, h ? h.nextSibling : null); d.hidden = ready(); }
+  });
+  return { connect, send, on, live, connected, ready, gate, log, inject };
 })();
 
 /* 共用音效（Web Audio） */

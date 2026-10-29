@@ -52,7 +52,7 @@
     <div class="att" title="姿態儀"><div id="horizon"></div></div>
     <span>速度 <b id="spd">0</b></span>
     <span>高度 <b id="alt">0</b></span>
-    <span>油門 <span class="thr"><i id="thr" style="width:50%"></i></span></span>
+    <span>油門 <span class="thr"><i id="thr" style="width:0%"></i></span></span>
   </div>
   <div class="toast" id="toast"></div>
   <div class="log" id="log"></div>
@@ -60,7 +60,7 @@
   <div class="overlay" id="menu">
     <div class="card">
       <h1>酷丁狐飛行島</h1>
-      <p class="sub">micro:bit 就是飛機的遙控器：往左右傾斜，飛機就轉彎；往前壓機頭往下，往後拉機頭往上。手在超音波上方抬高是加油門、放低是減速。在群島上空自由飛行：主島有機場、小鎮、摩天輪、燈塔，遠方還有雪山島、火山島、椰子島和城市島，看你能發現幾個地方！</p>
+      <p class="sub">micro:bit 就是飛機的遙控器：往左右傾斜，飛機就轉彎；往前壓機頭往下，往後拉機頭往上。按住 A 加油門、按住 B 減油門。飛機先停在機場跑道上，加油門滑行到夠快就會起飛。在群島上空自由飛行：主島有機場、小鎮、摩天輪、燈塔，遠方還有雪山島、火山島、椰子島和城市島，看你能發現幾個地方！</p>
       <div class="modes" style="grid-template-columns:1fr 1fr 1fr;display:grid">
         <button class="mode" data-mode="free"><span class="tag">暖身</span><b>自由飛行</b><p>沒有時間限制，跟著箭頭找出 12 個地點，到處逛逛。</p></button>
         <button class="mode" data-mode="timed"><span class="tag">第五堂</span><b>限時 60 秒</b><p>60 秒內收集最多星星，撞到地面或海面會重新起飛。</p></button>
@@ -69,8 +69,8 @@
       <button class="mode rl-card" id="labCard" style="margin-top:12px;width:100%"><span class="tag">規則實驗室</span><b>用積木改飛行規則</b><p>自己決定星星和圓環放在哪、天空是白天還是晚上、撞到時怎麼辦，再起飛。</p></button>
       <div class="opt"><label><input type="checkbox" id="invert" /> 上下相反（往前壓變成拉高）</label></div>
       <div class="proto">
-        <div><b>micro:bit 送出（每 0.1 秒）</b><br><code>x:數字</code>　左右傾斜（加速度 x）<br><code>y:數字</code>　前後傾斜（加速度 y）<br><code>d:數字</code>　超音波距離（油門，可不送）<br><b>micro:bit 收到</b>　<code>star#</code> 星星　<code>ring#</code> 圓環　<code>crash#</code> 撞到　<code>end#</code> 結束</div>
-        <div><b>沒有 micro:bit？</b><br>← → 轉彎，↑ ↓ 機頭上下，W／S 油門。<br>沒有送 d 時，油門固定在一半，也可以用 W／S 調。</div>
+        <div><b>micro:bit 送出（每 0.1 秒）</b><br><code>x:數字</code>　左右傾斜（加速度 x）<br><code>y:數字</code>　前後傾斜（加速度 y）<br><code>b:數字</code>　按鈕油門（1＝按住 A 加、2＝按住 B 減、0＝放開）<br><code>d:數字</code>　超音波距離（進階：用手的高度當油門，可不送）<br><b>micro:bit 收到</b>　<code>star#</code> 星星　<code>ring#</code> 圓環　<code>crash#</code> 撞到　<code>end#</code> 結束</div>
+        <div><b>沒有 micro:bit？</b><br>← → 轉彎，↑ ↓ 機頭上下，W／S 加減油門。<br>要先按「連接 micro:bit」才能開始；課堂示範可以在網址後面加 <code>?test=1</code> 用鍵盤玩。</div>
       </div>
     </div>
   </div>

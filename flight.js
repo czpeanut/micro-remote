@@ -286,7 +286,7 @@ function buildCourse() { // 繞小島一圈的 12 個圓環
 }
 
 /* ---------- 狀態與輸入 ---------- */
-const S = { mode: null, running: false, t: 0, p: new THREE.Vector3(0, 160, 1700), yaw: 0, pitch: 0, roll: 0, speed: 80, thr: 0.5, inv: 0,
+const S = { mode: null, running: false, t: 0, p: new THREE.Vector3(0, 160, 1700), yaw: 0, pitch: 0, roll: 0, speed: 0, thr: 0, inv: 0, ground: true, airT: 0, btn: 0, lastB: 0,
   ix: 0, iy: 0, sx: 0, sy: 0, lastIn: 0, lastD: 0, d: null, score: 0, left: 0, rings: [], ringIdx: 0, ringT: 0, sky: "day", vmul: 1, boost: 0, outT: 0, crashes: 0 };
 const keys = {};
 addEventListener("keydown", (e) => { keys[e.key.toLowerCase()] = true; if (e.key.startsWith("Arrow")) e.preventDefault(); });
@@ -294,7 +294,8 @@ addEventListener("keyup", (e) => { keys[e.key.toLowerCase()] = false; });
 MB.on((ev) => {
   const now = performance.now();
   if (ev.key === "x") { S.ix = clamp(ev.value / 700, -1, 1); S.lastIn = now; }
-  if (ev.key === "y") { S.iy = clamp(ev.value / 700, -1, 1); S.lastIn = now; }
+  if (ev.key === "y") { S.iy = clamp(-ev.value / 700, -1, 1); S.lastIn = now; }   // micro:bit 往前壓時 y 是負的 → 機頭往下
+  if (ev.key === "b") { S.btn = ev.value; S.lastB = now; }   // 1＝按住 A 加油門，2＝按住 B 減油門
   if (ev.key === "d" && ev.value > 0) { S.d = ev.value; S.lastD = now; }
 });
 function fwd() { const cp = Math.cos(S.pitch); return new THREE.Vector3(-Math.sin(S.yaw) * cp, Math.sin(S.pitch), -Math.cos(S.yaw) * cp); }
@@ -316,7 +317,9 @@ const sfx = {
 let toastT = 0;
 function toast(t) { const el = $("toast"); el.textContent = t; el.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove("show"), 1600); }
 const send = (w) => { if (S.mode !== "lab") MB.send(w); };
-function resetPlane() { S.p.set(RUNWAY.x + RUNWAY.len / 2 - 40, 110, RUNWAY.z); S.yaw = Math.PI / 2; S.pitch = 0.15; S.roll = 0; S.speed = 70; S.inv = 1.5; }
+// 停在跑道東端，機頭朝西；要自己加油門滑行、起飛
+const RWY_Y = 18 + 3;
+function resetPlane() { S.p.set(RUNWAY.x + RUNWAY.len / 2 - 30, RWY_Y, RUNWAY.z); S.yaw = Math.PI / 2; S.pitch = 0; S.roll = 0; S.speed = 0; S.thr = 0; S.inv = 0; S.ground = true; S.airT = 0; }
 function start(mode) {
   clearItems(); Object.assign(S, { mode, running: true, t: 0, score: 0, left: 0, rings: [], ringIdx: 0, ringT: 0, vmul: 1, boost: 0, crashes: 0 });
   setSky("day"); resetPlane(); for (const pl of PLACES) pl.found = false;
@@ -325,9 +328,10 @@ function start(mode) {
   if (mode === "timed") S.left = 60;
   if (mode === "rings") { S.rings = buildCourse(); S.rings[0].mesh.material = ringMat.next;
     const r0 = S.rings[0], r1 = S.rings[1], dx = r1.x - r0.x, dz = r1.z - r0.z, L = Math.hypot(dx, dz);   // 從第一個圓環前面出發
-    S.p.set(r0.x - dx / L * 320, r0.y + 10, r0.z - dz / L * 320); S.yaw = Math.atan2(-(r0.x - S.p.x), -(r0.z - S.p.z)); S.pitch = 0; }
+  }
   $("menu").hidden = true; $("endOv").hidden = true; hud(); SFX.audio();
-  toast(mode === "rings" ? "跟著箭頭穿過圓環！" : mode === "free" ? "起飛！到處逛逛，找找看有哪些地方" : "起飛！收集星星");
+  toast("按住 A 加油門，滑行起飛！");
+  S.goal = mode === "rings" ? "跟著箭頭穿過圓環！" : mode === "free" ? "到處逛逛，找找看有哪些地方" : mode === "timed" ? "收集星星！60 秒開始倒數" : "";
 }
 function finish(title, text, score) {
   S.running = false; send("end");
@@ -346,10 +350,10 @@ function collect(it) {
 }
 function crash(what) {
   sfx.crash(); burst(S.p.x, Math.max(S.p.y, 2), S.p.z, what === "water" ? 0xbfe8ff : 0x8a6a4a); S.crashes++;
-  if (S.mode === "lab") { if (typeof LAB !== "undefined" && LAB.fire("crash", what)) { S.inv = 1.5; S.p.y = ground(S.p.x, S.p.z) + 120; S.pitch = 0.1; return; } }
+  if (S.mode === "lab") { if (typeof LAB !== "undefined" && LAB.fire("crash", what)) { S.inv = 1.5; S.ground = false; S.p.y = ground(S.p.x, S.p.z) + 120; S.pitch = 0.1; return; } }
   else send("crash");
   toast(what === "water" ? "掉進海裡了！重新起飛" : "撞到地面了！重新起飛");
-  S.p.y = ground(S.p.x, S.p.z) + 140; S.pitch = 0.15; S.roll = 0; S.speed = Math.max(S.speed, 70); S.inv = 2;
+  S.p.y = ground(S.p.x, S.p.z) + 140; S.pitch = 0.15; S.roll = 0; S.speed = Math.max(S.speed, 70); S.inv = 2; S.ground = false;
 }
 // 碎片
 const bits = [];
@@ -366,18 +370,26 @@ function update(dt) {
   if (now - S.lastIn > 1500) { ix = (keys.arrowright ? 1 : 0) - (keys.arrowleft ? 1 : 0); iy = (keys.arrowup ? -1 : 0) + (keys.arrowdown ? 1 : 0); }
   const dz = (v) => (Math.abs(v) < 0.1 ? 0 : (v - Math.sign(v) * 0.1) / 0.9);
   S.sx += (dz(ix) - S.sx) * Math.min(1, dt * 6); S.sy += (dz(iy) - S.sy) * Math.min(1, dt * 6);
+  // 油門：按住 A 加、按住 B 減（鍵盤 W／S）；有送超音波 d 時改用手的高度
   if (now - S.lastD < 1500 && S.d != null) S.thr = clamp((S.d - 5) / 35, 0, 1);
-  else { if (keys.w) S.thr = Math.min(1, S.thr + dt * 0.6); if (keys.s) S.thr = Math.max(0, S.thr - dt * 0.6); }
+  else { const up = (now - S.lastB < 1500 && S.btn === 1) || keys.w, dn = (now - S.lastB < 1500 && S.btn === 2) || keys.s;
+    if (up) S.thr = Math.min(1, S.thr + dt * 0.5); if (dn) S.thr = Math.max(0, S.thr - dt * 0.5); }
   // 飛行（街機式）
   const inv = $("invert").checked ? -1 : 1;
   S.roll += (S.sx * 0.95 - S.roll) * Math.min(1, dt * 3);
-  const pitchTarget = clamp(-S.sy * inv * 0.7, -0.75, 0.75);
-  S.pitch += (pitchTarget - S.pitch) * Math.min(1, dt * 2);
+  let pitchTarget = clamp(-S.sy * inv * 0.7, -0.75, 0.75);
   S.boost = Math.max(0, S.boost - dt);
-  const target = (55 + S.thr * 110) * S.vmul * (S.boost > 0 ? 1.6 : 1) - S.pitch * 30;
-  S.speed += (target - S.speed) * Math.min(1, dt * 0.9);
+  if (S.ground) {
+    // 在跑道上：油門推動滑行，速度夠了機頭自動抬起離地
+    S.roll *= 0.8; pitchTarget = S.speed > 70 ? Math.max(pitchTarget, 0.22) : 0;
+    S.speed = Math.max(0, S.speed + (S.thr * 45 - 6 - S.speed * 0.05) * dt * (S.running ? 1 : 0));
+  } else {
+    const target = (55 + S.thr * 110) * S.vmul * (S.boost > 0 ? 1.6 : 1) - S.pitch * 30;
+    S.speed += (target - S.speed) * Math.min(1, dt * 0.9);
+  }
+  S.pitch += (pitchTarget - S.pitch) * Math.min(1, dt * 2);
   if (S.running) {
-    S.yaw -= S.roll * 1.05 * dt;
+    if (S.ground) S.yaw += clamp(-S.sx, -1, 1) * 0.4 * dt * Math.min(1, S.speed / 20); else S.yaw -= S.roll * 1.05 * dt;
     // 飛太遠會自動轉回小島
     const r = Math.hypot(S.p.x, S.p.z);
     if (r > WORLD_R) { const want = Math.atan2(S.p.x, S.p.z); let da = want - S.yaw; while (da > Math.PI) da -= 2 * Math.PI; while (da < -Math.PI) da += 2 * Math.PI; S.yaw += clamp(da, -1, 1) * dt * 0.9; if (S.t - S.outT > 3) { S.outT = S.t; toast("太遠了，往回飛！"); } }
@@ -385,7 +397,11 @@ function update(dt) {
     if (S.p.y > 900) { S.p.y = 900; S.pitch = Math.min(S.pitch, 0); }
     S.inv = Math.max(0, S.inv - dt);
     const g = ground(S.p.x, S.p.z);
-    if (S.p.y < g + 3) { if (S.inv > 0) S.p.y = g + 3; else crash(height(S.p.x, S.p.z) <= 0 ? "water" : "ground"); }
+    if (S.ground) {
+      if (S.p.y > g + 9) { S.ground = false; S.inv = 1; toast("起飛了！" + (S.goal || "")); }
+      else if (S.speed < 70 || S.p.y < g + 3) { if (g > RWY_Y + 5) crash("ground"); else S.p.y = g + 3; }
+    }
+    else if (S.p.y < g + 3) { if (S.inv > 0) S.p.y = g + 3; else crash(height(S.p.x, S.p.z) <= 0 ? "water" : "ground"); }
     else if (S.inv <= 0) for (const c of COLLIDE) if (S.p.y < c.h && Math.hypot(S.p.x - c.x, S.p.z - c.z) < c.r + 4) { crash("ground"); break; }
     // 發現新地點
     if (S.mode === "free" || S.mode === "lab") for (const pl of PLACES) if (!pl.found && Math.hypot(pl.x - S.p.x, pl.z - S.p.z) < 450) {
@@ -402,8 +418,8 @@ function update(dt) {
         else if (!it.passT || S.t - it.passT > 2) { it.passT = S.t; collect(it); }
       }
     }
-    if (S.mode === "timed") { S.left -= dt; if (S.left <= 0) { S.left = 0; hud(); finish("時間到！", "60 秒內收集到的星星：", `${S.score} 顆`); } else if (Math.ceil(S.left) !== Math.ceil(S.left + dt)) hud(); }
-    if (S.mode === "rings") { S.ringT += dt; $("v2").textContent = S.ringT.toFixed(1); }
+    if (S.mode === "timed" && !S.ground) { S.left -= dt; if (S.left <= 0) { S.left = 0; hud(); finish("時間到！", "60 秒內收集到的星星：", `${S.score} 顆`); } else if (Math.ceil(S.left) !== Math.ceil(S.left + dt)) hud(); }
+    if (S.mode === "rings" && !S.ground) { S.ringT += dt; $("v2").textContent = S.ringT.toFixed(1); }
   }
   // 動畫
   for (const it of ITEMS) if (!it.dead) { if (it.kind === "star") { it.mesh.rotation.y += dt * 2; it.mesh.position.y = it.y + Math.sin(S.t * 2 + it.x) * 3; } else if (it.mesh.material === ringMat.next) it.mesh.scale.setScalar(1 + Math.sin(S.t * 5) * 0.06); }
@@ -459,8 +475,8 @@ let last = performance.now();
 function loop(now) { const dt = Math.min(0.05, (now - last) / 1000); last = now; update(dt); renderer.render(scene, camera); requestAnimationFrame(loop); }
 resetPlane(); S.running = false; requestAnimationFrame(loop);
 
-document.querySelectorAll(".mode[data-mode]").forEach((b) => b.addEventListener("click", () => start(b.dataset.mode)));
-$("againBtn").onclick = () => start(S.mode);
+document.querySelectorAll(".mode[data-mode]").forEach((b) => b.addEventListener("click", MB.gate(() => start(b.dataset.mode))));
+$("againBtn").onclick = MB.gate(() => start(S.mode));
 $("backBtn").onclick = () => { $("endOv").hidden = true; $("menu").hidden = false; };
 $("menuBtn").onclick = () => { if (S.mode === "lab" && typeof LAB !== "undefined") LAB.stop(); S.running = false; $("menu").hidden = false; };
 $("soundBtn").onclick = () => { SFX.set(!SFX.on); $("soundBtn").textContent = SFX.on ? "音效 開" : "音效 關"; };

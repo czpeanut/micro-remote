@@ -216,8 +216,8 @@ let last = performance.now();
 function loop(now) { const dt = Math.min(0.05, (now - last) / 1000); last = now; update(dt); draw(); requestAnimationFrame(loop); }
 requestAnimationFrame(loop);
 
-document.querySelectorAll(".mode[data-mode]").forEach((b) => b.addEventListener("click", () => start(b.dataset.mode)));
-$("againBtn").onclick = () => start(S.mode);
+document.querySelectorAll(".mode[data-mode]").forEach((b) => b.addEventListener("click", MB.gate(() => start(b.dataset.mode))));
+$("againBtn").onclick = MB.gate(() => start(S.mode));
 $("backBtn").onclick = () => { $("endOv").hidden = true; $("menu").hidden = false; };
 $("menuBtn").onclick = () => { if (S.mode === "lab") LAB.stop(); S.running = false; $("menu").hidden = false; };
 $("soundBtn").onclick = () => { SFX.set(!SFX.on); $("soundBtn").textContent = SFX.on ? "音效 開" : "音效 關"; };

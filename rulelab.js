@@ -346,6 +346,7 @@
       return G.finish(code);
     }
     function play() {
+      if (window.MB && MB.ready && !MB.ready()) { if ($("rlEditor") && !$("rlEditor").hidden) info("先連接 micro:bit，連上之後才能開始遊戲", true); else MB.gate(() => {})(); return; }
       if (window.SFX) SFX.audio();
       let code;
       try { code = compile(); R.H = []; new Function("api", '"use strict";\n' + code)(api); }

@@ -221,6 +221,160 @@ for (let i = 0; i < 2; i++) { const g = group(0, 0, 0, 0); box(120, 16, 28, 0x3b
 const BALLOONS = [];
 for (let i = 0; i < 6; i++) { const g = new THREE.Group(); const env = new THREE.Mesh(new THREE.IcosahedronGeometry(22, 1), mat([0xff8a2c, 0x5fe1ff, 0xf5c547, 0xff4fd8, 0x3ee69a, 0xd8352a][i])); env.scale.y = 1.2; env.position.y = 30; g.add(env);
   const basket = new THREE.Mesh(new THREE.BoxGeometry(8, 6, 8), mat(0x8a5a2b)); g.add(basket); const x = srnd(-2000, 2000), z = srnd(-2000, 2000); g.position.set(x, ground(x, z) + srnd(300, 500), z); scene.add(g); BALLOONS.push({ g, y: g.position.y, p: srnd(0, 6) }); }
+// ===== 動物和飛鳥 =====
+const geoCache = {};
+const bgeo = (w, h, d) => { const k = w + "," + h + "," + d; return geoCache[k] || (geoCache[k] = new THREE.BoxGeometry(w, h, d)); };
+function part(w, h, d, c, x, y, z, parent) { const m = new THREE.Mesh(bgeo(w, h, d), mat(c)); m.position.set(x, y, z); parent.add(m); return m; }
+function pivot(x, y, z, parent) { const p = new THREE.Group(); p.position.set(x, y, z); parent.add(p); return p; }
+// 四隻腳的動物（模型朝 -z 前進）
+const SPECIES = {
+  sheep: { body: [9, 6, 12, 0xf3f1ea], head: [3.6, 3.6, 4.2, 0x2b2b2b], leg: [1.6, 3, 0x2b2b2b], spd: 6 },
+  cow: { body: [9, 7.5, 16, 0xf6f3ec], head: [4.6, 4.6, 5.4, 0xf6f3ec], leg: [2, 5, 0xf6f3ec], spd: 5, extra: (g, b) => { part(9.2, 4, 5, 0x2b2b2b, 0, b.y + 1.5, 2, g); part(5, 3, 4, 0x2b2b2b, 2.2, b.y - 1, -4, g); } },
+  horse: { body: [6, 6.5, 15, 0x8a5a2b], head: [3.4, 7, 4, 0x8a5a2b], leg: [1.8, 7, 0x5a3d22], spd: 12, mane: 0x3a2716 },
+  pig: { body: [7, 5.5, 10, 0xf2a7b5], head: [4.6, 4.2, 3.6, 0xf2a7b5], leg: [1.8, 2.2, 0xe08a9a], spd: 5 },
+  deer: { body: [5, 5, 11, 0xb07a45], head: [2.8, 3.2, 4, 0xb07a45], leg: [1.2, 6.5, 0x8a5a2b], spd: 11, antler: 0x6b4426 },
+  goat: { body: [5, 5, 9, 0xd9d0bc], head: [2.6, 3, 3.6, 0xd9d0bc], leg: [1.3, 4, 0x8a8070], spd: 7, horn: 0x5a5048 },
+  fox: { body: [4, 3.6, 9, 0xe8762c], head: [3.6, 3, 4, 0xe8762c], leg: [1.1, 2.6, 0x2b1d14], spd: 13, tail: 0xe8762c, ears: 0xe8762c },
+  flamingo: { body: [3.2, 3.2, 6, 0xff8fb0], head: [1.6, 2, 3.2, 0xff8fb0], leg: [0.6, 9, 0xff6f98], spd: 4, two: true, neck: 6 },
+  penguin: { penguin: true, spd: 3 },
+};
+function makeAnimal(kind) {
+  const sp = SPECIES[kind], g = new THREE.Group(), legs = []; let head = null;
+  if (sp.penguin) {
+    const b = pivot(0, 0, 0, g); part(4.5, 7, 4, 0x1f2328, 0, 3.8, 0, b); part(3.4, 5, 0.6, 0xffffff, 0, 3.5, -2.1, b); part(3.6, 3, 3.6, 0x1f2328, 0, 8.6, 0, b);
+    part(1.4, 0.8, 1.8, 0xf5a623, 0, 8.4, -2.4, b); part(1, 0.5, 2.4, 0xf5a623, -1.2, 0.3, -0.6, b); part(1, 0.5, 2.4, 0xf5a623, 1.2, 0.3, -0.6, b);
+    return { g, legs, head: null, body: b, sp, kind };
+  }
+  const [bw, bh, bd, bc] = sp.body, [lw, lh, lc] = sp.leg, y = lh + bh / 2;
+  part(bw, bh, bd, bc, 0, y, 0, g);
+  const lx = bw / 2 - lw / 2, lz = bd / 2 - lw;
+  const spots = sp.two ? [[-0.8, 0], [0.8, 0]] : [[-lx, -lz], [lx, -lz], [-lx, lz], [lx, lz]];
+  for (const [x, z] of spots) { const p = pivot(x, lh, z, g); part(lw, lh, lw, lc, 0, -lh / 2, 0, p); legs.push(p); }
+  const [hw, hh, hd, hc] = sp.head, ny = y + bh / 2 + (sp.neck || 0);
+  head = pivot(0, y + bh * 0.3, -bd / 2 + 0.5, g);
+  if (sp.neck) part(0.8, sp.neck + 2, 0.8, bc, 0, (sp.neck + 2) / 2, 0, head);
+  const hy = (sp.neck || 0) + (kind === "horse" ? 3 : hh * 0.35);
+  part(hw, hh, hd, hc, 0, hy, -hd / 2, head);
+  if (sp.mane) part(1, hh, 2, sp.mane, 0, hy + 1, 0.4, head);
+  if (sp.antler) { part(0.5, 4, 0.5, sp.antler, -1, hy + hh / 2 + 2, -0.5, head); part(0.5, 4, 0.5, sp.antler, 1, hy + hh / 2 + 2, -0.5, head); part(3.4, 0.5, 0.5, sp.antler, 0, hy + hh / 2 + 3.4, -0.5, head); }
+  if (sp.horn) { part(0.6, 2.4, 0.6, sp.horn, -0.8, hy + hh / 2 + 1, 0, head); part(0.6, 2.4, 0.6, sp.horn, 0.8, hy + hh / 2 + 1, 0, head); }
+  if (sp.ears) { part(1, 1.8, 0.6, sp.ears, -1.2, hy + hh / 2 + 0.8, -0.6, head); part(1, 1.8, 0.6, sp.ears, 1.2, hy + hh / 2 + 0.8, -0.6, head); part(1.2, 1, 1.4, 0xf3eee1, 0, hy - 0.6, -hd - 0.4, head); }
+  if (kind === "pig") part(2, 1.6, 0.8, 0xe07a8c, 0, hy - 0.4, -hd - 0.2, head);
+  if (sp.tail) { const t = pivot(0, y + 0.6, bd / 2, g); t.rotation.x = 0.5; part(2.6, 2.6, 7, sp.tail, 0, 0, 3.4, t); part(2.4, 2.4, 1.6, 0xf3eee1, 0, 0, 7.4, t); }
+  if (sp.extra) sp.extra(g, { y });
+  return { g, legs, head, body: null, sp, kind };
+}
+const ANIMALS = [];
+function landNear(cx, cz, R, lo, hi) { for (let k = 0; k < 200; k++) { const a = srnd(0, 6.283), r = Math.sqrt(srnd(0, 1)) * R, x = cx + Math.cos(a) * r, z = cz + Math.sin(a) * r, h = height(x, z); if (h >= lo && h <= hi && Math.abs(x - RUNWAY.x) > 330) return [x, z]; } return null; }
+function herd(kind, cx, cz, n, R, lo, hi, scale) {
+  const c = landNear(cx, cz, R * 0.5, lo, hi) || landNear(cx, cz, R * 1.5, lo, hi); if (!c) return;
+  for (let i = 0; i < n; i++) { const p = landNear(c[0], c[1], 80, lo, hi); if (!p) continue; const a = makeAnimal(kind); a.g.scale.setScalar(scale || 1);
+    a.g.position.set(p[0], ground(p[0], p[1]), p[1]); a.yaw = srnd(0, 6.28); a.g.rotation.y = a.yaw; scene.add(a.g);
+    Object.assign(a, { home: c, R: R, lo, hi, mode: "idle", timer: srnd(0, 3), ph: srnd(0, 6), run: 0 }); ANIMALS.push(a); }
+}
+herd("sheep", 1350, 200, 8, 400, 22, 200); herd("sheep", 1000, -150, 7, 400, 22, 200); herd("sheep", -200, -300, 7, 500, 22, 220);
+herd("cow", 1500, 500, 5, 400, 22, 200); herd("cow", 400, 300, 5, 400, 22, 200);
+herd("horse", -700, 500, 4, 500, 22, 200); herd("horse", 200, -1000, 4, 500, 22, 260);
+herd("pig", -150, 1100, 5, 250, 20, 200);
+herd("fox", 750, -650, 3, 350, 22, 400, 1.2); herd("fox", -1200, -200, 2, 400, 22, 300, 1.2);
+herd("penguin", IS.snow.x - IS.snow.r * 0.7, IS.snow.z + 300, 8, 300, 4, 60, 1.3); herd("penguin", IS.snow.x + IS.snow.r * 0.6, IS.snow.z + 500, 7, 300, 4, 60, 1.3);
+herd("deer", IS.snow.x - 500, IS.snow.z + 500, 5, 600, 40, 300); herd("deer", IS.snow.x + 500, IS.snow.z - 300, 4, 600, 40, 300);
+herd("goat", IS.volc.x - 700, IS.volc.z + 300, 5, 600, 30, 330); herd("goat", IS.volc.x + 500, IS.volc.z - 600, 4, 600, 30, 330);
+herd("flamingo", IS.trop.x + IS.trop.r * 0.6, IS.trop.z, 7, 400, 2, 25, 1.3); herd("flamingo", IS.trop.x, IS.trop.z + IS.trop.r * 0.6, 6, 400, 2, 25, 1.3);
+// 飛鳥（一群一群）
+const FLOCKS = [];
+function makeBird(c, wc, s) {
+  const g = new THREE.Group(); g.scale.setScalar(s);
+  const body = new THREE.Mesh(new THREE.ConeGeometry(1.1, 6, 4), mat(c)); body.rotation.x = -Math.PI / 2; g.add(body);
+  part(1.4, 1.2, 1.6, c, 0, 0.4, -2.6, g); part(0.5, 0.4, 1, 0xf5a623, 0, 0.3, -3.8, g);
+  const L = pivot(-0.6, 0.2, 0, g), R = pivot(0.6, 0.2, 0, g); part(6, 0.3, 2.4, wc, -3, 0, 0, L); part(6, 0.3, 2.4, wc, 3, 0, 0, R);
+  scene.add(g); return { g, L, R };
+}
+function flock(kind, cx, cz, R, alt, n, s) {
+  const look = { gull: [0xffffff, 0xb8c0c8], goose: [0x5a5048, 0x8a8070], pigeon: [0x8a90a0, 0x6a7080], parrot: null, eagle: [0x5a3d22, 0x3a2716] }[kind];
+  const pc = [[0xd8352a, 0x3b6dd8], [0x3ee69a, 0xf5c547], [0x3b6dd8, 0xf5c547]];
+  const f = { kind, c: [cx, cz], R, alt, yaw: srnd(0, 6.28), turn: 0, speed: kind === "eagle" ? 34 : kind === "goose" ? 46 : 38, p: new THREE.Vector3(cx + srnd(-R, R) * 0.5, alt, cz + srnd(-R, R) * 0.5), birds: [], flee: 0, tt: 0 };
+  for (let i = 0; i < n; i++) { const col = look || pc[i % 3]; const b = makeBird(col[0], col[1], s);
+    const row = Math.ceil(i / 2), side = i === 0 ? 0 : (i % 2 ? -1 : 1);
+    b.off = kind === "goose" ? new THREE.Vector3(side * row * 9, 0, row * 8) : new THREE.Vector3(srnd(-30, 30), srnd(-12, 12), srnd(-30, 30));
+    b.ph = srnd(0, 6.28); f.birds.push(b); }
+  FLOCKS.push(f);
+}
+for (let i = 0; i < 6; i++) { const a = i / 6 * 6.283; flock("gull", Math.cos(a) * 2300, Math.sin(a) * 2300, 700, srnd(70, 150), 6, 1.4); }
+flock("gull", IS.trop.x, IS.trop.z, 1200, 90, 6, 1.4); flock("gull", IS.city.x, IS.city.z, 1500, 120, 6, 1.4);
+for (let i = 0; i < 5; i++) flock("goose", srnd(-4000, 4000), srnd(-4000, 4000), 3500, srnd(300, 480), 7, 1.7);
+flock("pigeon", IS.city.x, IS.city.z, 600, 130, 10, 1.1); flock("pigeon", -300, 800, 400, 80, 8, 1.1);
+flock("parrot", IS.trop.x, IS.trop.z, 600, 70, 9, 1.2);
+flock("eagle", IS.snow.x, IS.snow.z, 500, 520, 1, 3); flock("eagle", IS.volc.x, IS.volc.z, 600, 480, 1, 3); flock("eagle", 750, -650, 500, 560, 1, 3);
+// 海豚和鯨魚
+const PODS = [];
+function makeDolphin(c) { const g = new THREE.Group(); const b = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 0.8, 12, 6), mat(c)); b.rotation.x = Math.PI / 2; g.add(b);
+  const n = new THREE.Mesh(new THREE.ConeGeometry(1.8, 3, 6), mat(c)); n.rotation.x = -Math.PI / 2; n.position.z = -7.4; g.add(n);
+  part(0.4, 3, 2.2, c, 0, 2, 0.5, g); part(5, 0.4, 1.8, c, 0, 0, 6.4, g); part(1.2, 0.6, 4, 0xe9f4ff, 0, -1.2, -1, g); scene.add(g); return g; }
+for (let i = 0; i < 6; i++) { const a = srnd(0, 6.283), r = srnd(2500, 4200), pod = { a, r, w: srnd(0.02, 0.035) * (i % 2 ? 1 : -1), d: [] };
+  for (let k = 0; k < 4; k++) pod.d.push({ g: makeDolphin(i % 3 ? 0x7a8ca8 : 0x8a9ab0), o: k * 0.22, s: srnd(-20, 20) }); PODS.push(pod); }
+const WHALES = [];
+for (let i = 0; i < 3; i++) { const g = new THREE.Group(); const b = new THREE.Mesh(new THREE.IcosahedronGeometry(14, 1), mat(0x3b4a5a)); b.scale.set(1, 0.55, 2.6); g.add(b);
+  part(26, 1.2, 8, 0x3b4a5a, 0, 0, 44, g); part(10, 2, 26, 0xc9d3dc, 0, -6, -6, g);
+  const spout = new THREE.Mesh(new THREE.ConeGeometry(5, 26, 6, 1, true), new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.8 })); spout.position.set(0, 18, -14); g.add(spout);
+  scene.add(g); WHALES.push({ g, spout, a: srnd(0, 6.28), r: [3000, 4600, 6200][i], w: 0.012 * (i % 2 ? 1 : -1), ph: srnd(0, 10) }); }
+const _v = new THREE.Vector3();
+function animateLife(t, dt) {
+  const P = S.p, cam = camera.position;
+  for (const a of ANIMALS) {
+    const x = a.g.position.x, z = a.g.position.z, far = Math.hypot(x - cam.x, z - cam.z);
+    a.g.visible = far < 3200; if (far > 2600) continue;
+    // 飛機低空飛過會被嚇跑
+    const pd = Math.hypot(P.x - x, P.z - z);
+    if (S.running && pd < 160 && P.y - a.g.position.y < 110 && a.run <= 0) { a.run = 2.5; a.yaw = Math.atan2(P.x - x, P.z - z); a.mode = "walk"; }
+    a.timer -= dt; a.run = Math.max(0, a.run - dt);
+    if (a.timer <= 0 && a.run <= 0) { const r = srnd(0, 1); a.mode = r < 0.45 ? "walk" : r < 0.8 ? "graze" : "idle"; a.timer = srnd(2, 6); if (a.mode === "walk") a.yaw += srnd(-1.2, 1.2); }
+    let sp = a.run > 0 ? a.sp.spd * 3 : a.mode === "walk" ? a.sp.spd : 0;
+    if (sp > 0) {
+      const dh = Math.hypot(x - a.home[0], z - a.home[1]);
+      if (dh > a.R) { const want = Math.atan2(-(a.home[0] - x), -(a.home[1] - z)); let d = want - a.yaw; while (d > Math.PI) d -= 6.283; while (d < -Math.PI) d += 6.283; a.yaw += clamp(d, -2, 2) * dt * 2; }
+      const nx = x - Math.sin(a.yaw) * sp * dt, nz = z - Math.cos(a.yaw) * sp * dt, h = height(nx, nz);
+      if (h < a.lo || h > a.hi || (Math.abs(nx - RUNWAY.x) < 300 && Math.abs(nz - RUNWAY.z) < 60)) { a.yaw += 2.5; sp = 0; } else { a.g.position.x = nx; a.g.position.z = nz; }
+    }
+    { let d = a.yaw - a.g.rotation.y; d = Math.atan2(Math.sin(d), Math.cos(d)); a.g.rotation.y += d * Math.min(1, dt * 4); }
+    a.g.position.y = ground(a.g.position.x, a.g.position.z);
+    const sw = sp > 0 ? Math.sin(t * sp * 0.9 + a.ph) * (a.run > 0 ? 0.9 : 0.5) : 0;
+    a.legs.forEach((l, i) => { l.rotation.x = (i % 2 ? sw : -sw) * (i > 1 ? -1 : 1); });
+    if (a.head) a.head.rotation.x += ((a.mode === "graze" && sp === 0 ? -0.8 : 0) - a.head.rotation.x) * Math.min(1, dt * 3);
+    if (a.body) { a.body.rotation.z = sp > 0 ? Math.sin(t * 9 + a.ph) * 0.18 : 0; if (a.run > 0) a.body.rotation.x = -0.6; else a.body.rotation.x *= 0.9; }
+  }
+  for (const f of FLOCKS) {
+    f.tt -= dt; if (f.tt <= 0) { f.tt = srnd(2, 5); f.turn = f.kind === "eagle" ? 0.35 : srnd(-0.4, 0.4); }
+    const dc = Math.hypot(f.p.x - f.c[0], f.p.z - f.c[1]);
+    if (dc > f.R) { const want = Math.atan2(-(f.c[0] - f.p.x), -(f.c[1] - f.p.z)); let d = want - f.yaw; while (d > Math.PI) d -= 6.283; while (d < -Math.PI) d += 6.283; f.yaw += clamp(d, -1, 1) * dt * 0.8; }
+    else f.yaw += f.turn * dt;
+    const near = f.p.distanceTo(P) < 90 && S.running; if (near) f.flee = 3;
+    f.flee = Math.max(0, f.flee - dt);
+    const v = f.speed * (f.flee > 0 ? 1.8 : 1);
+    f.p.x -= Math.sin(f.yaw) * v * dt; f.p.z -= Math.cos(f.yaw) * v * dt;
+    const gy = Math.max(f.alt, ground(f.p.x, f.p.z) + 50) + (f.flee > 0 ? 60 : 0); f.p.y += (gy + Math.sin(t * 0.3 + f.c[0]) * 15 - f.p.y) * Math.min(1, dt * 0.8);
+    const far = f.p.distanceTo(cam) > 4500;
+    for (const b of f.birds) {
+      b.g.visible = !far; if (far) continue;
+      _v.copy(b.off).applyAxisAngle(THREE.Object3D.DEFAULT_UP, f.yaw);
+      const spread = f.flee > 0 ? 1.8 : 1;
+      b.g.position.set(f.p.x + _v.x * spread, f.p.y + _v.y * spread + Math.sin(t * 1.3 + b.ph) * 3, f.p.z + _v.z * spread);
+      b.g.rotation.set(0, f.yaw + Math.sin(t * 0.7 + b.ph) * 0.08, -f.turn * 0.6, "YXZ");
+      const glide = f.kind === "eagle" || (f.kind === "gull" && Math.sin(t * 0.5 + b.ph) > 0.3);
+      const fl = glide && f.flee <= 0 ? Math.sin(t * 1.5 + b.ph) * 0.08 : Math.sin(t * (f.kind === "pigeon" || f.kind === "parrot" ? 16 : 9) + b.ph) * 0.7;
+      b.L.rotation.z = -fl; b.R.rotation.z = fl;
+    }
+  }
+  for (const pod of PODS) { pod.a += pod.w * dt;
+    for (const d of pod.d) { const a = pod.a + d.o * Math.sign(pod.w) * 0.02, x = Math.cos(a) * (pod.r + d.s), z = Math.sin(a) * (pod.r + d.s);
+      const ph = ((t * 0.45 + d.o) % 1), jump = ph < 0.4, k = ph / 0.4;
+      d.g.position.set(x, jump ? Math.sin(k * Math.PI) * 16 - 3 : -10, z);
+      d.g.visible = jump && Math.hypot(x - cam.x, z - cam.z) < 4500;
+      d.g.rotation.set(jump ? Math.cos(k * Math.PI) * 0.9 : 0, Math.atan2(-(-Math.sin(a)) * Math.sign(pod.w), -(Math.cos(a)) * Math.sign(pod.w)), 0, "YXZ"); } }
+  for (const w of WHALES) { w.a += w.w * dt; const x = Math.cos(w.a) * w.r, z = Math.sin(w.a) * w.r;
+    w.g.position.set(x, 1 + Math.sin(t * 0.4 + w.ph) * 2.5, z); w.g.rotation.y = Math.atan2(Math.sin(w.a) * Math.sign(w.w), -Math.cos(w.a) * Math.sign(w.w)) ;
+    const sp = (t + w.ph) % 9; w.spout.visible = sp < 1.6; const s = sp < 1.6 ? Math.sin(sp / 1.6 * Math.PI) : 0; w.spout.scale.set(0.4 + s * 0.6, Math.max(0.01, s), 0.4 + s * 0.6); w.spout.position.y = 4 + s * 13; }
+}
 // 雲
 const clouds = [];
 for (let i = 0; i < 120; i++) { const g = new THREE.Group(), n = 3 + Math.floor(srnd(0, 3));
@@ -237,6 +391,7 @@ const PLACES = [
 ].map((p) => ({ ...p, found: false }));
 function animateWorld(t, dt) {
   for (const f of ANIM) f(t, dt);
+  animateLife(t, dt);
   for (const s of SHIPS) { s.a += s.w * dt * 6; s.g.position.set(Math.cos(s.a) * s.r, s.big ? 0 : 0, Math.sin(s.a) * s.r); s.g.rotation.y = -s.a + (s.w > 0 ? 0 : Math.PI); s.g.position.y = Math.sin(t * 1.5 + s.r) * 0.8; }
   for (const b of BALLOONS) { b.g.position.y = b.y + Math.sin(t * 0.4 + b.p) * 20; b.g.position.x += Math.sin(b.p) * dt * 4; b.g.position.z += Math.cos(b.p) * dt * 4; }
 }

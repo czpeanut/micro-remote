@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="robots" content="noindex" />
+  <title>遊戲體驗版｜酷丁狐的科技實驗室</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Space+Mono:wght@700&display=swap" />
+  <link rel="stylesheet" href="kuding.css" />
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--kd-paper); color: var(--kd-ink); font-family: var(--kd-font); font-weight: 500;
+      background-image: linear-gradient(var(--kd-grid) 1px, transparent 1px), linear-gradient(90deg, var(--kd-grid) 1px, transparent 1px); background-size: 32px 32px; }
+    .wrap { max-width: 1240px; margin: 0 auto; padding: 28px max(16px, env(safe-area-inset-left, 0px)) 60px; }
+    .mono { font-family: var(--kd-mono); font-weight: 700; letter-spacing: .06em; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 26px; }
+    h1 { margin: 0; font-size: clamp(26px, 4vw, 38px); font-weight: 900; }
+    .lead { margin: 8px 0 0; max-width: 720px; line-height: 1.8; }
+    .back { display: inline-block; border: 3px solid var(--kd-ink); background: var(--kd-paper-2); padding: 8px 16px; font-weight: 900; text-decoration: none; color: var(--kd-ink); box-shadow: 4px 4px 0 var(--kd-ink); }
+    .note { border: 3px dashed var(--kd-orange); background: var(--kd-paper-2); padding: 12px 16px; margin: 0 0 26px; line-height: 1.8; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 24px; }
+    .tool { background: var(--kd-paper-2); border: 3px solid var(--kd-ink); box-shadow: 7px 7px 0 var(--kd-ink); display: flex; flex-direction: column; min-width: 0; }
+    .tool .shot { position: relative; aspect-ratio: 16 / 10; border-bottom: 3px solid var(--kd-ink); background: #04121e center / cover no-repeat; }
+    .tool .shot span { position: absolute; left: 10px; top: 10px; background: var(--kd-ink); color: #fff; font-size: 12px; padding: 3px 8px; }
+    .tool .body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+    .tool h3 { margin: 0; font-size: 21px; font-weight: 900; }
+    .tool p { margin: 0; line-height: 1.7; font-size: 15px; }
+    .keys { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+    .keys li { display: flex; gap: 10px; align-items: center; font-size: 14px; }
+    kbd { min-width: 64px; text-align: center; font-family: var(--kd-font); font-weight: 900; border: 2px solid var(--kd-ink); border-bottom-width: 4px; background: #fff; padding: 2px 8px; border-radius: 6px; }
+    .btn { margin-top: auto; align-self: flex-start; background: var(--kd-orange); color: #fff; border: 3px solid var(--kd-ink); padding: 8px 18px; font-weight: 900; text-decoration: none; box-shadow: 4px 4px 0 var(--kd-ink); }
+    .btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--kd-ink); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div><span class="mono">KUDING LAB / PLAY</span><h1>遊戲體驗版</h1>
+        <p class="lead">不用 micro:bit，直接用鍵盤玩實驗室裡的遊戲。給老師示範、招生體驗用。</p></div>
+      <a class="back" href="index.html">回實驗室</a>
+    </header>
+    <p class="note">體驗版只是把「先連接 micro:bit」的限制拿掉，上課用的網頁和設定都沒有改。電腦鍵盤最順手；平板請接藍牙鍵盤，或用畫面上的按鈕（有按鈕的遊戲）。</p>
+    <div class="grid">
+      <article class="tool">
+        <div class="shot" style="background-image:url('assets/shot-cockpit.webp')"><span class="mono">主題1</span></div>
+        <div class="body"><h3>潛艇出航</h3><p>5×5 漆黑海底撿珍珠。體驗版由網頁藏一顆看不見的水雷，撞到會爆炸、回到 (0, 0)。</p><ul class="keys"><li><kbd>方向鍵</kbd><span>移動潛艇</span></li><li><kbd>Esc</kbd><span>回選單</span></li></ul>
+          <a class="btn" href="cockpit.html?test=1">開始體驗</a></div>
+      </article>
+      <article class="tool">
+        <div class="shot" style="background-image:url('assets/shot-sub.webp')"><span class="mono">主題1</span></div>
+        <div class="body"><h3>深海探險</h3><p>側面視角的深海，有水的慣性。駕駛訓練收集珍珠、雙屏尋寶找寶箱。</p><ul class="keys"><li><kbd>方向鍵</kbd><span>駕駛潛艇</span></li><li><kbd>空白鍵</kbd><span>發射聲納</span></li></ul>
+          <a class="btn" href="sub.html">開始體驗</a></div>
+      </article>
+      <article class="tool">
+        <div class="shot" style="background-image:url('assets/shot-sonar.webp')"><span class="mono">主題1</span></div>
+        <div class="body"><h3>聲納尋寶</h3><p>10×10 海底躲鯊魚、找寶箱。體驗版沒有 micro:bit 雷達，只能碰運氣。</p><ul class="keys"><li><kbd>方向鍵</kbd><span>移動潛艇</span></li><li><kbd>Esc</kbd><span>回選單</span></li></ul>
+          <a class="btn" href="sonar.html">開始體驗</a></div>
+      </article>
+      <article class="tool">
+        <div class="shot" style="background-image:url('assets/shot-lab.webp')"><span class="mono">主題1</span></div>
+        <div class="body"><h3>深海規則實驗室</h3><p>先用積木拼規則，再下水試玩。</p><ul class="keys"><li><kbd>方向鍵</kbd><span>駕駛潛艇</span></li><li><kbd>空白鍵</kbd><span>按鈕 A</span></li><li><kbd>Esc</kbd><span>回到積木</span></li></ul>
+          <a class="btn" href="lab.html">開始體驗</a></div>
+      </article>
+      <article class="tool">
+        <div class="shot" style="background-image:url('assets/shot-space.webp')"><span class="mono">主題2</span></div>
+        <div class="body"><h3>超音波太空梭</h3><p>手的高度控制太空梭上下，躲隕石、撿寶石。</p><ul class="keys"><li><kbd>↑ ↓</kbd><span>太空梭上下</span></li></ul>
+          <a class="btn" href="space.html?test=1">開始體驗</a></div>
+      </article>
+      <article class="tool">
+        <div class="shot" style="background-image:url('assets/shot-sports.webp')"><span class="mono">主題2</span></div>
+        <div class="body"><h3>micro:bit 運動會</h3><p>保齡球、網球、棒球。先瞄準，再蓄力揮出去。</p><ul class="keys"><li><kbd>← →</kbd><span>瞄準</span></li><li><kbd>按住空白鍵</kbd><span>蓄力，放開就揮</span></li></ul>
+          <a class="btn" href="sports.html?test=1">開始體驗</a></div>
+      </article>
+      <article class="tool">
+        <div class="shot" style="background-image:url('assets/shot-race.webp')"><span class="mono">主題2</span></div>
+        <div class="body"><h3>旋鈕賽車</h3><p>仿 3D 卡丁車，四條賽道、三圈計時。</p><ul class="keys"><li><kbd>← →</kbd><span>方向盤</span></li><li><kbd>↑</kbd><span>油門</span></li><li><kbd>↓</kbd><span>煞車</span></li><li><kbd>D／E</kbd><span>五鍵的 D、E</span></li></ul>
+          <a class="btn" href="race.html?test=1">開始體驗</a></div>
+      </article>
+      <article class="tool">
+        <div class="shot" style="background-image:url('assets/shot-flight.webp')"><span class="mono">主題2</span></div>
+        <div class="body"><h3>酷丁狐飛行島</h3><p>從跑道起飛，在 3D 群島上空飛行。</p><ul class="keys"><li><kbd>方向鍵</kbd><span>傾斜機身</span></li><li><kbd>W／S</kbd><span>油門加／減</span></li></ul>
+          <a class="btn" href="flight.html?test=1">開始體驗</a></div>
+      </article>
+      <article class="tool">
+        <div class="shot" style="background-image:url('assets/shot-maestro.webp')"><span class="mono">主題2</span></div>
+        <div class="body"><h3>體感指揮家</h3><p>揮一下就是一拍，樂團跟著你的速度演奏。</p><ul class="keys"><li><kbd>空白鍵</kbd><span>打一拍</span></li><li><kbd>← →</kbd><span>傾斜，讓聲部變大聲</span></li></ul>
+          <a class="btn" href="maestro.html?test=1">開始體驗</a></div>
+      </article>
+    </div>
+  </div>
+</body>
+</html>

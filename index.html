@@ -189,7 +189,7 @@
     <div class="wrap">
       <a class="brand" href="#top">
         <span class="kd-logo" aria-hidden="true"></span>
-        <span><small class="mono">魔法科學班 / MAGIC SCIENCE CLASS</small><b>酷丁狐的科技實驗室</b></span>
+        <span><small class="mono">魔法科學班 / MAGIC SCIENCE CLASS</small><b><span id="kdDoor">酷丁狐</span>的科技實驗室</b></span>
       </a>
       <nav class="main" aria-label="主選單">
         <a href="#t1">主題1 深海探險隊</a>
@@ -490,5 +490,9 @@
   })();
 </script>
 <script src="install.js"></script>
+  <script>
+    /* 暗門：按一下標題的「酷丁狐」三個字，進入遊戲體驗版 */
+    document.getElementById("kdDoor").addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); location.href = "play.html"; });
+  </script>
 </body>
 </html>

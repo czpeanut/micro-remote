@@ -11,6 +11,8 @@ const $ = (id) => document.getElementById(id);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rnd = (a, b) => a + Math.random() * (b - a);
 const START = [0, 0], HOME = [0, 0], N = 5, MW = N + 2;
+// 網址加 ?test=1：遊戲體驗版（不用 micro:bit，鍵盤玩；網頁自己藏一顆看不見的水雷）。一般上課不受影響
+const TEST = /[?&]test=1/.test(location.search);
 const FACE_ANG = [-Math.PI / 2, 0, Math.PI / 2, Math.PI]; // 北 東 南 西
 const CMD = { f: [0, -1, 0], r: [1, 0, 1], b: [0, 1, 2], l: [-1, 0, 3] };
 
@@ -192,8 +194,10 @@ function command(c) {
   hud();
   const b = document.querySelector(`.pad [data-c="${c}"]`); if (b) { b.classList.add("hit"); setTimeout(() => b.classList.remove("hit"), 140); }
 }
+function moveTestMine() { do { S.testMine = [1 + Math.floor(Math.random() * (N - 1)), 1 + Math.floor(Math.random() * (N - 1))]; } while (S.pearls.some((p) => p.gx === S.testMine[0] && p.gy === S.testMine[1])); }
 function arrive() {
   S.pendingArrive = null;
+  if (S.demo && S.testMine && S.gx === S.testMine[0] && S.gy === S.testMine[1] && S.running && !S.boom) { moveTestMine(); explode(); return; }
   const p = S.pearls.findIndex((q) => q.gx === S.gx && q.gy === S.gy);
   if (p >= 0 && S.running) { S.pearls.splice(p, 1); S.score++; sfx.pearl(); toast("拿到珍珠！"); placePearl(); hud(); }
 }
@@ -241,12 +245,13 @@ function finishBoom() {
 
 /* ---------------- 流程 ---------------- */
 function updateModes() {
-  const ok = !!rxChar;
+  const ok = !!rxChar || TEST;
   ["modeFree", "modeTime"].forEach((id) => $(id).classList.toggle("locked", !ok));
   const n = $("needConnect"); if (n) n.hidden = ok;
 }
 function start(mode, demo) {
   audio();
+  if (TEST && !rxChar) demo = true;
   if (!demo && !rxChar) {
     toast("先按右上角「連接 micro:bit」，連上之後才能出航");
     const b = $("connectBtn"); b.classList.remove("pulse"); void b.offsetWidth; b.classList.add("pulse");
@@ -256,6 +261,7 @@ function start(mode, demo) {
   S.mode = mode; S.running = true; S.score = 0; S.hits = 0; S.left = 60; S.boom = 0; S.cracks = [];
   S.gx = START[0]; S.gy = START[1]; S.face = 0; S.x = START[0] + 1.5; S.y = START[1] + 1.5; S.ang = FACE_ANG[0]; S.fade = 1;
   S.pearls = []; for (let i = 0; i < 3; i++) placePearl();
+  if (S.demo) moveTestMine();
   S.fish = []; for (let i = 0; i < 6; i++) S.fish.push({ x: rnd(1.3, 5.7), y: rnd(1.3, 5.7), a: rnd(0, 6.28), sp: rnd(0.3, 0.6), z: rnd(-0.25, 0.1) });
   $("menu").hidden = true; $("endOv").hidden = true; $("timeBox").hidden = mode !== "time";
   clearInterval(S.timer);

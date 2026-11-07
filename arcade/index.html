@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0d1b2a" />
+  <title>酷丁狐遊戲工坊</title>
+  <link rel="icon" href="../icon.svg" type="image/svg+xml" />
+  <style>
+    :root { --ink: #eef5ff; --muted: #9db3c8; --line: rgba(160,210,255,.18); --amber: #ffc94a; --coral: #ff6f6f; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: radial-gradient(1200px 600px at 50% -10%, #1d3b5a, #08131e 70%); color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif; }
+    .wrap { max-width: 1040px; margin: 0 auto; padding: 28px 16px 48px; }
+    header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    header h1 { margin: 0; font-size: clamp(24px, 4vw, 34px); letter-spacing: 2px; }
+    header .back { color: var(--muted); text-decoration: none; font-size: 14px; border: 1px solid var(--line); padding: 6px 12px; border-radius: 999px; }
+    .lead { color: var(--muted); line-height: 1.8; margin: 10px 0 26px; font-size: 15px; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 18px; }
+    .card { background: #13263a; border: 1px solid var(--line); border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; }
+    .card .art { height: 150px; display: flex; align-items: center; justify-content: center; position: relative; }
+    .card .art canvas { width: 96px; height: 96px; image-rendering: pixelated; filter: drop-shadow(0 6px 0 rgba(0,0,0,.25)); }
+    .card .tag { position: absolute; top: 12px; left: 12px; background: rgba(0,0,0,.35); padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+    .card .body { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+    .card h2 { margin: 0; font-size: 21px; }
+    .card p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.7; flex: 1; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn { border: 1px solid rgba(95,225,255,.45); background: rgba(95,225,255,.12); color: var(--ink); font: 700 14px/1 inherit; font-family: inherit;
+      padding: 10px 16px; border-radius: 999px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; }
+    .btn:hover { background: rgba(95,225,255,.22); }
+    .btn.amber { background: var(--amber); border-color: var(--amber); color: #2b1d00; }
+    .btn.small { padding: 7px 12px; font-size: 13px; }
+    .note { margin-top: 28px; color: var(--muted); font-size: 13px; line-height: 1.8; border-top: 1px solid var(--line); padding-top: 16px; }
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 10; }
+    .modal[hidden] { display: none; }
+    .box { background: #13263a; border: 1px solid var(--line); border-radius: 16px; padding: 22px; width: min(400px, 100%); }
+    .box h3 { margin: 0 0 4px; font-size: 20px; }
+    .box .sub { color: var(--muted); font-size: 13px; margin-bottom: 14px; }
+    .seg { display: flex; background: #0b1a26; border-radius: 999px; padding: 4px; margin-bottom: 14px; }
+    .seg button { flex: 1; border: 0; background: transparent; color: var(--muted); font: 700 14px/1 inherit; font-family: inherit; padding: 9px; border-radius: 999px; cursor: pointer; }
+    .seg button.on { background: var(--amber); color: #2b1d00; }
+    label { display: block; font-size: 13px; color: var(--muted); margin: 10px 0 5px; }
+    input { width: 100%; font: 700 18px/1.2 inherit; font-family: inherit; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: #0b1a26; color: var(--ink); }
+    input:focus { outline: 2px solid var(--amber); }
+    .msg { min-height: 20px; font-size: 13.5px; margin: 10px 0 4px; color: var(--coral); line-height: 1.5; }
+    .msg.ok { color: #9be7b9; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header><a class="back" href="../index.html">← 酷丁狐的科技實驗室</a><h1>酷丁狐遊戲工坊</h1></header>
+    <p class="lead">寒訓三個 Arcade 小遊戲的積木版：左邊拼積木，右邊馬上就能玩。<br>第一次用學號登入會建立帳號，之後輸入同一組學號和密碼，就能打開自己的遊戲繼續做；家長也可以用同一組學號密碼看作品、玩遊戲。</p>
+    <div class="cards" id="cards"></div>
+    <div class="note" id="note"></div>
+  </div>
+
+  <div class="modal" id="modal" hidden>
+    <form class="box" id="form" autocomplete="off">
+      <h3 id="fTitle"></h3><div class="sub" id="fSub"></div>
+      <div class="seg"><button type="button" id="mStu" class="on">我是學生</button><button type="button" id="mPar">家長看作品</button></div>
+      <label for="sid">學號</label><input id="sid" maxlength="30" inputmode="text" required />
+      <label for="pw">密碼（4 位數字）</label><input id="pw" maxlength="4" inputmode="numeric" pattern="\d{4}" type="password" required />
+      <div id="newBox" hidden>
+        <label for="pw2">再輸入一次密碼</label><input id="pw2" maxlength="4" inputmode="numeric" type="password" />
+        <label for="name">名字（給家長和老師看的）</label><input id="name" maxlength="20" />
+      </div>
+      <div class="msg" id="msg"></div>
+      <div class="row" style="justify-content:flex-end;margin-top:8px">
+        <button type="button" class="btn" id="cancel">取消</button>
+        <button type="submit" class="btn amber" id="go">進入</button>
+      </div>
+    </form>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="assets.js"></script>
+  <script src="engine.js"></script>
+  <script src="store.js"></script>
+  <script>
+  (function () {
+    const $ = (id) => document.getElementById(id), ST = window.ArcStore, E = window.ArcEngine;
+    const GAMES = [
+      { id: "low", name: "小猴跑酷", grade: "低年級", color: "#ff8135", hero: "monkey", desc: "小猴一直往前跑，按 A 鍵跳過小樹，撐過 30 秒就贏了！" },
+      { id: "mid", name: "怪物捕手", grade: "中年級", color: "#249ca3", hero: "hero", desc: "在城堡房間裡追著亂跑的小石怪，30 秒內抓到越多越好！" },
+      { id: "high", name: "跳台大冒險", grade: "高年級", color: "#8e2ec4", hero: "jumper", desc: "左右走、按 A 跳，撿寶石、踩扁史萊姆、躲開尖刺和岩漿，走到寶箱就過關！" },
+    ];
+    const cards = $("cards");
+    for (const g of GAMES) {
+      const c = document.createElement("div"); c.className = "card";
+      c.innerHTML = `<div class="art" style="background:linear-gradient(160deg, ${g.color}, #13263a)"><span class="tag">${g.grade}</span><canvas width="16" height="16"></canvas></div>
+        <div class="body"><h2>${g.name}</h2><p>${g.desc}</p><div class="row"><button class="btn amber" data-m="stu">學生登入</button><button class="btn" data-m="par">家長看作品</button><a class="btn small" href="studio.html?c=${g.id}" style="margin-left:auto">訪客試玩</a></div></div>`;
+      const im = E.img(g.hero), cv = c.querySelector("canvas"); cv.width = im.w; cv.height = im.h; cv.getContext("2d").drawImage(im.canvas, 0, 0);
+      c.querySelector('[data-m="stu"]').onclick = () => open(g, false);
+      c.querySelector('[data-m="par"]').onclick = () => open(g, true);
+      cards.appendChild(c);
+    }
+    $("note").innerHTML = ST.remote
+      ? "作品存在魔法科學班的雲端試算表。忘記密碼請找老師。"
+      : "目前是<b>本機模式</b>：作品只存在這台電腦的瀏覽器裡，換電腦就看不到（雲端存檔還沒設定）。";
+
+    let G = null, parent = false, creating = false;
+    function mode(p) {
+      parent = p; creating = false; $("newBox").hidden = true; $("msg").textContent = "";
+      $("mStu").classList.toggle("on", !p); $("mPar").classList.toggle("on", p);
+      $("fSub").textContent = p ? "輸入孩子的學號和密碼，就能看到他拼的積木、玩他做的遊戲" : "第一次登入會建立帳號；之後用同一組學號和密碼回來";
+      $("go").textContent = p ? "看作品" : "進入";
+    }
+    function open(g, p) {
+      G = g; $("fTitle").textContent = g.grade + "「" + g.name + "」"; mode(p);
+      $("pw").value = ""; $("pw2").value = ""; $("modal").hidden = false; setTimeout(() => $("sid").focus(), 30);
+    }
+    $("mStu").onclick = () => mode(false); $("mPar").onclick = () => mode(true);
+    $("cancel").onclick = () => ($("modal").hidden = true);
+    const say = (t, ok) => { $("msg").textContent = t; $("msg").className = "msg" + (ok ? " ok" : ""); };
+    $("form").onsubmit = async (e) => {
+      e.preventDefault();
+      const sid = $("sid").value.trim(), pw = $("pw").value.trim();
+      const bad = ST.check(G.id, sid, pw); if (bad) return say(bad);
+      $("go").disabled = true; say("連線中…", true);
+      try {
+        if (creating) {
+          if ($("pw2").value.trim() !== pw) return say("兩次密碼不一樣");
+          const name = $("name").value.trim(); if (!name) return say("請輸入名字");
+          const r = await ST.login(G.id, sid, pw, { create: true, name });
+          if (!r.ok) return say(r.err || "建立失敗");
+          return enter({ course: G.id, sid, pw, name, data: r.data || "" });
+        }
+        const r = await ST.login(G.id, sid, pw);
+        if (!r.ok) return say(r.err || "登入失敗");
+        if (!r.exists) {
+          if (parent) return say("找不到這個學號的作品，請確認學號，或請孩子先登入做遊戲");
+          creating = true; $("newBox").hidden = false; $("pw2").focus();
+          return say("這是新的學號：再輸入一次密碼、填名字，就會建立帳號（密碼要記住喔）", true);
+        }
+        enter({ course: G.id, sid, pw, name: r.name || "", data: r.data || "", view: parent });
+      } finally { $("go").disabled = false; }
+    };
+    function enter(s) { ST.setSession(s); location.href = "studio.html?c=" + s.course; }
+    // 從編輯畫面按「登入」回來時，直接打開那個遊戲的登入框
+    const c = new URLSearchParams(location.search).get("c");
+    const g0 = GAMES.find((g) => g.id === c); if (g0) open(g0, false);
+  })();
+  </script>
+</body>
+</html>

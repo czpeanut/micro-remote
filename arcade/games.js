@@ -29,15 +29,15 @@ window.ARC_GAMES = (function () {
   const FUNCS = { kind: "category", name: "函式", colour: "#995ba5", custom: "PROCEDURE" };
   const spriteIn = (name) => ({ S: sv(name || "mySprite") });
 
-  /* ===================== 低年級：小猴跑酷 ===================== */
+  /* ===================== 低年級：酷丁狐跑酷 ===================== */
   const low = {
-    id: "low", name: "小猴跑酷", grade: "低年級", color: "#ff8135", hero: "monkey",
-    desc: "小猴一直往前跑，按 A 鍵跳過小樹，撐過 30 秒就贏了！",
+    id: "low", name: "酷丁狐跑酷", grade: "低年級", color: "#ff8135", hero: "foxL",
+    desc: "酷丁狐一直往前跑，按 A 鍵跳過小樹，撐過 30 秒就贏了！",
     keys: "A 鍵（空白鍵）跳",
     toolbox: {
       kind: "categoryToolbox", contents: [
         cat("角色", C.sp, [
-          t("a_create", { f: { VAR: { name: "mySprite" }, IMG: "monkey", KIND: "Player" } }),
+          t("a_create", { f: { VAR: { name: "mySprite" }, IMG: "foxL", KIND: "Player" } }),
           t("a_pos", { i: { ...spriteIn(), X: num(130), Y: num(70) } }),
           t("a_set", { f: { P: "ay" }, i: { ...spriteIn(), V: num(130) } }),
           t("a_set", { f: { P: "vy" }, i: { ...spriteIn(), V: num(-100) } }),
@@ -51,7 +51,7 @@ window.ARC_GAMES = (function () {
           t("a_get", { f: { P: "y" }, i: spriteIn() }),
         ]),
         cat("控制器", C.ctl, [t("a_button", { f: { BTN: "A", EV: "pressed" } }), t("a_pressed")]),
-        cat("動畫", C.anim, [t("a_anim", { f: { ANIM: "monkeyRun" }, i: spriteIn() })]),
+        cat("動畫", C.anim, [t("a_anim", { f: { ANIM: "foxLeft" }, i: spriteIn() })]),
         cat("場景", C.scene, [t("a_bg_img", { f: { BG: "city" } }), t("a_bg_color", { f: { COLOR: "9" } }), t("a_scroll", { i: { VX: num(50), VY: num(0) } })]),
         cat("遊戲", C.game, [t("a_start"), t("a_interval", { f: { MS: 2000 } }), t("a_gameover"), t("a_gameover", { f: { WIN: true } }), t("a_sound")]),
         cat("資訊", C.info, [t("a_score_change", { i: { V: num(1) } }), t("a_score_set", { i: { V: num(0) } }), t("a_countdown", { i: { V: num(30) } }), t("a_cd_end")]),
@@ -60,9 +60,9 @@ window.ARC_GAMES = (function () {
     },
     answer: ws([
       hat("a_start", {}, [
-        b("a_create", { VAR: { name: "mySprite" }, IMG: "monkey", KIND: "Player" }),
+        b("a_create", { VAR: { name: "mySprite" }, IMG: "foxL", KIND: "Player" }),
         b("a_pos", {}, { S: sv("mySprite"), X: num(130), Y: num(70) }),
-        b("a_anim", { ANIM: "monkeyRun", MS: 100, LOOP: true }, { S: sv("mySprite") }),
+        b("a_anim", { ANIM: "foxLeft", MS: 100, LOOP: true }, { S: sv("mySprite") }),
         b("a_bg_img", { BG: "city" }),
         b("a_scroll", {}, { VX: num(50), VY: num(0) }),
         b("a_set", { P: "ay" }, { S: sv("mySprite"), V: num(130) }),
@@ -88,13 +88,13 @@ window.ARC_GAMES = (function () {
   /* ===================== 中年級：怪物捕手 ===================== */
   const walk = (btn, anim, xy) => hat("a_button", { BTN: btn, EV: "pressed" }, [b("a_anim", { ANIM: anim, MS: 100, LOOP: true }, { S: sv("mySprite") })], xy);
   const mid = {
-    id: "mid", name: "怪物捕手", grade: "中年級", color: "#249ca3", hero: "hero",
-    desc: "在城堡房間裡追著亂跑的小石怪，30 秒內抓到越多越好！",
+    id: "mid", name: "怪物捕手", grade: "中年級", color: "#249ca3", hero: "rabbit",
+    desc: "灰兔在城堡房間裡追著亂跑的小石怪，30 秒內抓到越多越好！",
     keys: "方向鍵移動",
     toolbox: {
       kind: "categoryToolbox", contents: [
         cat("角色", C.sp, [
-          t("a_create", { f: { VAR: { name: "mySprite" }, IMG: "hero", KIND: "Player" } }),
+          t("a_create", { f: { VAR: { name: "mySprite" }, IMG: "rabbit", KIND: "Player" } }),
           t("a_create", { f: { VAR: { name: "myEnemy" }, IMG: "rock", KIND: "Enemy" } }),
           t("a_vel", { i: { ...spriteIn("myEnemy"), VX: num(40), VY: num(40) } }),
           t("a_flag", { f: { F: "bounce" }, i: spriteIn("myEnemy") }),
@@ -105,7 +105,7 @@ window.ARC_GAMES = (function () {
           t("a_say", { i: { ...spriteIn(), T: txt("抓到了！"), MS: num(500) } }),
         ]),
         cat("控制器", C.ctl, [t("a_move", { i: { ...spriteIn(), VX: num(100), VY: num(100) } }), t("a_button", { f: { BTN: "up", EV: "pressed" } }), t("a_pressed")]),
-        cat("動畫", C.anim, [t("a_anim", { f: { ANIM: "heroBack" }, i: spriteIn() }), t("a_anim_stop", { i: spriteIn() })]),
+        cat("動畫", C.anim, [t("a_anim", { f: { ANIM: "rabbitBack" }, i: spriteIn() }), t("a_anim_stop", { i: spriteIn() })]),
         cat("場景", C.scene, [
           t("a_tilemap", { f: { MAP: "room" } }), t("a_camera", { i: spriteIn() }),
           t("a_place", { i: { S: sv("myEnemy"), LOC: { block: t("a_loc", { i: { C: num(8), R: num(8) } }) } } }),
@@ -119,7 +119,7 @@ window.ARC_GAMES = (function () {
     answer: ws([
       hat("a_start", {}, [
         b("a_tilemap", { MAP: "room" }),
-        b("a_create", { VAR: { name: "mySprite" }, IMG: "hero", KIND: "Player" }),
+        b("a_create", { VAR: { name: "mySprite" }, IMG: "rabbit", KIND: "Player" }),
         b("a_move", {}, { S: sv("mySprite"), VX: num(100), VY: num(100) }),
         b("a_camera", {}, { S: sv("mySprite") }),
         b("a_create", { VAR: { name: "myEnemy" }, IMG: "rock", KIND: "Enemy" }),
@@ -128,7 +128,7 @@ window.ARC_GAMES = (function () {
         b("a_score_set", {}, { V: num(0) }),
         b("a_countdown", {}, { V: num(30) }),
       ], [30, 30]),
-      walk("up", "heroBack", [520, 30]), walk("left", "heroLeft", [520, 130]), walk("right", "heroRight", [520, 230]), walk("down", "heroFront", [520, 330]),
+      walk("up", "rabbitBack", [520, 30]), walk("left", "rabbitLeft", [520, 130]), walk("right", "rabbitRight", [520, 230]), walk("down", "rabbitFront", [520, 330]),
       hat("a_interval", { MS: 1000 }, [b("a_vel", {}, { S: sv("myEnemy"), VX: rnd(-40, 40), VY: rnd(-40, 40) })], [30, 420]),
       hat("a_overlap", { KIND: "Player", KIND2: "Enemy" }, [
         b("a_score_change", {}, { V: num(1) }),
@@ -142,13 +142,13 @@ window.ARC_GAMES = (function () {
   /* ===================== 高年級：跳台大冒險 ===================== */
   const call = () => b("procedures_callnoreturn", {}, {}, { extraState: { name: "受傷" } });
   const high = {
-    id: "high", name: "跳台大冒險", grade: "高年級", color: "#8e2ec4", hero: "jumper",
-    desc: "左右走、按 A 跳，撿寶石、踩扁史萊姆、躲開尖刺和岩漿，走到寶箱就過關！",
+    id: "high", name: "跳台大冒險", grade: "高年級", color: "#8e2ec4", hero: "owl",
+    desc: "貓頭鷹左右走、按 A 跳，撿寶石、踩扁史萊姆、躲開尖刺和岩漿，走到寶箱就過關！",
     keys: "◀ ▶ 移動、A 鍵（空白鍵）跳",
     toolbox: {
       kind: "categoryToolbox", contents: [
         cat("角色", C.sp, [
-          t("a_create", { f: { VAR: { name: "mySprite" }, IMG: "jumper", KIND: "Player" } }),
+          t("a_create", { f: { VAR: { name: "mySprite" }, IMG: "owl", KIND: "Player" } }),
           t("a_create", { f: { VAR: { name: "myEnemy" }, IMG: "slime", KIND: "Enemy" } }),
           t("a_set", { f: { P: "ay" }, i: { ...spriteIn(), V: num(350) } }),
           t("a_set", { f: { P: "vy" }, i: { ...spriteIn(), V: num(-200) } }),
@@ -181,7 +181,7 @@ window.ARC_GAMES = (function () {
       hat("a_start", {}, [
         b("a_bg_color", { COLOR: "9" }),
         b("a_tilemap", { MAP: "level1" }),
-        b("a_create", { VAR: { name: "mySprite" }, IMG: "jumper", KIND: "Player" }),
+        b("a_create", { VAR: { name: "mySprite" }, IMG: "owl", KIND: "Player" }),
         b("a_move", {}, { S: sv("mySprite"), VX: num(80), VY: num(0) }),
         b("a_place", {}, { S: sv("mySprite"), LOC: { block: b("a_loc", {}, { C: num(1), R: num(5) }) } }),
         b("a_camera", {}, { S: sv("mySprite") }),

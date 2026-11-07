@@ -84,7 +84,7 @@ window.ArcEngine = (function () {
       this.x = W / 2 + W0.cam.x; this.y = H / 2 + W0.cam.y; this.vx = 0; this.vy = 0; this.ax = 0; this.ay = 0;
       this.stay = false; this.bounce = false; this.ghost = false; this.auto = false; this.dead = false; this.hit = {}; this.anim = null; this.sayT = null; this.z = 0;
     }
-    setImg(key) { this.im = img(key) || img("monkey"); }
+    setImg(key) { this.im = img(key) || img("fox"); }
     get width() { return this.im.w; } get height() { return this.im.h; }
     get left() { return this.x - this.im.w / 2; } set left(v) { this.x = v + this.im.w / 2; }
     get right() { return this.x + this.im.w / 2; } set right(v) { this.x = v - this.im.w / 2; }

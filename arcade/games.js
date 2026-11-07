@@ -161,7 +161,8 @@ window.ARC_GAMES = (function () {
           t("a_ev_other"), t("a_ev_sprite"),
           t("a_destroy", { f: { FX: "disintegrate" }, i: { S: ev("a_ev_other") } }),
         ]),
-        cat("控制器", C.ctl, [t("a_move", { i: { ...spriteIn(), VX: num(80), VY: num(0) } }), t("a_button", { f: { BTN: "A", EV: "pressed" } }), t("a_pressed")]),
+        cat("控制器", C.ctl, [t("a_move", { i: { ...spriteIn(), VX: num(80), VY: num(0) } }), t("a_button", { f: { BTN: "A", EV: "pressed" } }), t("a_button", { f: { BTN: "left", EV: "pressed" } }), t("a_pressed")]),
+        cat("動畫", C.anim, [t("a_anim", { f: { ANIM: "owlLeft" }, i: spriteIn() }), t("a_anim", { f: { ANIM: "owlRight" }, i: spriteIn() }), t("a_anim_stop", { i: spriteIn() })]),
         cat("場景", C.scene, [
           t("a_bg_color", { f: { COLOR: "9" } }), t("a_tilemap", { f: { MAP: "level1" } }), t("a_camera", { i: spriteIn() }),
           t("a_place", { i: { ...spriteIn(), LOC: { block: t("a_loc", { i: { C: num(1), R: num(5) } }) } } }),

@@ -218,10 +218,10 @@ window.ARC_GAMES = (function () {
       hat("a_overlap", { KIND: "Player", KIND2: "Enemy" }, [
         b("a_destroy", { FX: "disintegrate" }, { S: ev("a_ev_other") }),
         b("controls_if", {}, {
-          IF0: { block: b("logic_operation", { OP: "AND" }, {
+          IF0: { block: Object.assign(b("logic_operation", { OP: "AND" }, {
             A: { block: b("logic_compare", { OP: "GT" }, { A: { block: b("a_get", { P: "vy" }, { S: sv("mySprite") }) }, B: num(0) }) },
             B: { block: b("logic_compare", { OP: "LT" }, { A: { block: b("a_get", { P: "y" }, { S: sv("mySprite") }) }, B: { block: b("a_get", { P: "y" }, { S: ev("a_ev_other") }) } }) },
-          }) },
+          }), { inline: false }) },
           DO0: { block: seq([b("a_set", { P: "vy" }, { S: sv("mySprite"), V: num(-120) }), b("a_score_change", {}, { V: num(3) })]) },
           ELSE: { block: call() },
         }, { extraState: { hasElse: true } }),

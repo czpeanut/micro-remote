@@ -55,6 +55,11 @@
     .blocklyToolboxDiv { background: #eef2f6 !important; }
     .blocklyTreeLabel, .blocklyToolboxCategoryLabel { color: #1d2b3a !important; font-weight: 700; font-size: 15px; }
     .blocklyFlyoutLabelText { fill: #33475b !important; font-weight: 700; }
+    /* 圖片下拉選單排成格子，不用一直捲 */
+    .blocklyDropDownDiv .blocklyMenu:has(.blocklyMenuItem img) { display: grid !important; grid-template-columns: repeat(6, auto); max-height: none !important; gap: 2px; padding: 6px !important; }
+    .blocklyDropDownDiv .blocklyMenu:has(.blocklyMenuItem img) .blocklyMenuItem { padding: 4px 6px !important; min-width: 0 !important; border-radius: 6px; }
+    .blocklyDropDownDiv .blocklyMenu:has(.blocklyMenuItem img) .blocklyMenuItemCheckbox { display: none !important; }
+    .blocklyDropDownDiv .blocklyMenu:has(.blocklyMenuItem img) .blocklyMenuItemSelected { background: rgba(255,201,74,.55) !important; outline: 2px solid #ffc94a; }
     .ro .blocklyToolboxDiv, .ro .blocklyFlyout { display: none !important; }
     @media (max-width: 860px) {
       .tabs { display: flex; gap: 6px; }

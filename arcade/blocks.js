@@ -169,6 +169,13 @@ window.ArcBlocks = (function () {
   let ready = false;
   function init() {
     if (ready) return; ready = true;
+    // 小朋友比較好懂的說法（和 MakeCode 中文版接近）
+    Object.assign(Blockly.Msg, {
+      LOGIC_OPERATION_AND: "且", LOGIC_OPERATION_OR: "或", VARIABLES_SET: "變數 %1 設為 %2", MATH_CHANGE_TITLE: "變數 %1 改變 %2",
+      CONTROLS_FOREACH_TITLE: "對於 %2 中的每個 %1", PROCEDURES_DEFNORETURN_TITLE: "函式", PROCEDURES_DEFNORETURN_PROCEDURE: "做點什麼",
+      CONTROLS_IF_MSG_THEN: "那麼", CONTROLS_REPEAT_INPUT_DO: "執行", MATH_RANDOM_INT_TITLE: "隨機取數 %1 到 %2",
+      NEW_VARIABLE: "建立變數…", PROCEDURES_CALLNORETURN_HELPURL: "",
+    });
     Blockly.common.defineBlocksWithJsonArray(defs());
     generators(javascript.javascriptGenerator, javascript.Order);
   }

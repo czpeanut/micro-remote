@@ -119,23 +119,25 @@
   const B = (type, inputs) => ({ kind: "block", type, inputs });
   const N = (n) => ({ shadow: { type: "math_number", fields: { NUM: n } } });
   const SEA = LESSON === 7
-    ? [B("ds_sea"), B("ds_hide"), B("ds_dist"), B("ds_radar"), B("ds_beep"), B("ds_found")]
+    ? [B("ds_start"), B("ds_sea"), B("ds_hide"), B("ds_dist"), B("ds_beep"), B("ds_found")]
     : [B("ds_start"), B("ds_tilt"), B("ds_onradar"), B("ds_strength"), B("ds_draw", { N: N(2) }), B("ds_onweb"), B("ds_ping")];
   const TOOLBOX = { kind: "categoryToolbox", contents: [
     { kind: "category", name: "基本", colour: C.basic, contents: [B("mb_start"), B("mb_forever"), B("mb_icon"), B("mb_arrow"), B("mb_number", { N: N(0) }), B("mb_string", { T: { shadow: { type: "text", fields: { TEXT: "Hi" } } } }), B("mb_clear"), B("mb_pause", { MS: N(100) })] },
     { kind: "category", name: "輸入", colour: C.input, contents: [B("mb_button"), B("mb_shake"), B("mb_accel")] },
     { kind: "category", name: "LED", colour: C.led, contents: [B("mb_plot", { X: N(0), Y: N(0) }), B("mb_unplot", { X: N(0), Y: N(0) }), B("mb_plotb", { X: N(0), Y: N(0), V: N(255) }), B("mb_bar", { V: N(0), H: N(10) })] },
     { kind: "category", name: "深海探險", colour: C.sea, contents: SEA },
-    { kind: "category", name: "邏輯", colour: C.logic, contents: [B("controls_if"), { kind: "block", type: "controls_if", extraState: { hasElse: true } }, B("logic_compare", { A: N(0), B: N(0) }), B("logic_operation"), B("logic_negate"), B("logic_boolean")] },
+    { kind: "category", name: "邏輯", colour: C.logic, contents: [B("controls_if"), { kind: "block", type: "controls_if", extraState: { hasElse: true } }, { kind: "block", type: "controls_if", extraState: { elseIfCount: 1, hasElse: true } }, B("logic_compare", { A: N(0), B: N(0) }), B("logic_operation"), B("logic_negate"), B("logic_boolean")] },
     { kind: "category", name: "迴圈", colour: C.loops, contents: [B("controls_repeat_ext", { TIMES: N(4) }), B("controls_whileUntil")] },
     { kind: "category", name: "變數", colour: C.vars, custom: "VARIABLE" },
     { kind: "category", name: "數學", colour: C.math, contents: [B("math_number"), B("math_arithmetic", { A: N(0), B: N(0) }), B("math_random_int", { FROM: N(0), TO: N(10) }), B("math_constrain", { VALUE: N(0), LOW: N(0), HIGH: N(10) }), { kind: "block", type: "math_single", fields: { OP: "ABS" }, inputs: { NUM: N(0) } }] },
   ] };
 
   // ---------------- 參考解答 ----------------
+  const cmp = (op, n) => `<block type="logic_compare"><field name="OP">${op}</field><value name="A"><shadow type="math_number"><field name="NUM">0</field></shadow><block type="ds_dist"></block></value><value name="B"><shadow type="math_number"><field name="NUM">${n}</field></shadow></value></block>`;
   const ANSWER = LESSON === 7 ? `<xml xmlns="https://developers.google.com/blockly/xml">
-  <block type="mb_start" x="20" y="20"><statement name="DO"><block type="ds_sea"><next><block type="ds_hide"><next><block type="ds_beep"><next><block type="ds_radar"></block></next></block></next></block></next></block></statement></block>
-  <block type="ds_found" x="20" y="320"><statement name="DO"><block type="mb_icon"><field name="I">Diamond</field><next><block type="mb_pause"><value name="MS"><shadow type="math_number"><field name="NUM">500</field></shadow></value></block></next></block></statement></block>
+  <block type="mb_start" x="20" y="20"><statement name="DO"><block type="ds_start"><next><block type="ds_sea"><next><block type="ds_hide"><next><block type="ds_beep"></block></next></block></next></block></next></block></statement></block>
+  <block type="mb_forever" x="20" y="250"><statement name="DO"><block type="controls_if"><mutation elseif="1" else="1"></mutation><value name="IF0">${cmp("LT", 3)}</value><statement name="DO0"><block type="mb_icon"><field name="I">Heart</field></block></statement><value name="IF1">${cmp("LT", 6)}</value><statement name="DO1"><block type="mb_icon"><field name="I">SmallHeart</field></block></statement><statement name="ELSE"><block type="mb_clear"></block></statement></block></statement></block>
+  <block type="ds_found" x="20" y="560"><statement name="DO"><block type="mb_icon"><field name="I">Diamond</field></block></statement></block>
 </xml>` : `<xml xmlns="https://developers.google.com/blockly/xml">
   <variables><variable id="score">分數</variable></variables>
   <block type="mb_start" x="20" y="20"><statement name="DO"><block type="ds_start"><next><block type="ds_tilt"></block></next></block></statement></block>
@@ -279,7 +281,7 @@
     const answer = /[?&]answer=1/.test(location.search);
     let saved = null; try { saved = localStorage.getItem(KEY); } catch (e) {}
     const load = (xml) => Blockly.Xml.domToWorkspace(Blockly.utils.xml.textToDom(xml), ws);
-    if (answer) load(ANSWER);
+    if (answer) { load(ANSWER); ws.cleanUp(); }
     else if (saved) { try { Blockly.serialization.workspaces.load(JSON.parse(saved), ws); } catch (e) { load('<xml><block type="mb_start" x="20" y="20"></block></xml>'); } }
     else load('<xml><block type="mb_start" x="20" y="20"></block></xml>');
     let t = 0;

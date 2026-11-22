@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0d1b2a" />
+  <title>深海探險 積木工坊</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <style>
+    :root { --ink: #eef5ff; --muted: #9db3c8; --line: rgba(160,210,255,.18); --bar: #0d1b2a; --panel: #13263a; --amber: #ffc94a; --coral: #ff6f6f; --ok: #3ee69a; --sea: #0E7C86; }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; height: 100%; background: #08131e; color: var(--ink); overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif; }
+    .btn { border: 1px solid rgba(95,225,255,.45); background: rgba(95,225,255,.12); color: var(--ink); font: 700 14px/1 inherit; font-family: inherit; padding: 9px 14px; border-radius: 999px; cursor: pointer; white-space: nowrap; text-decoration: none; display: inline-flex; gap: 6px; align-items: center; }
+    .btn.go { background: #2fbf71; border-color: #2fbf71; color: #04210f; }
+    .btn.amber { background: var(--amber); border-color: var(--amber); color: #2b1d00; }
+    .btn.small { padding: 7px 11px; font-size: 13px; }
+    #app { position: fixed; inset: 0; display: flex; flex-direction: column; }
+    .bar { flex: none; display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--bar); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+    .bar b { font-size: 18px; }
+    .grow { flex: 1; }
+    .conn { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .mbstate { font-size: 13px; color: var(--muted); max-width: 360px; }
+    .mbstate.ok { color: var(--ok); font-weight: 700; } .mbstate.bad { color: var(--coral); font-weight: 700; } .mbstate.wait { color: var(--amber); }
+    .steps { display: flex; gap: 6px; margin: 0; padding: 0; list-style: none; font-size: 12.5px; color: var(--muted); }
+    .steps li { padding: 5px 9px; border-radius: 8px; background: rgba(255,255,255,.05); border: 1px solid transparent; }
+    .steps li b { color: var(--ink); margin-right: 3px; }
+    .steps li.now { border-color: var(--amber); color: var(--ink); background: rgba(255,201,74,.12); }
+    .steps li.done { border-color: rgba(62,230,154,.5); color: var(--ok); }
+    .main { flex: 1; display: flex; min-height: 0; }
+    #blockly { flex: 1; min-width: 0; }
+    .side { flex: none; width: min(46vw, 560px); background: var(--panel); border-left: 1px solid var(--line); display: flex; flex-direction: column; padding: 10px; gap: 10px; overflow-y: auto; }
+    .gamebox { position: relative; width: 100%; aspect-ratio: 4 / 3; border-radius: 10px; overflow: hidden; border: 3px solid #2b4560; background: #061420; }
+    #game { width: 1024px; height: 768px; border: 0; display: block; transform-origin: 0 0; }
+    .cover { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; background: rgba(8,19,30,.8); text-align: center; padding: 16px; }
+    .cover[hidden] { display: none; }
+    .cover p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.6; }
+    .ctl { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .auto { font-size: 13px; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+    .mb { display: flex; gap: 14px; align-items: center; justify-content: center; background: #0b1a26; border-radius: 12px; padding: 12px; position: relative; }
+    .mb .pad button { width: 54px; height: 54px; border-radius: 50%; border: 2px solid rgba(255,255,255,.35); background: #c2502e; color: #fff; font: 900 18px/1 system-ui; cursor: pointer; touch-action: none; }
+    .mb .pad button.s { background: #4b6584; font-size: 12px; }
+    #leds { display: grid; grid-template-columns: repeat(5, 22px); gap: 7px; padding: 12px; background: #1b2b3a; border-radius: 10px; }
+    #leds i { width: 22px; height: 22px; border-radius: 4px; background: #33485c; display: block; }
+    #ledText { position: absolute; left: 50%; bottom: 4px; transform: translateX(-50%); font-size: 12px; color: var(--amber); }
+    .err { background: rgba(255,111,111,.15); border: 1px solid rgba(255,111,111,.5); color: #ffd3d3; padding: 8px 12px; border-radius: 8px; font-size: 13px; }
+    .tip { font-size: 12.5px; color: var(--muted); line-height: 1.7; }
+    .tip b { color: var(--ink); }
+    [hidden] { display: none !important; }
+    .blocklyToolboxDiv { background: #eef2f6 !important; }
+    .blocklyTreeLabel, .blocklyToolboxCategoryLabel { color: #1d2b3a !important; font-weight: 700; font-size: 15px; }
+    body.big .side { width: 72vw; }
+    @media (max-width: 860px) { .side { width: 48vw; } .steps { display: none; } }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="bar">
+      <a class="btn small" href="index.html#t1">←</a>
+      <b id="title">深海探險</b>
+      <ol class="steps" id="steps">
+        <li><b>①</b>按「連接 micro:bit」選你的板子</li>
+        <li><b>②</b>micro:bit 自動重新開機成接收端，網頁自動連回</li>
+        <li><b>③</b>看到「已就緒」，拼積木按執行</li>
+      </ol>
+      <div class="grow"></div>
+      <div class="conn">
+        <span class="mbstate" id="mbState">未連接</span>
+        <button class="btn amber" id="connBtn">連接 micro:bit</button>
+        <button class="btn small" id="byeBtn" hidden title="下課時按：micro:bit 回到第六堂自己寫的遊戲">讓 micro:bit 回到自己的遊戲</button>
+      </div>
+    </div>
+    <div class="main">
+      <div id="blockly"></div>
+      <div class="side">
+        <div class="gamebox">
+          <iframe id="game" title="遊戲" allow="bluetooth"></iframe>
+          <div class="cover" id="cover"><p>拼好積木，按「執行」就開始<br>沒有 micro:bit 也可以用下面的 A、B 鈕試</p><button class="btn go" id="coverRun">▶ 執行</button></div>
+        </div>
+        <div class="ctl">
+          <button class="btn go" id="runBtn">▶ 執行</button>
+          <button class="btn" id="stopBtn">■ 停止</button>
+          <label class="auto"><input type="checkbox" id="autoRun" checked /> 改積木就重新執行</label>
+          <div class="grow"></div>
+          <button class="btn small" id="bigBtn">放大遊戲</button>
+          <button class="btn small" id="resetBtn">清空積木</button>
+        </div>
+        <div class="err" id="err" hidden></div>
+        <div class="mb">
+          <div class="pad"><button data-btn="A">A</button></div>
+          <div id="leds"></div>
+          <div class="pad" style="display:flex;flex-direction:column;gap:8px"><button data-btn="B">B</button><button class="s" data-btn="AB">A+B</button></div>
+          <span id="ledText" hidden></span>
+        </div>
+        <div class="tip">
+          <b>上課前：</b>micro:bit 裡要有第六堂下載的程式。<br>
+          <b>連接時：</b>按「連接 micro:bit」後，micro:bit 會<b>自己重新開機一次</b>（中間亮一個點），等網頁自動連回，<b>不要按重設鈕、不要拔電</b>。<br>
+          <b>下課後：</b>按「讓 micro:bit 回到自己的遊戲」，或拔電再接上，micro:bit 就變回第六堂的遊戲。
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="vendor/blockly/blockly_compressed.js"></script>
+  <script src="vendor/blockly/blocks_compressed.js"></script>
+  <script src="vendor/blockly/javascript_compressed.js"></script>
+  <script src="vendor/blockly/msg/zh-hant.js"></script>
+  <script src="mbrun.js"></script>
+  <script src="mbcode.js"></script>
+</body>
+</html>

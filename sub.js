@@ -84,6 +84,7 @@ async function connect() {
   }
 }
 function send(word) {
+  if (BRIDGE) { window.parent.postMessage({ kd: "toMb", word }, "*"); log(`送出 ${word}#`, "s"); return; }
   if (!rxChar) return;
   const data = new TextEncoder().encode(word + "#");
   sending = sending.then(async () => {
@@ -93,6 +94,14 @@ function send(word) {
       log(`送出 ${word}#`, "s");
     } catch (err) { log(`送出失敗 ${err.message || err}`, "e"); }
   });
+}
+/* 嵌在積木工坊（mbcode.html）裡：訊息改走網頁上的積木程式（第七、八堂，不用 MakeCode） */
+const BRIDGE = window.parent !== window && /[?&]bridge=1/.test(location.search);
+if (BRIDGE) {
+  rxChar = { bridge: true };
+  window.addEventListener("message", (e) => { if (e.data && e.data.kd === "fromMb") receive(String(e.data.text)); });
+  const mark = () => { setStatus("on", "（積木程式）"); const b = $("connectBtn"); if (b) b.hidden = true; };
+  window.addEventListener("load", () => setTimeout(mark, 300)); setTimeout(mark, 0);
 }
 let lastLogIn = 0;
 function receive(chunk) {

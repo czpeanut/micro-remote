@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>接收端檢查</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <style>
+    body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #08131e; color: #eef5ff; font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", sans-serif; }
+    .box { width: min(560px, 92vw); background: #13263a; border: 1px solid rgba(160,210,255,.18); border-radius: 16px; padding: 26px; text-align: center; }
+    h1 { margin: 0 0 8px; font-size: 24px; } p { color: #9db3c8; line-height: 1.7; margin: 0 0 14px; }
+    button { border: 0; background: #ffc94a; color: #2b1d00; font: 800 18px/1 inherit; font-family: inherit; padding: 14px 26px; border-radius: 999px; cursor: pointer; }
+    #res { margin-top: 18px; font-size: 20px; font-weight: 800; min-height: 28px; }
+    .ok { color: #3ee69a; } .bad { color: #ff6f6f; } .wait { color: #ffc94a; }
+    a { color: #5fe1ff; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>第六堂下課前：檢查接收端</h1>
+    <p>按下面的按鈕，選你的 micro:bit。<br>這個檢查只會問一下，<b>不會改掉</b>你第六堂寫的程式。</p>
+    <button id="go">檢查我的 micro:bit</button>
+    <div id="res"></div>
+    <p id="next" style="margin-top:14px"></p>
+  </div>
+  <script src="mbrun.js"></script>
+  <script>
+    const res = document.getElementById("res"), next = document.getElementById("next");
+    document.getElementById("go").onclick = () => MBRun.connect({ checkOnly: true });
+    MBRun.on("state", (s, note, name) => {
+      res.className = s === "checked" ? "ok" : s === "old" ? "bad" : s === "off" ? "" : "wait";
+      res.textContent = s === "checked" ? "通過：" + note : note || "";
+      next.innerHTML = s === "checked" ? `${name || ""}　第七、八堂直接用這片 micro:bit 就好，不用再下載。`
+        : s === "old" ? "請打開老師給的「第六課 起始專案」重新寫一次並下載；或請老師幫忙。" : "";
+    });
+  </script>
+</body>
+</html>

@@ -144,12 +144,21 @@ async function connect() {
   } catch (err) { if (!err || err.name !== "NotFoundError") log(`連接失敗：${(err && err.message) || err}`, "e"); setStatus("off"); }
 }
 function send(word) {
+  if (BRIDGE) { window.parent.postMessage({ kd: "toMb", word }, "*"); log(`送出 ${word}#`, "s"); return; }
   if (!rxChar) { log(`（未連接）${word}#`, "s"); return; }
   const data = new TextEncoder().encode(word + "#");
   sending = sending.then(async () => {
     try { if (rxChar.properties && rxChar.properties.writeWithoutResponse) await rxChar.writeValueWithoutResponse(data); else await rxChar.writeValue(data); log(`送出 ${word}#`, "s"); }
     catch (err) { log(`送出失敗 ${err.message || err}`, "e"); }
   });
+}
+/* 嵌在積木工坊（mbcode.html）裡：訊息改走網頁上的積木程式（第七、八堂，不用 MakeCode） */
+const BRIDGE = window.parent !== window && /[?&]bridge=1/.test(location.search);
+if (BRIDGE) {
+  rxChar = { bridge: true };
+  window.addEventListener("message", (e) => { if (e.data && e.data.kd === "fromMb") receive(String(e.data.text)); });
+  const mark = () => { setStatus("on", "（積木程式）"); const b = $("connectBtn"); if (b) b.hidden = true; };
+  window.addEventListener("load", () => setTimeout(mark, 300)); setTimeout(mark, 0);
 }
 function log(t, cls) { const el = $("log"), d = document.createElement("div"); if (cls) d.className = cls; d.textContent = t; el.appendChild(d); while (el.childNodes.length > 6) el.removeChild(el.firstChild); }
 function receive(chunk) {

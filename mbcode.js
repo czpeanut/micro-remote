@@ -277,7 +277,11 @@
     });
     Blockly.common.defineBlocksWithJsonArray(defs());
     generators(javascript.javascriptGenerator, javascript.Order);
-    ws = Blockly.inject("blockly", { toolbox: TOOLBOX, renderer: "zelos", trashcan: true, sounds: false, media: "vendor/blockly/media/", zoom: { controls: true, startScale: 0.8, wheel: true }, move: { scrollbars: true, drag: true, wheel: true } });
+    // 內建積木的顏色和 MakeCode 一樣（Blockly 11 用主題設定）
+    const theme = Blockly.Theme.defineTheme("kdmb", { base: Blockly.Themes.Classic, blockStyles: {
+      logic_blocks: { colourPrimary: C.logic }, loop_blocks: { colourPrimary: C.loops }, math_blocks: { colourPrimary: C.math },
+      variable_blocks: { colourPrimary: C.vars }, variable_dynamic_blocks: { colourPrimary: C.vars }, text_blocks: { colourPrimary: "#B8860B" } } });
+    ws = Blockly.inject("blockly", { theme, toolbox: TOOLBOX, renderer: "zelos", trashcan: true, sounds: false, media: "vendor/blockly/media/", zoom: { controls: true, startScale: 0.8, wheel: true }, move: { scrollbars: true, drag: true, wheel: true } });
     const answer = /[?&]answer=1/.test(location.search);
     let saved = null; try { saved = localStorage.getItem(KEY); } catch (e) {}
     const load = (xml) => Blockly.Xml.domToWorkspace(Blockly.utils.xml.textToDom(xml), ws);

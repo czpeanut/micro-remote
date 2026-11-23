@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>複製擴展網址｜酷丁狐的科技實驗室</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="stylesheet" href="kuding.css" />
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body { background: var(--kd-paper); color: var(--kd-ink); font-family: var(--kd-font); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 24px 16px; text-align: center;
+      background-image: linear-gradient(var(--kd-grid) 1px, transparent 1px), linear-gradient(90deg, var(--kd-grid) 1px, transparent 1px); background-size: 24px 24px; }
+    .tag { display: inline-block; background: var(--kd-ink); color: var(--kd-mustard); padding: 4px 10px; font: 700 13px/1.4 var(--kd-mono); letter-spacing: .08em; }
+    h1 { font-size: clamp(26px, 6vw, 40px); font-weight: 900; margin: 12px 0 18px; }
+    .copy { width: min(520px, 100%); border: 3px solid var(--kd-ink); background: var(--kd-orange); color: #fff; box-shadow: 8px 8px 0 var(--kd-ink); padding: 26px 18px; cursor: pointer; font-family: var(--kd-font); display: flex; flex-direction: column; gap: 10px; align-items: center; }
+    .copy b { font-size: clamp(28px, 7vw, 40px); font-weight: 900; }
+    .copy span { font: 700 15px/1.3 var(--kd-mono); background: rgba(0,0,0,.18); padding: 6px 10px; overflow-wrap: anywhere; }
+    .copy:active { transform: translate(3px, 3px); box-shadow: 5px 5px 0 var(--kd-ink); }
+    .copy.done { background: var(--kd-olive); }
+    ol { text-align: left; width: min(520px, 100%); margin: 30px 0 0; padding: 18px 18px 18px 44px; background: var(--kd-paper-2); border: 3px solid var(--kd-ink); font-size: 18px; line-height: 2; }
+    ol b { color: var(--kd-orange); }
+    #manual { width: min(520px, 100%); margin-top: 18px; font-size: 15px; line-height: 1.7; color: var(--kd-ink-2); }
+    #manual code { display: block; margin-top: 8px; padding: 12px; background: #fff; border: 2px solid var(--kd-ink); font: 700 16px/1.4 var(--kd-mono); user-select: all; -webkit-user-select: all; overflow-wrap: anywhere; }
+  </style>
+</head>
+<body>
+  <span class="tag">主題1 深海探險</span>
+  <h1>點一下，複製擴展網址</h1>
+  <button class="copy" id="copy" type="button"><b id="copyMain">複製擴展網址</b><span>https://github.com/czpeanut/pxt-deepsea</span></button>
+  <div id="manual" hidden>這台平板不能自動複製：<b>長按下面的網址 → 拷貝</b><code id="url">https://github.com/czpeanut/pxt-deepsea</code></div>
+  <ol>
+    <li>按上面的<b>橘色按鈕</b>，出現「已複製」</li>
+    <li>回到 <b>micro:bit App</b>，按「擴展」</li>
+    <li><b>長按搜尋框 → 貼上</b>，點 deepsea 卡片</li>
+  </ol>
+  <script>
+    const EXT = "https://github.com/czpeanut/pxt-deepsea";
+    async function copyExt() {
+      try { await navigator.clipboard.writeText(EXT); return true; } catch (e) {}
+      const ta = document.createElement("textarea"); ta.value = EXT; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, EXT.length);
+      let ok = false; try { ok = document.execCommand("copy"); } catch (e) {}
+      document.body.removeChild(ta); return ok;
+    }
+    const btn = document.getElementById("copy");
+    btn.onclick = async () => {
+      if (await copyExt()) {
+        btn.classList.add("done"); document.getElementById("copyMain").textContent = "已複製 ✓ 回 App 貼上";
+      } else {
+        document.getElementById("manual").hidden = false;
+        const r = document.createRange(); r.selectNodeContents(document.getElementById("url")); const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+      }
+    };
+  </script>
+</body>
+</html>

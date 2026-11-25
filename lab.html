@@ -91,6 +91,33 @@
       color: var(--amber); text-shadow: 0 4px 20px rgba(0,0,0,.6); pointer-events: none; opacity: 0; transition: opacity .25s, transform .25s; max-width: 90vw; }
     .toast.show { opacity: 1; transform: translate(-50%, -10px); }
     .keys { position: fixed; right: 18px; bottom: 190px; font-size: 12px; color: var(--muted); text-align: right; line-height: 1.7; pointer-events: none; }
+    /* ---------- 並排模式（像 MakeCode Arcade：左邊遊戲、右邊積木） ---------- */
+    :root { --simw: 42vw; }
+    .splitOnly { display: none !important; }
+    body.split .splitOnly { display: inline-flex !important; }
+    body.split .fullOnly { display: none !important; }
+    body.split #editor { left: var(--simw); }
+    body.split #game { display: block !important; position: fixed; left: 0; top: 0; bottom: 0; width: var(--simw); transform: translateZ(0); overflow: hidden;
+      border-right: 4px solid #0b2b42; }
+    body.split #game canvas { width: 100%; height: 100%; }
+    body.split .hud { padding: 10px; gap: 8px; flex-wrap: wrap; }
+    body.split .hud .chip { padding: 6px 10px; }
+    body.split .hud .chip .status { display: none; }
+    body.split .stat { min-width: 52px; padding: 4px 8px; }
+    body.split .stat span { font-size: 18px; }
+    body.split .log, body.split .keys { display: none; }
+    body.split .tip, body.split .bar .brand small { display: none; }
+    body.split .toast { font-size: 22px; }
+    body.split .card { padding: 18px; }
+    body.split .card h1 { font-size: 24px; }
+    body.split .card .big { font-size: 34px; margin: 4px 0 10px; }
+    body.split .errs { max-width: 38vw; font-size: 12px; }
+    .simbar { position: absolute; left: 0; right: 0; bottom: 0; display: none; gap: 8px; justify-content: center; padding: 10px; z-index: 6;
+      background: linear-gradient(transparent, rgba(1,8,15,.75)); }
+    body.split .simbar { display: flex; }
+    .live { position: absolute; left: 10px; bottom: 58px; z-index: 6; font-size: 12px; color: var(--muted); display: none; }
+    body.split .live { display: block; }
+    @media (max-width: 899px) { body.split #editor { left: 0; } body.split #game { display: none !important; } }
     @media (max-width: 760px) { .tip { display: none; } .stat { min-width: 54px; } .stat span { font-size: 18px; } }
   </style>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -111,6 +138,7 @@
       <input type="file" id="fileIn" accept=".json,application/json" hidden />
       <span class="grow"></span>
       <span class="dot" id="dot"></span><span class="status" id="status">未連接</span>
+      <button class="btn ghost" id="splitBtn" title="左邊遊戲、右邊積木，改了規則馬上重新開始">並排模式</button>
       <button class="btn" id="connectBtn">連接 micro:bit</button>
       <button class="btn primary" id="playBtn">開始遊戲</button>
     </div>
@@ -120,7 +148,8 @@
         <b>怎麼玩</b><br>
         1. 從左邊拖出「事件」積木，例如「當遊戲開始」。<br>
         2. 把動作積木放進事件裡面。<br>
-        3. 按右上角「開始遊戲」下水測試。<br>
+        3. 並排模式：左邊的遊戲會照新規則自動重來。<br>
+        &nbsp;&nbsp;&nbsp;沒有並排時，按「開始遊戲」下水。<br>
         <b>操作</b>：micro:bit 傾斜，或鍵盤方向鍵；按鈕 A／空白鍵。<br>
         規則會自動保存在這台電腦。
       </div>
@@ -141,13 +170,18 @@
       </div>
       <div class="right">
         <button class="btn ghost" id="soundBtn">音效 開</button>
-        <button class="btn" id="backBtn">回到規則編輯</button>
+        <button class="btn fullOnly" id="backBtn">回到規則編輯</button>
       </div>
     </div>
     <div class="keys">方向鍵：駕駛　空白鍵：按鈕 A<br><label><input type="checkbox" id="invertY" /> 上下相反</label></div>
     <div class="toast" id="toast"></div>
     <div class="log" id="log"></div>
     <div class="errs" id="errs" hidden></div>
+    <div class="live" id="live">改了積木，遊戲會自動重新開始</div>
+    <div class="simbar">
+      <button class="btn primary" id="restartBtn">重新開始</button>
+      <button class="btn" id="bigBtn">放大遊戲</button>
+    </div>
     <div class="overlay" id="endOv" hidden>
       <div class="card">
         <h1 id="endTitle">遊戲結束</h1>

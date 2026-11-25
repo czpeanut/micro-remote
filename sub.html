@@ -54,6 +54,7 @@
     .mode:hover { border-color: var(--cyan); background: rgba(95,225,255,.08); }
     .mode b { display: block; font-size: 19px; margin-bottom: 6px; }
     .mode .tag { display: inline-block; font-size: 11px; color: #2b1d00; background: var(--amber); border-radius: 6px; padding: 1px 6px; margin-bottom: 8px; }
+    .mode.lab { grid-column: 1 / -1; }
     .mode p { margin: 0; font-size: 13px; line-height: 1.7; color: var(--muted); }
     .how { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; font-size: 13px; color: var(--muted); margin-bottom: 16px; }
     .how div { background: rgba(255,255,255,.04); border-radius: 12px; padding: 10px 12px; line-height: 1.6; }
@@ -88,6 +89,7 @@
     </div>
     <div class="right">
       <button class="btn ghost" id="soundBtn" title="音效">音效 開</button>
+      <button class="btn ghost" id="labBtn" title="用積木改遊戲規則">規則實驗室</button>
       <button class="btn" id="connectBtn">連接 micro:bit</button>
     </div>
   </div>
@@ -100,6 +102,7 @@
       <div class="modes">
         <button class="mode" id="modeDrive"><span class="tag">第六堂</span><b>駕駛訓練</b><p>左右傾斜：前進／後退<br>前後傾斜：下潛／上浮<br>90 秒內收集發光珍珠，小心岩石！</p></button>
         <button class="mode" id="modeHunt"><span class="tag">第八堂</span><b>雙屏尋寶</b><p>寶藏藏在黑暗的海底。<br>看 micro:bit 的雷達找寶藏，<br>按 A 發射聲納（3 次）。120 秒。</p></button>
+        <button class="mode lab" id="modeLab"><span class="tag">進階</span><b>規則實驗室</b><p>左邊玩遊戲、右邊拼積木，改了規則馬上重新開始。<br>放出水母、改分數、設定倒數，遊戲規則自己訂。</p></button>
       </div>
       <div class="how">
         <div><b>micro:bit 送出</b><br>x:數字　y:數字<br>（藍牙串口 寫入值）</div>

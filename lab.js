@@ -307,7 +307,7 @@ function initEditor() {
     if (h.endsWith("sprites.png")) { im.setAttribute("href", window.BLOCKLY_SPRITES); im.setAttributeNS("http://www.w3.org/1999/xlink", "href", window.BLOCKLY_SPRITES); }
   });
   let t = 0;
-  ws.addChangeListener((e) => { if (e.isUiEvent) return; clearTimeout(t); t = setTimeout(saveLocal, 400); });
+  ws.addChangeListener((e) => { if (e.isUiEvent) return; clearTimeout(t); t = setTimeout(saveLocal, 400); liveRestart(); });
   const sel = $("tplSel");
   sel.innerHTML = `<option value="">範例規則…</option>` + TEMPLATES.map((x) => `<option value="${x.id}">${x.name}</option>`).join("");
   sel.onchange = () => { loadTemplate(sel.value); sel.value = ""; };
@@ -327,6 +327,7 @@ function initEditor() {
   };
   $("tipX").onclick = () => ($("tip").hidden = true);
   $("playBtn").onclick = () => startGame();
+  $("splitBtn").onclick = () => setSplit(!SPLIT, { remember: true });
   // 恢復上次的積木
   let ok = false;
   const saved = store(STORE);
@@ -493,17 +494,21 @@ async function connect() {
   if (!navigator.bluetooth) { info("這個瀏覽器不支援藍牙：電腦請用 Chrome 或 Edge，iPad 用 Bluefy。也可以用方向鍵試玩。", true); return; }
   try {
     setStatus("wait");
-    device = await navigator.bluetooth.requestDevice({ filters: [{ services: [NUS] }, { namePrefix: "BBC micro:bit" }], optionalServices: [NUS] });
-    device.addEventListener("gattserverdisconnected", () => { rxChar = null; setStatus("off"); log("已中斷連接", "e"); });
-    const svc = await nusService(device);
-    const ch = await nusChars(svc); rxChar = ch.rx; const tx = ch.tx;
-    await tx.startNotifications();
-    tx.addEventListener("characteristicvaluechanged", (e) => receive(new TextDecoder().decode(e.target.value)));
-    setStatus("on", device.name); log(`已連接 ${device.name || "micro:bit"}`); S.lastSent = -1;
+    await linkDevice(await navigator.bluetooth.requestDevice({ filters: [{ services: [NUS] }, { namePrefix: "BBC micro:bit" }], optionalServices: [NUS] }));
   } catch (err) {
     if (!err || err.name !== "NotFoundError") info(`連接失敗：${(err && err.message) || err}`, true);
     setStatus("off");
   }
+}
+async function linkDevice(d) {
+  setStatus("wait");
+  device = d;
+  if (!d._kdWired) { d._kdWired = true; d.addEventListener("gattserverdisconnected", () => { rxChar = null; setStatus("off"); log("已中斷連接", "e"); }); }
+  const svc = await nusService(device);
+  const ch = await nusChars(svc); rxChar = ch.rx; const tx = ch.tx;
+  await tx.startNotifications();
+  tx.addEventListener("characteristicvaluechanged", (e) => receive(new TextDecoder().decode(e.target.value)));
+  setStatus("on", device.name); log(`已連接 ${device.name || "micro:bit"}`); S.lastSent = -1;
 }
 function send(word) {
   if (!rxChar) { log(`（未連接）${word}#`, "s"); return; }
@@ -575,14 +580,37 @@ const sfx = {
 };
 
 // ---------------- 流程 ----------------
+let SPLIT = false, lastCode = null;
 function showView(name) {
+  if (SPLIT) { $("editor").hidden = false; $("game").hidden = false; resize(); setTimeout(() => Blockly.svgResize(ws), 0); return; }
   $("editor").hidden = name !== "editor"; $("game").hidden = name !== "game";
   if (name === "editor") setTimeout(() => Blockly.svgResize(ws), 0); else resize();
 }
-function startGame() {
-  audio();
+// 並排模式（像 MakeCode Arcade）：左邊遊戲、右邊積木，改了規則就自動重新開始
+const canSplit = () => innerWidth >= 900;
+function setSplit(on, opts = {}) {
+  SPLIT = !!on && canSplit();
+  document.body.classList.toggle("split", SPLIT);
+  $("splitBtn").textContent = SPLIT ? "分開模式" : "並排模式";
+  if (opts.remember) store(STORE + ".split", SPLIT ? "1" : "0");
+  if (SPLIT) { showView("game"); startGame({ quiet: true }); }
+  else { S.running = false; $("endOv").hidden = true; showView(opts.view || "editor"); }
+}
+let liveT = 0;
+function liveRestart() {
+  if (!SPLIT) return;
+  clearTimeout(liveT);
+  liveT = setTimeout(() => {
+    if (ws.isDragging && ws.isDragging()) { liveRestart(); return; }
+    let code; try { code = compileRules(); } catch (e) { return; }
+    if (code === lastCode) return;
+    startGame({ quiet: true }); toast("規則改好了，重新開始");
+  }, 700);
+}
+function startGame(opt = {}) {
+  if (!opt.quiet) audio();
   let code;
-  try { code = compileRules(); H = []; new Function("api", '"use strict";\n' + code)(api); }
+  try { code = compileRules(); lastCode = code; H = []; new Function("api", '"use strict";\n' + code)(api); }
   catch (err) { info(`規則有問題：${err.message || err}`, true); return; }
   if (!H.length) info("還沒有任何事件積木，先拖一個「當遊戲開始」吧", true);
   Object.assign(S, { running: true, ended: false, score: 0, left: 0, timeOn: false, lives: 0, livesOn: false, reveal: 0, ripple: -9, flash: 0,
@@ -604,7 +632,11 @@ function endGame(win, text) {
     $("endOv").hidden = false;
   }, 700);
 }
-function backToEditor() { S.running = false; $("endOv").hidden = true; if (S.radar) send("0"); showView("editor"); }
+function backToEditor() {
+  S.running = false; $("endOv").hidden = true; if (S.radar) send("0");
+  if (!SPLIT && store(STORE + ".split") !== "0" && canSplit()) { setSplit(true); return; }
+  showView("editor");
+}
 function hud() {
   $("score").textContent = fmt(S.score);
   $("timeBox").hidden = !S.timeOn; $("time").textContent = Math.ceil(S.left);
@@ -750,7 +782,8 @@ let dpr = 1;
 function scale() { return cv.height / VIEW_H; }
 function resize() {
   dpr = Math.min(2, window.devicePixelRatio || 1);
-  cv.width = Math.round(innerWidth * dpr); cv.height = Math.round(innerHeight * dpr);
+  const r = SPLIT ? $("game").getBoundingClientRect() : { width: innerWidth, height: innerHeight };
+  cv.width = Math.max(1, Math.round(r.width * dpr)); cv.height = Math.max(1, Math.round(r.height * dpr));
   light.width = cv.width; light.height = cv.height;
 }
 function W2S(x, y) { const k = scale(); return [(x - S.cam.x) * k, (y - S.cam.y) * k]; }
@@ -1018,24 +1051,43 @@ function frame(now) {
 }
 function init() {
   buildWorld(); initEditor(); setStatus("off");
-  addEventListener("resize", () => { if (!$("game").hidden) resize(); else Blockly.svgResize(ws); });
+  addEventListener("resize", () => {
+    if (SPLIT && !canSplit()) setSplit(false);
+    if (!$("game").hidden) resize(); if (!$("editor").hidden) Blockly.svgResize(ws);
+  });
+  $("restartBtn").onclick = () => startGame();
+  $("bigBtn").onclick = () => { setSplit(false, { view: "game" }); startGame(); };
   $("connectBtn").onclick = () => (device && device.gatt.connected ? device.gatt.disconnect() : connect());
-  $("backBtn").onclick = backToEditor; $("editBtn").onclick = backToEditor; $("againBtn").onclick = startGame;
+  $("backBtn").onclick = backToEditor; $("editBtn").onclick = () => (SPLIT ? ($("endOv").hidden = true) : backToEditor()); $("againBtn").onclick = startGame;
   $("soundBtn").onclick = () => { S.sound = !S.sound; $("soundBtn").textContent = S.sound ? "音效 開" : "音效 關"; };
   $("invertY").onchange = (e) => { S.invertY = e.target.checked; };
   const keys = {};
   const upd = () => { S.input.key.x = (keys.ArrowRight ? 1 : 0) - (keys.ArrowLeft ? 1 : 0); S.input.key.y = (keys.ArrowUp ? 1 : 0) - (keys.ArrowDown ? 1 : 0); };
   addEventListener("keydown", (e) => {
     if ($("game").hidden) return;
+    const tg = e.target; if (tg && (tg.tagName === "INPUT" || tg.tagName === "TEXTAREA" || tg.isContentEditable)) return;
     if (e.key === " ") { e.preventDefault(); if (!e.repeat) button(); return; }
-    if (e.key === "Escape") { backToEditor(); return; }
+    if (e.key === "Escape") { if (!SPLIT) backToEditor(); return; }
     if (e.key.startsWith("Arrow")) { e.preventDefault(); keys[e.key] = true; upd(); }
   });
   addEventListener("keyup", (e) => { if (e.key.startsWith("Arrow")) { keys[e.key] = false; upd(); } });
   addEventListener("blur", () => { for (const k in keys) keys[k] = false; upd(); });
   hud(); requestAnimationFrame(frame);
+  const q = new URLSearchParams(location.search), pref = store(STORE + ".split");
+  const wantSplit = q.get("split") === "1" || q.get("from") === "sub" || (q.get("split") !== "0" && pref !== "0");
+  if (wantSplit && canSplit()) setSplit(true);
+  if (q.get("from") === "sub") reconnectKnown();
 }
-window.LAB = { S, api, get E() { return E; }, get H() { return H; }, get ws() { return ws; }, TEMPLATES, loadTemplate, startGame, backToEditor, compileRules };
+// 從深海探險按「規則實驗室」過來：之前選過的 micro:bit 試著直接連回（瀏覽器支援才會成功，不行就按「連接 micro:bit」）
+async function reconnectKnown() {
+  try {
+    if (!navigator.bluetooth || !navigator.bluetooth.getDevices) return;
+    const list = await navigator.bluetooth.getDevices();
+    const d = list.find((x) => /micro:bit/i.test(x.name || "")); if (!d) return;
+    await linkDevice(d);
+  } catch (e) { setStatus("off"); }
+}
+window.LAB = { S, api, setSplit, get SPLIT() { return SPLIT; }, get E() { return E; }, get H() { return H; }, get ws() { return ws; }, TEMPLATES, loadTemplate, startGame, backToEditor, compileRules };
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
 
 // micro:bit 的 UART 和 Nordic 標準相反：6e400002 是 micro:bit 送出（indicate），6e400003 才是寫入。

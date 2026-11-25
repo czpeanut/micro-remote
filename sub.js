@@ -103,6 +103,12 @@ if (BRIDGE) {
   const mark = () => { setStatus("on", "（積木程式）"); const b = $("connectBtn"); if (b) b.hidden = true; };
   window.addEventListener("load", () => setTimeout(mark, 300)); setTimeout(mark, 0);
 }
+/* 規則實驗室：遊戲裡也能直接進去（並排模式，左邊遊戲、右邊積木） */
+function openLab() {
+  try { if (device && device.gatt.connected) device.gatt.disconnect(); } catch (e) {}
+  location.href = "lab.html?from=sub" + (/[?&]test=1/.test(location.search) ? "&test=1" : "");
+}
+for (const id of ["labBtn", "modeLab"]) { const el = document.getElementById(id); if (el) { el.onclick = openLab; if (BRIDGE) el.hidden = true; } }
 let lastLogIn = 0;
 function receive(chunk) {
   inbox += chunk;

@@ -253,7 +253,12 @@ const TEMPLATES = (() => {
       H("ocean_touch", { KIND: "mine" }, [x.fx("it", "boom"), x.rm(), x.change("氧氣", -20), x.stat("氧氣", x.vget("氧氣")), x.shake()]),
       H("ocean_touch", { KIND: "treasure" }, [x.score(1), x.send("g"), x.sound("win"), x.rm(), x.spawn(1, "treasure", "far"), x.spawn(2, "mine", "random")]),
     ]) },
-    { id: "free", name: "自由創作", xml: xml([H("ocean_start", {}, [x.say("出發！")])]) },
+    // 「新的」：基本規則，遊戲能直接玩（收珍珠、加分、收集 10 顆成功），學生再往上加
+    { id: "free", name: "基本規則（新的）", xml: xml([
+      H("ocean_start", {}, [x.say("出發！"), x.spawn(12, "pearl", "random")]),
+      H("ocean_touch", { KIND: "pearl" }, [x.score(1), x.sound("ding"), x.rm()]),
+      H("ocean_score", { N: 10 }, [x.win("收集 10 顆珍珠！")]),
+    ]) },
   ];
 })();
 
@@ -289,6 +294,16 @@ function arrange() {
 function loadTemplate(id) {
   const t = TEMPLATES.find((x) => x.id === id); if (!t) return;
   loadXml(t.xml); S.title = t.name.split("｜").pop(); store(STORE + ".title", S.title);
+  if (id === "free") {
+    // 「當遊戲開始」自己一欄（往下加積木不會壓到別的），其他事件排在右邊
+    const tops = ws.getTopBlocks(true), st = tops.find((b) => b.type === "ocean_start");
+    if (st) {
+      const mv = (b, x, y) => { const xy = b.getRelativeToSurfaceXY(); b.moveBy(x - xy.x, y - xy.y); };
+      mv(st, 30, 30); let y = 30; const x = 30 + Math.max(st.getHeightWidth().width, 300) + 40;
+      for (const b of tops) if (b !== st) { mv(b, x, y); y += b.getHeightWidth().height + 36; }
+      ws.scroll(0, 0);
+    }
+  }
   info(`已載入：${t.name}（Ctrl+Z 可以復原）`);
 }
 function saveLocal() { try { store(STORE, JSON.stringify(Blockly.serialization.workspaces.save(ws))); } catch (e) {} }
